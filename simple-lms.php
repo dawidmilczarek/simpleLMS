@@ -1,6 +1,6 @@
 <?php
 /**
- * Plugin Name: Simple LMS
+ * Plugin Name: simpleLMS
  * Plugin URI: https://example.com/simple-lms
  * Description: A lightweight LMS plugin for WordPress/WooCommerce that integrates with WooCommerce Memberships and Subscriptions for access control.
  * Version: 1.0.0

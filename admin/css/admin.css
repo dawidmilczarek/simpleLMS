@@ -1,5 +1,5 @@
 /**
- * Simple LMS Admin Styles
+ * simpleLMS Admin Styles
  */
 
 /* General */
@@ -9,20 +9,19 @@
 
 /* Settings Tabs */
 .simple-lms-settings .nav-tab-wrapper {
-    display: flex;
+    display: inline-flex;
     flex-wrap: wrap;
-    gap: 0;
-    border-bottom: 1px solid #c3c4c7;
-    margin-bottom: 20px;
+    border-bottom: none;
+    margin-bottom: 0;
+    background: transparent;
 }
 
 .simple-lms-settings .nav-tab {
     float: none;
     border: 1px solid #c3c4c7;
-    border-bottom: none;
+    border-bottom: 1px solid #c3c4c7;
     margin-left: 0;
     margin-right: -1px;
-    margin-bottom: -1px;
     padding: 10px 15px;
     background: #f0f0f1;
     color: #50575e;
@@ -34,6 +33,10 @@
     border-radius: 3px 0 0 0;
 }
 
+.simple-lms-settings .nav-tab:last-child {
+    border-radius: 0 3px 0 0;
+}
+
 .simple-lms-settings .nav-tab:hover {
     background: #fff;
     color: #135e96;
@@ -41,12 +44,14 @@
 
 .simple-lms-settings .nav-tab-active {
     background: #fff;
-    border-bottom: 1px solid #fff;
+    border-bottom-color: #fff;
     color: #1d2327;
 }
 
 .simple-lms-settings .tab-content {
-    margin-top: 20px;
+    margin-top: -1px;
+    padding-top: 20px;
+    border-top: 1px solid #c3c4c7;
 }
 
 .simple-lms-meta-table th {
@@ -524,12 +529,12 @@ input[type="time"] {
     }
 
     .simple-lms-settings .nav-tab-wrapper {
+        display: flex;
         flex-direction: column;
-        border-bottom: none;
+        width: 100%;
     }
 
     .simple-lms-settings .nav-tab {
-        border: 1px solid #c3c4c7;
         margin-right: 0;
         margin-bottom: -1px;
         border-radius: 0;
@@ -541,10 +546,16 @@ input[type="time"] {
 
     .simple-lms-settings .nav-tab:last-child {
         border-radius: 0 0 3px 3px;
+        border-bottom: 1px solid #c3c4c7;
     }
 
     .simple-lms-settings .nav-tab-active {
-        border-bottom: 1px solid #c3c4c7;
         background: #fff;
+        border-bottom-color: #c3c4c7;
+    }
+
+    .simple-lms-settings .tab-content {
+        border-top: none;
+        margin-top: 20px;
     }
 }

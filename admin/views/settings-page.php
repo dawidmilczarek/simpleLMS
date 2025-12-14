@@ -13,7 +13,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 $active_tab = isset( $_GET['tab'] ) ? sanitize_key( $_GET['tab'] ) : 'general';
 ?>
 <div class="wrap simple-lms-settings">
-    <h1><?php esc_html_e( 'Simple LMS Settings', 'simple-lms' ); ?></h1>
+    <h1><?php esc_html_e( 'simpleLMS Settings', 'simple-lms' ); ?></h1>
 
     <nav class="nav-tab-wrapper">
         <a href="<?php echo esc_url( admin_url( 'admin.php?page=simple-lms-settings&tab=general' ) ); ?>" class="nav-tab <?php echo 'general' === $active_tab ? 'nav-tab-active' : ''; ?>">

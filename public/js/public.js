@@ -1,5 +1,5 @@
 /**
- * Simple LMS Public JavaScript
+ * simpleLMS Public JavaScript
  */
 (function($) {
     'use strict';

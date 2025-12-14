@@ -36,7 +36,7 @@ class LMS_Admin {
     public function add_admin_menu() {
         // Main menu - points to courses list.
         add_menu_page(
-            __( 'Simple LMS', 'simple-lms' ),
+            __( 'simpleLMS', 'simple-lms' ),
             __( 'simpleLMS', 'simple-lms' ),
             'edit_posts',
             'simple-lms',
@@ -174,7 +174,7 @@ class LMS_Admin {
      * @param string $hook Current admin page.
      */
     public function enqueue_scripts( $hook ) {
-        // Check if we're on a Simple LMS admin page.
+        // Check if we're on a simpleLMS admin page.
         $lms_pages = array(
             'toplevel_page_simple-lms',
             'simplelms_page_simple-lms-add',

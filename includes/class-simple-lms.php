@@ -159,7 +159,7 @@ class Simple_LMS {
         if ( ! class_exists( 'WooCommerce' ) ) {
             ?>
             <div class="notice notice-warning">
-                <p><?php esc_html_e( 'Simple LMS: WooCommerce is not active. Some features may not work correctly.', 'simple-lms' ); ?></p>
+                <p><?php esc_html_e( 'simpleLMS: WooCommerce is not active. Some features may not work correctly.', 'simple-lms' ); ?></p>
             </div>
             <?php
         }
@@ -173,7 +173,7 @@ class Simple_LMS {
         if ( ! $has_memberships && ! $has_subscriptions ) {
             ?>
             <div class="notice notice-info">
-                <p><?php esc_html_e( 'Simple LMS: Neither WooCommerce Memberships nor WooCommerce Subscriptions is active. Access control features are disabled.', 'simple-lms' ); ?></p>
+                <p><?php esc_html_e( 'simpleLMS: Neither WooCommerce Memberships nor WooCommerce Subscriptions is active. Access control features are disabled.', 'simple-lms' ); ?></p>
             </div>
             <?php
         }
