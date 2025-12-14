@@ -23,6 +23,7 @@ class LMS_Admin {
         add_action( 'admin_init', array( $this, 'register_settings' ) );
         add_action( 'admin_init', array( $this, 'handle_course_form' ) );
         add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
+        add_action( 'admin_bar_menu', array( $this, 'add_admin_bar_menu' ), 100 );
         add_action( 'wp_ajax_simple_lms_save_shortcode_preset', array( $this, 'ajax_save_shortcode_preset' ) );
         add_action( 'wp_ajax_simple_lms_delete_shortcode_preset', array( $this, 'ajax_delete_shortcode_preset' ) );
         add_action( 'wp_ajax_simple_lms_delete_course', array( $this, 'ajax_delete_course' ) );
@@ -75,6 +76,58 @@ class LMS_Admin {
             'simple-lms-settings',
             array( $this, 'render_settings_page' )
         );
+    }
+
+    /**
+     * Add admin bar menu items.
+     *
+     * @param WP_Admin_Bar $wp_admin_bar Admin bar object.
+     */
+    public function add_admin_bar_menu( $wp_admin_bar ) {
+        if ( ! current_user_can( 'edit_posts' ) ) {
+            return;
+        }
+
+        // Main LMS menu.
+        $wp_admin_bar->add_node(
+            array(
+                'id'    => 'simple-lms',
+                'title' => __( 'LMS', 'simple-lms' ),
+                'href'  => admin_url( 'admin.php?page=simple-lms' ),
+            )
+        );
+
+        // Add New Course.
+        $wp_admin_bar->add_node(
+            array(
+                'id'     => 'simple-lms-add',
+                'parent' => 'simple-lms',
+                'title'  => __( 'Add New Course', 'simple-lms' ),
+                'href'   => admin_url( 'admin.php?page=simple-lms-add' ),
+            )
+        );
+
+        // All Courses.
+        $wp_admin_bar->add_node(
+            array(
+                'id'     => 'simple-lms-courses',
+                'parent' => 'simple-lms',
+                'title'  => __( 'All Courses', 'simple-lms' ),
+                'href'   => admin_url( 'admin.php?page=simple-lms' ),
+            )
+        );
+
+        // Edit current course (only on single course page).
+        if ( is_singular( 'simple_lms_course' ) ) {
+            $wp_admin_bar->add_node(
+                array(
+                    'id'     => 'simple-lms-edit',
+                    'parent' => 'simple-lms',
+                    'title'  => __( 'Edit This Course', 'simple-lms' ),
+                    'href'   => admin_url( 'admin.php?page=simple-lms-add&course_id=' . get_the_ID() ),
+                )
+            );
+        }
     }
 
     /**
@@ -579,35 +632,16 @@ class LMS_Admin {
      * @return string
      */
     public static function get_builtin_default_template() {
-        return '<div class="lms-course-single">
-  <div class="lms-course-header">
-    <p>
-      <strong>Wykładowca:</strong> {{LMS_LECTURER}}<br>
-      <strong>Data szkolenia:</strong> {{LMS_DATE}}<br>
-      <strong>Godziny:</strong> {{LMS_TIME}}<br>
-      <strong>Czas trwania:</strong> {{LMS_DURATION}}
-    </p>
-  </div>
+        return '{{#IF_VIDEOS}}
+{{LMS_VIDEOS}}
+{{/IF_VIDEOS}}
 
-  {{#IF_VIDEOS}}
-  <div class="lms-video-section">
-    <h2>Nagrania</h2>
-    {{LMS_VIDEOS}}
-  </div>
-  {{/IF_VIDEOS}}
+{{#IF_CONTENT}}
+{{LMS_CONTENT}}
+{{/IF_CONTENT}}
 
-  {{#IF_CONTENT}}
-  <div class="lms-content-section">
-    {{LMS_CONTENT}}
-  </div>
-  {{/IF_CONTENT}}
-
-  {{#IF_MATERIALS}}
-  <div class="lms-materials-section">
-    <h2>Materiały szkoleniowe</h2>
-    {{LMS_MATERIALS}}
-  </div>
-  {{/IF_MATERIALS}}
-</div>';
+{{#IF_MATERIALS}}
+{{LMS_MATERIALS}}
+{{/IF_MATERIALS}}';
     }
 }

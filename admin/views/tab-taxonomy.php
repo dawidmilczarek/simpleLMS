@@ -134,48 +134,6 @@ if ( isset( $_GET['action'] ) && 'edit' === $_GET['action'] && isset( $_GET['ter
 </div>
 <?php endif; ?>
 
-<div class="taxonomy-list-column">
-    <h2><?php echo esc_html( $plural ); ?></h2>
-
-    <?php if ( ! empty( $terms ) && ! is_wp_error( $terms ) ) : ?>
-    <table class="wp-list-table widefat fixed striped">
-        <thead>
-            <tr>
-                <th><?php esc_html_e( 'Name', 'simple-lms' ); ?></th>
-                <th><?php esc_html_e( 'Slug', 'simple-lms' ); ?></th>
-                <th><?php esc_html_e( 'Count', 'simple-lms' ); ?></th>
-                <th><?php esc_html_e( 'Actions', 'simple-lms' ); ?></th>
-            </tr>
-        </thead>
-        <tbody>
-            <?php foreach ( $terms as $term ) : ?>
-            <tr>
-                <td>
-                    <strong><?php echo esc_html( $term->name ); ?></strong>
-                    <?php if ( $term->description ) : ?>
-                    <p class="description"><?php echo esc_html( wp_trim_words( $term->description, 10 ) ); ?></p>
-                    <?php endif; ?>
-                </td>
-                <td><?php echo esc_html( $term->slug ); ?></td>
-                <td><?php echo esc_html( $term->count ); ?></td>
-                <td>
-                    <a href="<?php echo esc_url( admin_url( 'admin.php?page=simple-lms-settings&tab=' . $current_tab . '&action=edit&term_id=' . $term->term_id ) ); ?>">
-                        <?php esc_html_e( 'Edit', 'simple-lms' ); ?>
-                    </a>
-                    |
-                    <a href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin.php?page=simple-lms-settings&tab=' . $current_tab . '&action=delete&term_id=' . $term->term_id ), 'delete_term_' . $term->term_id ) ); ?>" class="delete-term" onclick="return confirm('<?php esc_attr_e( 'Are you sure you want to delete this?', 'simple-lms' ); ?>');">
-                        <?php esc_html_e( 'Delete', 'simple-lms' ); ?>
-                    </a>
-                </td>
-            </tr>
-            <?php endforeach; ?>
-        </tbody>
-    </table>
-    <?php else : ?>
-    <p><?php printf( esc_html__( 'No %s found.', 'simple-lms' ), esc_html( strtolower( $plural ) ) ); ?></p>
-    <?php endif; ?>
-</div>
-
 <div class="taxonomy-form-column">
     <?php if ( $editing_term ) : ?>
     <h2><?php printf( esc_html__( 'Edit %s', 'simple-lms' ), esc_html( $singular ) ); ?></h2>
@@ -243,5 +201,47 @@ if ( isset( $_GET['action'] ) && 'edit' === $_GET['action'] && isset( $_GET['ter
             </button>
         </p>
     </form>
+    <?php endif; ?>
+</div>
+
+<div class="taxonomy-list-column">
+    <h2><?php echo esc_html( $plural ); ?></h2>
+
+    <?php if ( ! empty( $terms ) && ! is_wp_error( $terms ) ) : ?>
+    <table class="wp-list-table widefat fixed striped">
+        <thead>
+            <tr>
+                <th><?php esc_html_e( 'Name', 'simple-lms' ); ?></th>
+                <th><?php esc_html_e( 'Slug', 'simple-lms' ); ?></th>
+                <th><?php esc_html_e( 'Count', 'simple-lms' ); ?></th>
+                <th><?php esc_html_e( 'Actions', 'simple-lms' ); ?></th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php foreach ( $terms as $term ) : ?>
+            <tr>
+                <td>
+                    <strong><?php echo esc_html( $term->name ); ?></strong>
+                    <?php if ( $term->description ) : ?>
+                    <p class="description"><?php echo esc_html( wp_trim_words( $term->description, 10 ) ); ?></p>
+                    <?php endif; ?>
+                </td>
+                <td><?php echo esc_html( $term->slug ); ?></td>
+                <td><?php echo esc_html( $term->count ); ?></td>
+                <td>
+                    <a href="<?php echo esc_url( admin_url( 'admin.php?page=simple-lms-settings&tab=' . $current_tab . '&action=edit&term_id=' . $term->term_id ) ); ?>">
+                        <?php esc_html_e( 'Edit', 'simple-lms' ); ?>
+                    </a>
+                    |
+                    <a href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin.php?page=simple-lms-settings&tab=' . $current_tab . '&action=delete&term_id=' . $term->term_id ), 'delete_term_' . $term->term_id ) ); ?>" class="delete-term" onclick="return confirm('<?php esc_attr_e( 'Are you sure you want to delete this?', 'simple-lms' ); ?>');">
+                        <?php esc_html_e( 'Delete', 'simple-lms' ); ?>
+                    </a>
+                </td>
+            </tr>
+            <?php endforeach; ?>
+        </tbody>
+    </table>
+    <?php else : ?>
+    <p><?php printf( esc_html__( 'No %s found.', 'simple-lms' ), esc_html( strtolower( $plural ) ) ); ?></p>
     <?php endif; ?>
 </div>

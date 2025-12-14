@@ -184,8 +184,11 @@ Templates stored in `wp_options` table:
 
 ### Template Hierarchy
 1. Status-specific template (if course has status with assigned template)
-2. Default template (marked with `is_default = 1`)
-3. Built-in fallback (hardcoded in plugin)
+2. Default template (stored in `simple_lms_default_template` option)
+3. Built-in fallback (hardcoded in plugin via `LMS_Admin::get_builtin_default_template()`)
+
+### Technical Note: Recursion Prevention
+The `{{LMS_CONTENT}}` placeholder uses `apply_filters('the_content', ...)` internally. To prevent infinite recursion (since template rendering hooks into `the_content`), a static `$is_rendering` flag is used in `render_course_content()`.
 
 ### Available Placeholders
 
@@ -270,8 +273,8 @@ All placeholders have corresponding conditional blocks. Block only renders if da
 ### Admin UI for Templates
 - Default template editor (always exists)
 - Status-specific template editor (one per status, optional)
-- WYSIWYG editor with placeholder insertion buttons
-- Live preview with sample data
+- Code editor (CodeMirror) with syntax highlighting
+- **Reset to Default** button to restore built-in template
 
 ---
 
@@ -367,11 +370,14 @@ simpleLMS
     │   ├── List of presets
     │   └── Add/edit preset form
     ├── Tab: Categories
-    │   └── Add/edit/delete course categories
+    │   ├── Add form (top)
+    │   └── List of categories (below)
     ├── Tab: Tags
-    │   └── Add/edit/delete course tags
+    │   ├── Add form (top)
+    │   └── List of tags (below)
     └── Tab: Statuses
-        └── Add/edit/delete course statuses
+        ├── Add form (top)
+        └── List of statuses (below)
 ```
 
 ### Key Admin Features
@@ -379,6 +385,18 @@ simpleLMS
 - **Dedicated Course Form**: Two-column layout with all fields in one page (not WordPress meta boxes)
 - **Taxonomy Management**: Integrated into Settings tabs (no separate WordPress taxonomy pages)
 - **Menu Highlighting**: simpleLMS menu stays highlighted/expanded across all plugin pages
+- **Admin Bar Menu**: Quick access from WordPress admin bar
+
+### Admin Bar Menu
+
+Available from any page when logged in as admin:
+
+```
+LMS (in admin bar)
+├── Add New Course    → admin.php?page=simple-lms-add
+├── All Courses       → admin.php?page=simple-lms
+└── Edit This Course  → (only on single course page) edit current course
+```
 
 ### Default Values (General Tab)
 
@@ -427,6 +445,33 @@ Configurable default values for new courses. All fields are simple text inputs (
 3. Implement course query based on preset settings
 4. Create frontend rendering with grid layout
 5. Add basic CSS for course cards
+
+---
+
+## Frontend Styling
+
+### Design Philosophy
+Plugin provides **minimal structural CSS only** - no decorative styles. This allows themes to fully control the appearance.
+
+### Public CSS (`public/css/public.css`)
+Only essential structural styles:
+
+| Element | Styles |
+|---------|--------|
+| `.lms-video-embed` | Responsive 16:9 iframe container |
+| `.lms-materials-list` | List style reset (no bullets) |
+| `.lms-courses-grid` | CSS Grid layout |
+| `.lms-columns-*` | Grid column definitions (1-4) |
+| Responsive breakpoints | Grid adjustments for mobile |
+
+**No decorative styles** (backgrounds, colors, borders, shadows, etc.) - all controlled by theme.
+
+### Single Course Template
+The `templates/single-simple_lms_course.php` provides basic structure:
+- Uses theme's `get_header()` and `get_footer()`
+- No sidebar (`get_sidebar()` removed)
+- Course title in `<h1>`
+- Content rendered via template system
 
 ---
 
@@ -516,38 +561,23 @@ Plugin will work without membership/subscription plugins but access control feat
 
 ## Sample Default Template
 
+The built-in default template is minimal - just structural placeholders without any styling or headers:
+
 ```html
-<div class="lms-course-single">
-  <div class="lms-course-header">
-    <p>
-      <strong>Wykładowca:</strong> {{LMS_LECTURER}}<br>
-      <strong>Data szkolenia:</strong> {{LMS_DATE}}<br>
-      <strong>Godziny:</strong> {{LMS_TIME}}<br>
-      <strong>Czas trwania:</strong> {{LMS_DURATION}}
-    </p>
-  </div>
+{{#IF_VIDEOS}}
+{{LMS_VIDEOS}}
+{{/IF_VIDEOS}}
 
-  {{#IF_VIDEOS}}
-  <div class="lms-video-section">
-    <h2>Nagrania</h2>
-    {{LMS_VIDEOS}}
-  </div>
-  {{/IF_VIDEOS}}
+{{#IF_CONTENT}}
+{{LMS_CONTENT}}
+{{/IF_CONTENT}}
 
-  {{#IF_CONTENT}}
-  <div class="lms-content-section">
-    {{LMS_CONTENT}}
-  </div>
-  {{/IF_CONTENT}}
-
-  {{#IF_MATERIALS}}
-  <div class="lms-materials-section">
-    <h2>Materiały szkoleniowe</h2>
-    {{LMS_MATERIALS}}
-  </div>
-  {{/IF_MATERIALS}}
-</div>
+{{#IF_MATERIALS}}
+{{LMS_MATERIALS}}
+{{/IF_MATERIALS}}
 ```
+
+Users can customize this template in Settings → Templates to add headers, styling, and additional placeholders as needed.
 
 ---
 

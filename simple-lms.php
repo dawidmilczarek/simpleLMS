@@ -22,7 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Plugin constants.
-define( 'SIMPLE_LMS_VERSION', '1.0.0' );
+define( 'SIMPLE_LMS_VERSION', '1.0.1' );
 define( 'SIMPLE_LMS_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'SIMPLE_LMS_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'SIMPLE_LMS_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );
@@ -48,36 +48,17 @@ function simple_lms_activate() {
     }
 
     if ( false === get_option( 'simple_lms_default_template' ) ) {
-        $default_template = '<div class="lms-course-single">
-  <div class="lms-course-header">
-    <p>
-      <strong>Wykładowca:</strong> {{LMS_LECTURER}}<br>
-      <strong>Data szkolenia:</strong> {{LMS_DATE}}<br>
-      <strong>Godziny:</strong> {{LMS_TIME}}<br>
-      <strong>Czas trwania:</strong> {{LMS_DURATION}}
-    </p>
-  </div>
+        $default_template = '{{#IF_VIDEOS}}
+{{LMS_VIDEOS}}
+{{/IF_VIDEOS}}
 
-  {{#IF_VIDEOS}}
-  <div class="lms-video-section">
-    <h2>Nagrania</h2>
-    {{LMS_VIDEOS}}
-  </div>
-  {{/IF_VIDEOS}}
+{{#IF_CONTENT}}
+{{LMS_CONTENT}}
+{{/IF_CONTENT}}
 
-  {{#IF_CONTENT}}
-  <div class="lms-content-section">
-    {{LMS_CONTENT}}
-  </div>
-  {{/IF_CONTENT}}
-
-  {{#IF_MATERIALS}}
-  <div class="lms-materials-section">
-    <h2>Materiały szkoleniowe</h2>
-    {{LMS_MATERIALS}}
-  </div>
-  {{/IF_MATERIALS}}
-</div>';
+{{#IF_MATERIALS}}
+{{LMS_MATERIALS}}
+{{/IF_MATERIALS}}';
         add_option( 'simple_lms_default_template', $default_template );
     }
 

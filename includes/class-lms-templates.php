@@ -124,36 +124,17 @@ class LMS_Templates {
      * @return string
      */
     private function get_fallback_template() {
-        return '<div class="lms-course-single">
-  <div class="lms-course-header">
-    <p>
-      <strong>Wykładowca:</strong> {{LMS_LECTURER}}<br>
-      <strong>Data szkolenia:</strong> {{LMS_DATE}}<br>
-      <strong>Godziny:</strong> {{LMS_TIME}}<br>
-      <strong>Czas trwania:</strong> {{LMS_DURATION}}
-    </p>
-  </div>
+        return '{{#IF_VIDEOS}}
+{{LMS_VIDEOS}}
+{{/IF_VIDEOS}}
 
-  {{#IF_VIDEOS}}
-  <div class="lms-video-section">
-    <h2>Nagrania</h2>
-    {{LMS_VIDEOS}}
-  </div>
-  {{/IF_VIDEOS}}
+{{#IF_CONTENT}}
+{{LMS_CONTENT}}
+{{/IF_CONTENT}}
 
-  {{#IF_CONTENT}}
-  <div class="lms-content-section">
-    {{LMS_CONTENT}}
-  </div>
-  {{/IF_CONTENT}}
-
-  {{#IF_MATERIALS}}
-  <div class="lms-materials-section">
-    <h2>Materiały szkoleniowe</h2>
-    {{LMS_MATERIALS}}
-  </div>
-  {{/IF_MATERIALS}}
-</div>';
+{{#IF_MATERIALS}}
+{{LMS_MATERIALS}}
+{{/IF_MATERIALS}}';
     }
 
     /**
