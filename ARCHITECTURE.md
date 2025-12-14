@@ -561,9 +561,15 @@ Plugin will work without membership/subscription plugins but access control feat
 
 ## Sample Default Template
 
-The built-in default template is minimal - just structural placeholders without any styling or headers:
+The built-in default template includes a metadata list at the top and structural placeholders:
 
 ```html
+<ul>
+<li>{{#IF_DATE}}{{LMS_DATE}}{{/IF_DATE}}</li>
+<li>{{#IF_TIME}}{{LMS_TIME}}{{/IF_TIME}}</li>
+<li>{{#IF_LECTURER}}{{LMS_LECTURER}}{{/IF_LECTURER}}</li>
+</ul>
+
 {{#IF_VIDEOS}}
 {{LMS_VIDEOS}}
 {{/IF_VIDEOS}}

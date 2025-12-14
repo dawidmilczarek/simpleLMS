@@ -632,7 +632,13 @@ class LMS_Admin {
      * @return string
      */
     public static function get_builtin_default_template() {
-        return '{{#IF_VIDEOS}}
+        return '<ul>
+<li>{{#IF_DATE}}{{LMS_DATE}}{{/IF_DATE}}</li>
+<li>{{#IF_TIME}}{{LMS_TIME}}{{/IF_TIME}}</li>
+<li>{{#IF_LECTURER}}{{LMS_LECTURER}}{{/IF_LECTURER}}</li>
+</ul>
+
+{{#IF_VIDEOS}}
 {{LMS_VIDEOS}}
 {{/IF_VIDEOS}}
 
