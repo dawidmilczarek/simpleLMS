@@ -16,14 +16,23 @@ $active_tab = isset( $_GET['tab'] ) ? sanitize_key( $_GET['tab'] ) : 'general';
     <h1><?php esc_html_e( 'Simple LMS Settings', 'simple-lms' ); ?></h1>
 
     <nav class="nav-tab-wrapper">
-        <a href="<?php echo esc_url( admin_url( 'admin.php?page=simple-lms&tab=general' ) ); ?>" class="nav-tab <?php echo 'general' === $active_tab ? 'nav-tab-active' : ''; ?>">
+        <a href="<?php echo esc_url( admin_url( 'admin.php?page=simple-lms-settings&tab=general' ) ); ?>" class="nav-tab <?php echo 'general' === $active_tab ? 'nav-tab-active' : ''; ?>">
             <?php esc_html_e( 'General', 'simple-lms' ); ?>
         </a>
-        <a href="<?php echo esc_url( admin_url( 'admin.php?page=simple-lms&tab=templates' ) ); ?>" class="nav-tab <?php echo 'templates' === $active_tab ? 'nav-tab-active' : ''; ?>">
+        <a href="<?php echo esc_url( admin_url( 'admin.php?page=simple-lms-settings&tab=templates' ) ); ?>" class="nav-tab <?php echo 'templates' === $active_tab ? 'nav-tab-active' : ''; ?>">
             <?php esc_html_e( 'Templates', 'simple-lms' ); ?>
         </a>
-        <a href="<?php echo esc_url( admin_url( 'admin.php?page=simple-lms&tab=shortcodes' ) ); ?>" class="nav-tab <?php echo 'shortcodes' === $active_tab ? 'nav-tab-active' : ''; ?>">
+        <a href="<?php echo esc_url( admin_url( 'admin.php?page=simple-lms-settings&tab=shortcodes' ) ); ?>" class="nav-tab <?php echo 'shortcodes' === $active_tab ? 'nav-tab-active' : ''; ?>">
             <?php esc_html_e( 'Shortcodes', 'simple-lms' ); ?>
+        </a>
+        <a href="<?php echo esc_url( admin_url( 'admin.php?page=simple-lms-settings&tab=categories' ) ); ?>" class="nav-tab <?php echo 'categories' === $active_tab ? 'nav-tab-active' : ''; ?>">
+            <?php esc_html_e( 'Categories', 'simple-lms' ); ?>
+        </a>
+        <a href="<?php echo esc_url( admin_url( 'admin.php?page=simple-lms-settings&tab=tags' ) ); ?>" class="nav-tab <?php echo 'tags' === $active_tab ? 'nav-tab-active' : ''; ?>">
+            <?php esc_html_e( 'Tags', 'simple-lms' ); ?>
+        </a>
+        <a href="<?php echo esc_url( admin_url( 'admin.php?page=simple-lms-settings&tab=statuses' ) ); ?>" class="nav-tab <?php echo 'statuses' === $active_tab ? 'nav-tab-active' : ''; ?>">
+            <?php esc_html_e( 'Statuses', 'simple-lms' ); ?>
         </a>
     </nav>
 
@@ -35,6 +44,11 @@ $active_tab = isset( $_GET['tab'] ) ? sanitize_key( $_GET['tab'] ) : 'general';
                 break;
             case 'shortcodes':
                 include SIMPLE_LMS_PLUGIN_DIR . 'admin/views/tab-shortcodes.php';
+                break;
+            case 'categories':
+            case 'tags':
+            case 'statuses':
+                include SIMPLE_LMS_PLUGIN_DIR . 'admin/views/tab-taxonomy.php';
                 break;
             default:
                 include SIMPLE_LMS_PLUGIN_DIR . 'admin/views/tab-general.php';

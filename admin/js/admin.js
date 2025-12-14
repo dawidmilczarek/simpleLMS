@@ -14,6 +14,7 @@
             this.initDurationCalculation();
             this.initPresetForm();
             this.initElementsSortable();
+            this.initCourseActions();
         },
 
         /**
@@ -358,6 +359,43 @@
             var div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
+        },
+
+        /**
+         * Initialize course actions.
+         */
+        initCourseActions: function() {
+            // Delete course.
+            $(document).on('click', '.delete-course', function(e) {
+                e.preventDefault();
+
+                var courseId = $(this).data('course-id');
+                if (!courseId) {
+                    return;
+                }
+
+                if (!confirm(simpleLMS.i18n.confirmDeleteCourse)) {
+                    return;
+                }
+
+                var $row = $(this).closest('tr');
+
+                $.post(simpleLMS.ajaxUrl, {
+                    action: 'simple_lms_delete_course',
+                    nonce: simpleLMS.nonce,
+                    course_id: courseId
+                }, function(response) {
+                    if (response.success) {
+                        $row.fadeOut(300, function() {
+                            $(this).remove();
+                        });
+                    } else {
+                        alert(response.data.message || simpleLMS.i18n.error);
+                    }
+                }).fail(function() {
+                    alert(simpleLMS.i18n.error);
+                });
+            });
         }
     };
 

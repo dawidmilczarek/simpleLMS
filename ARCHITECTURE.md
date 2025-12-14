@@ -30,23 +30,25 @@ simpleLMS/
 ├── includes/
 │   ├── class-simple-lms.php          # Main plugin class
 │   ├── class-lms-post-types.php      # CPT & taxonomy registration
-│   ├── class-lms-meta-boxes.php      # Course meta fields admin UI
+│   ├── class-lms-meta-boxes.php      # Course meta fields (legacy, kept for compatibility)
 │   ├── class-lms-access-control.php  # Membership/subscription checks
 │   ├── class-lms-templates.php       # Template engine & placeholder replacement
 │   ├── class-lms-shortcodes.php      # Shortcode rendering
-│   └── class-lms-admin.php           # Admin pages & settings
+│   └── class-lms-admin.php           # Admin pages, settings & course form handling
 │
 ├── admin/
 │   ├── views/
+│   │   ├── courses-list.php          # Custom courses list page
+│   │   ├── course-form.php           # Dedicated course add/edit form
 │   │   ├── settings-page.php         # Settings page (tabbed)
 │   │   ├── tab-general.php           # General settings tab
 │   │   ├── tab-templates.php         # Templates tab
 │   │   ├── tab-shortcodes.php        # Shortcode presets tab
-│   │   └── meta-box-course.php       # Course edit meta box
+│   │   └── tab-taxonomy.php          # Taxonomy management (categories, tags, statuses)
 │   ├── css/
 │   │   └── admin.css
 │   └── js/
-│       └── admin.js                  # Repeater fields JS
+│       └── admin.js                  # Repeater fields, course actions JS
 │
 ├── public/
 │   ├── class-lms-public.php          # Frontend controller
@@ -347,11 +349,13 @@ Admin UI shows a drag-drop list where you can:
 
 ### Main Menu: "simpleLMS"
 
+Plugin uses dedicated custom admin pages (not default WordPress CPT screens).
+
 ```
 simpleLMS
-├── Courses          → CPT list (edit.php?post_type=lms_course)
-├── Add New Course   → New course (post-new.php?post_type=lms_course)
-└── Settings         → Tabbed settings page
+├── Courses          → Custom courses list (admin.php?page=simple-lms)
+├── Add New Course   → Dedicated course form (admin.php?page=simple-lms-add)
+└── Settings         → Tabbed settings page (admin.php?page=simple-lms-settings)
     ├── Tab: General
     │   ├── Default redirect URL
     │   ├── Date format
@@ -359,10 +363,22 @@ simpleLMS
     ├── Tab: Templates
     │   ├── Default template editor
     │   └── Status-specific template editors
-    └── Tab: Shortcodes
-        ├── List of presets
-        └── Add/edit preset form
+    ├── Tab: Shortcodes
+    │   ├── List of presets
+    │   └── Add/edit preset form
+    ├── Tab: Categories
+    │   └── Add/edit/delete course categories
+    ├── Tab: Tags
+    │   └── Add/edit/delete course tags
+    └── Tab: Statuses
+        └── Add/edit/delete course statuses
 ```
+
+### Key Admin Features
+- **Custom Courses List**: Dedicated table with search, filtering by status, pagination
+- **Dedicated Course Form**: Two-column layout with all fields in one page (not WordPress meta boxes)
+- **Taxonomy Management**: Integrated into Settings tabs (no separate WordPress taxonomy pages)
+- **Menu Highlighting**: simpleLMS menu stays highlighted/expanded across all plugin pages
 
 ### Default Values (General Tab)
 
@@ -376,11 +392,6 @@ Configurable default values for new courses. All fields are simple text inputs (
 | Default Time Range | `10:00 - 15:00` | Pre-filled time range (uses time picker) |
 | Default Duration | `5h` | Pre-filled duration (auto-calculated from time range, but editable) |
 | Default Status | `Nagranie` | Pre-selected status for new courses |
-
-### Taxonomy Pages (under Courses submenu or separate)
-- Categories (simple_lms_category)
-- Tags (simple_lms_tag)
-- Statuses (simple_lms_status)
 
 ---
 
@@ -507,41 +518,80 @@ Plugin will work without membership/subscription plugins but access control feat
 
 ---
 
-## Course Edit Screen Meta Box
+## Course Add/Edit Form
 
-### Fields Layout
+The plugin uses a dedicated custom form for adding and editing courses (not the default WordPress editor).
+
+### Form Layout (Two-Column)
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│ Course Details                                              │
-├─────────────────────────────────────────────────────────────┤
-│ Date:        [📅 Date Picker____________]                   │
-│ Time Range:  [🕐 Start] - [🕐 End]  (time pickers)          │
-│ Duration:    [__________] (auto-calc from time, editable)  │
-│ Lecturer:    [____________________________]                 │
-├─────────────────────────────────────────────────────────────┤
-│ Videos                                          [+ Add Video]│
-│ ┌─────────────────────────────────────────────────────────┐│
-│ │ Title:     [________________________]      [Remove]     ││
-│ │ Vimeo URL: [________________________]                   ││
-│ └─────────────────────────────────────────────────────────┘│
-│ ┌─────────────────────────────────────────────────────────┐│
-│ │ Title:     [________________________]      [Remove]     ││
-│ │ Vimeo URL: [________________________]                   ││
-│ └─────────────────────────────────────────────────────────┘│
-├─────────────────────────────────────────────────────────────┤
-│ Materials                                    [+ Add Material]│
-│ ┌─────────────────────────────────────────────────────────┐│
-│ │ Label:     [________________________]      [Remove]     ││
-│ │ URL:       [________________________]                   ││
-│ └─────────────────────────────────────────────────────────┘│
-├─────────────────────────────────────────────────────────────┤
-│ Access Control                                              │
-│ Memberships: [x] Gold  [ ] Silver  [x] Platinum            │
-│ Products:    [x] Annual Sub  [ ] Monthly Sub               │
-│ Redirect URL: [________________] (leave empty for default)  │
-└─────────────────────────────────────────────────────────────┘
+┌────────────────────────────────────────────────────────┬─────────────────────┐
+│ MAIN CONTENT                                           │ SIDEBAR             │
+├────────────────────────────────────────────────────────┼─────────────────────┤
+│ [_____________ Course Title (large input) ___________] │ ┌─────────────────┐ │
+│                                                        │ │ Publish         │ │
+│ ┌────────────────────────────────────────────────────┐ │ │ ○ Published     │ │
+│ │ Course Details                                     │ │ │ ○ Draft         │ │
+│ │ Date:      [📅 Date Picker]                        │ │ │ [Update Course] │ │
+│ │ Time:      [🕐 Start] - [🕐 End]                   │ │ │ [View Course]   │ │
+│ │ Duration:  [________]                              │ │ └─────────────────┘ │
+│ │ Lecturer:  [____________________]                  │ │                     │
+│ └────────────────────────────────────────────────────┘ │ ┌─────────────────┐ │
+│                                                        │ │ Course Status   │ │
+│ ┌────────────────────────────────────────────────────┐ │ │ ☐ Nagranie      │ │
+│ │ Videos                               [+ Add Video] │ │ │ ☐ Zoom          │ │
+│ │ ┌────────────────────────────────────────────────┐ │ │ │ ☐ Zaplanowane   │ │
+│ │ │ Title: [___________]  Vimeo: [___________]     │ │ │ └─────────────────┘ │
+│ │ └────────────────────────────────────────────────┘ │ │                     │
+│ └────────────────────────────────────────────────────┘ │ ┌─────────────────┐ │
+│                                                        │ │ Categories      │ │
+│ ┌────────────────────────────────────────────────────┐ │ │ ☐ Category 1    │ │
+│ │ Materials                         [+ Add Material] │ │ │ ☐ Category 2    │ │
+│ │ ┌────────────────────────────────────────────────┐ │ │ └─────────────────┘ │
+│ │ │ Label: [___________]  URL: [___________]       │ │ │                     │
+│ │ └────────────────────────────────────────────────┘ │ │ ┌─────────────────┐ │
+│ └────────────────────────────────────────────────────┘ │ │ Tags            │ │
+│                                                        │ │ [comma-separated]│ │
+│ ┌────────────────────────────────────────────────────┐ │ └─────────────────┘ │
+│ │ Additional Content                                 │ │                     │
+│ │ [═══════════ WYSIWYG Editor ═══════════]          │ │                     │
+│ └────────────────────────────────────────────────────┘ │                     │
+│                                                        │                     │
+│ ┌────────────────────────────────────────────────────┐ │                     │
+│ │ Access Control                                     │ │                     │
+│ │ Memberships: ☐ Gold  ☐ Silver  ☐ Platinum         │ │                     │
+│ │ Products:    ☐ Annual  ☐ Monthly                  │ │                     │
+│ │ Redirect:    [________________]                    │ │                     │
+│ └────────────────────────────────────────────────────┘ │                     │
+└────────────────────────────────────────────────────────┴─────────────────────┘
 ```
+
+### Form Sections
+1. **Title** - Large input field at top
+2. **Course Details** - Date, time range, duration, lecturer
+3. **Videos** - Repeater field (drag to reorder, add/remove)
+4. **Materials** - Repeater field (drag to reorder, add/remove)
+5. **Additional Content** - WordPress WYSIWYG editor
+6. **Access Control** - Membership/subscription checkboxes, redirect URL
+
+### Sidebar Sections
+1. **Publish** - Status selection (Published/Draft), Update/Create button, View link
+2. **Course Status** - Taxonomy checkboxes
+3. **Categories** - Taxonomy checkboxes
+4. **Tags** - Comma-separated text input
+
+---
+
+## Courses List Page
+
+Custom table view for managing courses.
+
+### Features
+- **Search**: Search courses by title
+- **Filter**: Filter by course status taxonomy
+- **Pagination**: Navigate through courses
+- **Columns**: Title, Status, Course Date, Lecturer, Published status
+- **Actions**: Edit, View, Delete (with AJAX confirmation)
 
 ---
 
