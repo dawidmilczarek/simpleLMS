@@ -46,9 +46,18 @@ class LMS_Templates {
      * @return string
      */
     public function render_course_content( $content ) {
+        static $is_rendering = false;
+
+        // Prevent infinite recursion when processing {{LMS_CONTENT}} placeholder.
+        if ( $is_rendering ) {
+            return $content;
+        }
+
         if ( ! is_singular( 'simple_lms_course' ) || ! in_the_loop() || ! is_main_query() ) {
             return $content;
         }
+
+        $is_rendering = true;
 
         $post_id  = get_the_ID();
         $template = $this->get_template_for_course( $post_id );
@@ -75,6 +84,8 @@ class LMS_Templates {
          * @param int $post_id Course post ID.
          */
         do_action( 'lms_after_course_content', $post_id );
+
+        $is_rendering = false;
 
         return $output;
     }

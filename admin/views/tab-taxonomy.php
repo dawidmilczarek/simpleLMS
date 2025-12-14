@@ -134,116 +134,114 @@ if ( isset( $_GET['action'] ) && 'edit' === $_GET['action'] && isset( $_GET['ter
 </div>
 <?php endif; ?>
 
-<div class="taxonomy-management-wrapper">
-    <div class="taxonomy-form-column">
-        <?php if ( $editing_term ) : ?>
-        <h2><?php printf( esc_html__( 'Edit %s', 'simple-lms' ), esc_html( $singular ) ); ?></h2>
-        <form method="post" action="">
-            <?php wp_nonce_field( 'simple_lms_edit_term' ); ?>
-            <input type="hidden" name="term_id" value="<?php echo esc_attr( $editing_term->term_id ); ?>">
+<div class="taxonomy-list-column">
+    <h2><?php echo esc_html( $plural ); ?></h2>
 
-            <table class="form-table">
-                <tr>
-                    <th><label for="term_name"><?php esc_html_e( 'Name', 'simple-lms' ); ?></label></th>
-                    <td>
-                        <input type="text" id="term_name" name="term_name" value="<?php echo esc_attr( $editing_term->name ); ?>" class="regular-text" required>
-                    </td>
-                </tr>
-                <tr>
-                    <th><label for="term_slug"><?php esc_html_e( 'Slug', 'simple-lms' ); ?></label></th>
-                    <td>
-                        <input type="text" id="term_slug" name="term_slug" value="<?php echo esc_attr( $editing_term->slug ); ?>" class="regular-text">
-                        <p class="description"><?php esc_html_e( 'The "slug" is the URL-friendly version of the name.', 'simple-lms' ); ?></p>
-                    </td>
-                </tr>
-                <tr>
-                    <th><label for="term_description"><?php esc_html_e( 'Description', 'simple-lms' ); ?></label></th>
-                    <td>
-                        <textarea id="term_description" name="term_description" rows="3" class="large-text"><?php echo esc_textarea( $editing_term->description ); ?></textarea>
-                    </td>
-                </tr>
-            </table>
+    <?php if ( ! empty( $terms ) && ! is_wp_error( $terms ) ) : ?>
+    <table class="wp-list-table widefat fixed striped">
+        <thead>
+            <tr>
+                <th><?php esc_html_e( 'Name', 'simple-lms' ); ?></th>
+                <th><?php esc_html_e( 'Slug', 'simple-lms' ); ?></th>
+                <th><?php esc_html_e( 'Count', 'simple-lms' ); ?></th>
+                <th><?php esc_html_e( 'Actions', 'simple-lms' ); ?></th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php foreach ( $terms as $term ) : ?>
+            <tr>
+                <td>
+                    <strong><?php echo esc_html( $term->name ); ?></strong>
+                    <?php if ( $term->description ) : ?>
+                    <p class="description"><?php echo esc_html( wp_trim_words( $term->description, 10 ) ); ?></p>
+                    <?php endif; ?>
+                </td>
+                <td><?php echo esc_html( $term->slug ); ?></td>
+                <td><?php echo esc_html( $term->count ); ?></td>
+                <td>
+                    <a href="<?php echo esc_url( admin_url( 'admin.php?page=simple-lms-settings&tab=' . $current_tab . '&action=edit&term_id=' . $term->term_id ) ); ?>">
+                        <?php esc_html_e( 'Edit', 'simple-lms' ); ?>
+                    </a>
+                    |
+                    <a href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin.php?page=simple-lms-settings&tab=' . $current_tab . '&action=delete&term_id=' . $term->term_id ), 'delete_term_' . $term->term_id ) ); ?>" class="delete-term" onclick="return confirm('<?php esc_attr_e( 'Are you sure you want to delete this?', 'simple-lms' ); ?>');">
+                        <?php esc_html_e( 'Delete', 'simple-lms' ); ?>
+                    </a>
+                </td>
+            </tr>
+            <?php endforeach; ?>
+        </tbody>
+    </table>
+    <?php else : ?>
+    <p><?php printf( esc_html__( 'No %s found.', 'simple-lms' ), esc_html( strtolower( $plural ) ) ); ?></p>
+    <?php endif; ?>
+</div>
 
-            <p>
-                <button type="submit" name="simple_lms_edit_term" class="button button-primary"><?php esc_html_e( 'Update', 'simple-lms' ); ?></button>
-                <a href="<?php echo esc_url( admin_url( 'admin.php?page=simple-lms-settings&tab=' . $current_tab ) ); ?>" class="button"><?php esc_html_e( 'Cancel', 'simple-lms' ); ?></a>
-            </p>
-        </form>
-        <?php else : ?>
-        <h2><?php printf( esc_html__( 'Add New %s', 'simple-lms' ), esc_html( $singular ) ); ?></h2>
-        <form method="post" action="">
-            <?php wp_nonce_field( 'simple_lms_add_term' ); ?>
+<div class="taxonomy-form-column">
+    <?php if ( $editing_term ) : ?>
+    <h2><?php printf( esc_html__( 'Edit %s', 'simple-lms' ), esc_html( $singular ) ); ?></h2>
+    <form method="post" action="">
+        <?php wp_nonce_field( 'simple_lms_edit_term' ); ?>
+        <input type="hidden" name="term_id" value="<?php echo esc_attr( $editing_term->term_id ); ?>">
 
-            <table class="form-table">
-                <tr>
-                    <th><label for="term_name"><?php esc_html_e( 'Name', 'simple-lms' ); ?></label></th>
-                    <td>
-                        <input type="text" id="term_name" name="term_name" value="" class="regular-text" required>
-                    </td>
-                </tr>
-                <tr>
-                    <th><label for="term_slug"><?php esc_html_e( 'Slug', 'simple-lms' ); ?></label></th>
-                    <td>
-                        <input type="text" id="term_slug" name="term_slug" value="" class="regular-text">
-                        <p class="description"><?php esc_html_e( 'The "slug" is the URL-friendly version of the name. Leave empty to auto-generate.', 'simple-lms' ); ?></p>
-                    </td>
-                </tr>
-                <tr>
-                    <th><label for="term_description"><?php esc_html_e( 'Description', 'simple-lms' ); ?></label></th>
-                    <td>
-                        <textarea id="term_description" name="term_description" rows="3" class="large-text"></textarea>
-                    </td>
-                </tr>
-            </table>
-
-            <p>
-                <button type="submit" name="simple_lms_add_term" class="button button-primary">
-                    <?php printf( esc_html__( 'Add New %s', 'simple-lms' ), esc_html( $singular ) ); ?>
-                </button>
-            </p>
-        </form>
-        <?php endif; ?>
-    </div>
-
-    <div class="taxonomy-list-column">
-        <h2><?php echo esc_html( $plural ); ?></h2>
-
-        <?php if ( ! empty( $terms ) && ! is_wp_error( $terms ) ) : ?>
-        <table class="wp-list-table widefat fixed striped">
-            <thead>
-                <tr>
-                    <th><?php esc_html_e( 'Name', 'simple-lms' ); ?></th>
-                    <th><?php esc_html_e( 'Slug', 'simple-lms' ); ?></th>
-                    <th><?php esc_html_e( 'Count', 'simple-lms' ); ?></th>
-                    <th><?php esc_html_e( 'Actions', 'simple-lms' ); ?></th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php foreach ( $terms as $term ) : ?>
-                <tr>
-                    <td>
-                        <strong><?php echo esc_html( $term->name ); ?></strong>
-                        <?php if ( $term->description ) : ?>
-                        <p class="description"><?php echo esc_html( wp_trim_words( $term->description, 10 ) ); ?></p>
-                        <?php endif; ?>
-                    </td>
-                    <td><?php echo esc_html( $term->slug ); ?></td>
-                    <td><?php echo esc_html( $term->count ); ?></td>
-                    <td>
-                        <a href="<?php echo esc_url( admin_url( 'admin.php?page=simple-lms-settings&tab=' . $current_tab . '&action=edit&term_id=' . $term->term_id ) ); ?>">
-                            <?php esc_html_e( 'Edit', 'simple-lms' ); ?>
-                        </a>
-                        |
-                        <a href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin.php?page=simple-lms-settings&tab=' . $current_tab . '&action=delete&term_id=' . $term->term_id ), 'delete_term_' . $term->term_id ) ); ?>" class="delete-term" onclick="return confirm('<?php esc_attr_e( 'Are you sure you want to delete this?', 'simple-lms' ); ?>');">
-                            <?php esc_html_e( 'Delete', 'simple-lms' ); ?>
-                        </a>
-                    </td>
-                </tr>
-                <?php endforeach; ?>
-            </tbody>
+        <table class="form-table">
+            <tr>
+                <th><label for="term_name"><?php esc_html_e( 'Name', 'simple-lms' ); ?></label></th>
+                <td>
+                    <input type="text" id="term_name" name="term_name" value="<?php echo esc_attr( $editing_term->name ); ?>" class="regular-text" required>
+                </td>
+            </tr>
+            <tr>
+                <th><label for="term_slug"><?php esc_html_e( 'Slug', 'simple-lms' ); ?></label></th>
+                <td>
+                    <input type="text" id="term_slug" name="term_slug" value="<?php echo esc_attr( $editing_term->slug ); ?>" class="regular-text">
+                    <p class="description"><?php esc_html_e( 'The "slug" is the URL-friendly version of the name.', 'simple-lms' ); ?></p>
+                </td>
+            </tr>
+            <tr>
+                <th><label for="term_description"><?php esc_html_e( 'Description', 'simple-lms' ); ?></label></th>
+                <td>
+                    <textarea id="term_description" name="term_description" rows="3" class="large-text"><?php echo esc_textarea( $editing_term->description ); ?></textarea>
+                </td>
+            </tr>
         </table>
-        <?php else : ?>
-        <p><?php printf( esc_html__( 'No %s found.', 'simple-lms' ), esc_html( strtolower( $plural ) ) ); ?></p>
-        <?php endif; ?>
-    </div>
+
+        <p>
+            <button type="submit" name="simple_lms_edit_term" class="button button-primary"><?php esc_html_e( 'Update', 'simple-lms' ); ?></button>
+            <a href="<?php echo esc_url( admin_url( 'admin.php?page=simple-lms-settings&tab=' . $current_tab ) ); ?>" class="button"><?php esc_html_e( 'Cancel', 'simple-lms' ); ?></a>
+        </p>
+    </form>
+    <?php else : ?>
+    <h2><?php printf( esc_html__( 'Add New %s', 'simple-lms' ), esc_html( $singular ) ); ?></h2>
+    <form method="post" action="">
+        <?php wp_nonce_field( 'simple_lms_add_term' ); ?>
+
+        <table class="form-table">
+            <tr>
+                <th><label for="term_name"><?php esc_html_e( 'Name', 'simple-lms' ); ?></label></th>
+                <td>
+                    <input type="text" id="term_name" name="term_name" value="" class="regular-text" required>
+                </td>
+            </tr>
+            <tr>
+                <th><label for="term_slug"><?php esc_html_e( 'Slug', 'simple-lms' ); ?></label></th>
+                <td>
+                    <input type="text" id="term_slug" name="term_slug" value="" class="regular-text">
+                    <p class="description"><?php esc_html_e( 'The "slug" is the URL-friendly version of the name. Leave empty to auto-generate.', 'simple-lms' ); ?></p>
+                </td>
+            </tr>
+            <tr>
+                <th><label for="term_description"><?php esc_html_e( 'Description', 'simple-lms' ); ?></label></th>
+                <td>
+                    <textarea id="term_description" name="term_description" rows="3" class="large-text"></textarea>
+                </td>
+            </tr>
+        </table>
+
+        <p>
+            <button type="submit" name="simple_lms_add_term" class="button button-primary">
+                <?php printf( esc_html__( 'Add New %s', 'simple-lms' ), esc_html( $singular ) ); ?>
+            </button>
+        </p>
+    </form>
+    <?php endif; ?>
 </div>

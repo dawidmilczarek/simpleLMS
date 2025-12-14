@@ -84,6 +84,13 @@ $conditionals = array(
         <textarea id="simple_lms_default_template" name="simple_lms_default_template" rows="20" class="large-text code"><?php echo esc_textarea( $default_template ); ?></textarea>
     </div>
 
+    <p class="simple-lms-reset-template">
+        <button type="button" id="simple-lms-reset-template-btn" class="button button-secondary">
+            <?php esc_html_e( 'Reset to Default', 'simple-lms' ); ?>
+        </button>
+        <span class="description"><?php esc_html_e( 'Restore the built-in default template.', 'simple-lms' ); ?></span>
+    </p>
+
     <?php if ( ! empty( $statuses ) && ! is_wp_error( $statuses ) ) : ?>
     <h2><?php esc_html_e( 'Status-Specific Templates', 'simple-lms' ); ?></h2>
     <p class="description"><?php esc_html_e( 'Override the default template for specific course statuses. Leave empty to use the default template.', 'simple-lms' ); ?></p>
@@ -113,6 +120,8 @@ $conditionals = array(
 
 <script>
 jQuery(document).ready(function($) {
+    var editorInstance = null;
+
     // Toggle status template sections.
     $('.status-template-header').on('click', function() {
         var $content = $(this).next('.status-template-content');
@@ -124,7 +133,7 @@ jQuery(document).ready(function($) {
 
     // Initialize code editor for default template.
     if (typeof wp !== 'undefined' && wp.codeEditor) {
-        wp.codeEditor.initialize($('#simple_lms_default_template'), {
+        editorInstance = wp.codeEditor.initialize($('#simple_lms_default_template'), {
             codemirror: {
                 mode: 'htmlmixed',
                 lineNumbers: true,
@@ -132,5 +141,43 @@ jQuery(document).ready(function($) {
             }
         });
     }
+
+    // Reset default template button.
+    $('#simple-lms-reset-template-btn').on('click', function() {
+        if (!confirm(simpleLMS.i18n.confirmResetTemplate)) {
+            return;
+        }
+
+        var $btn = $(this);
+        $btn.prop('disabled', true);
+
+        $.ajax({
+            url: simpleLMS.ajaxUrl,
+            type: 'POST',
+            data: {
+                action: 'simple_lms_reset_default_template',
+                nonce: simpleLMS.nonce
+            },
+            success: function(response) {
+                if (response.success) {
+                    // Update textarea value.
+                    if (editorInstance && editorInstance.codemirror) {
+                        editorInstance.codemirror.setValue(response.data.template);
+                    } else {
+                        $('#simple_lms_default_template').val(response.data.template);
+                    }
+                    alert(simpleLMS.i18n.templateReset);
+                } else {
+                    alert(response.data.message || simpleLMS.i18n.error);
+                }
+            },
+            error: function() {
+                alert(simpleLMS.i18n.error);
+            },
+            complete: function() {
+                $btn.prop('disabled', false);
+            }
+        });
+    });
 });
 </script>

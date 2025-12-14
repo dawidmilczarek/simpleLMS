@@ -116,11 +116,20 @@
 }
 
 .simple-lms-template-editor {
-    margin-bottom: 20px;
+    margin-bottom: 15px;
 }
 
 .simple-lms-template-editor textarea {
     font-family: Consolas, Monaco, monospace;
+}
+
+.simple-lms-reset-template {
+    margin: 0 0 25px;
+}
+
+.simple-lms-reset-template .description {
+    margin-left: 10px;
+    color: #646970;
 }
 
 /* Status Templates Accordion */
@@ -344,26 +353,21 @@
 }
 
 /* Taxonomy Management */
-.taxonomy-management-wrapper {
-    display: grid;
-    grid-template-columns: 350px 1fr;
-    gap: 30px;
-    margin-top: 20px;
-}
-
 .taxonomy-form-column {
     background: #fff;
     border: 1px solid #c3c4c7;
     border-radius: 4px;
     padding: 20px;
+    margin-top: 20px;
+    max-width: 500px;
 }
 
 .taxonomy-form-column h2 {
     margin-top: 0;
 }
 
-.taxonomy-form-column .form-table th {
-    width: 100px;
+.taxonomy-list-column {
+    margin-top: 30px;
 }
 
 .taxonomy-list-column h2 {
@@ -399,11 +403,6 @@
     }
 }
 
-@media (max-width: 992px) {
-    .taxonomy-management-wrapper {
-        grid-template-columns: 1fr;
-    }
-}
 
 @media (max-width: 782px) {
     .simple-lms-meta-table th,

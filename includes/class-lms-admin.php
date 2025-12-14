@@ -26,6 +26,7 @@ class LMS_Admin {
         add_action( 'wp_ajax_simple_lms_save_shortcode_preset', array( $this, 'ajax_save_shortcode_preset' ) );
         add_action( 'wp_ajax_simple_lms_delete_shortcode_preset', array( $this, 'ajax_delete_shortcode_preset' ) );
         add_action( 'wp_ajax_simple_lms_delete_course', array( $this, 'ajax_delete_course' ) );
+        add_action( 'wp_ajax_simple_lms_reset_default_template', array( $this, 'ajax_reset_default_template' ) );
         add_filter( 'parent_file', array( $this, 'fix_parent_menu' ) );
         add_filter( 'submenu_file', array( $this, 'fix_submenu_file' ) );
     }
@@ -211,11 +212,13 @@ class LMS_Admin {
                     'ajaxUrl' => admin_url( 'admin-ajax.php' ),
                     'nonce'   => wp_create_nonce( 'simple_lms_admin' ),
                     'i18n'    => array(
-                        'confirmDelete'       => __( 'Are you sure you want to delete this preset?', 'simple-lms' ),
-                        'confirmDeleteCourse' => __( 'Are you sure you want to delete this course?', 'simple-lms' ),
-                        'saving'              => __( 'Saving...', 'simple-lms' ),
-                        'saved'               => __( 'Saved!', 'simple-lms' ),
-                        'error'               => __( 'Error saving. Please try again.', 'simple-lms' ),
+                        'confirmDelete'        => __( 'Are you sure you want to delete this preset?', 'simple-lms' ),
+                        'confirmDeleteCourse'  => __( 'Are you sure you want to delete this course?', 'simple-lms' ),
+                        'confirmResetTemplate' => __( 'Are you sure you want to reset the default template? Your current template will be lost.', 'simple-lms' ),
+                        'saving'               => __( 'Saving...', 'simple-lms' ),
+                        'saved'                => __( 'Saved!', 'simple-lms' ),
+                        'error'                => __( 'Error saving. Please try again.', 'simple-lms' ),
+                        'templateReset'        => __( 'Template has been reset.', 'simple-lms' ),
                     ),
                 )
             );
@@ -547,5 +550,64 @@ class LMS_Admin {
         );
 
         return $products;
+    }
+
+    /**
+     * AJAX handler for resetting default template.
+     */
+    public function ajax_reset_default_template() {
+        check_ajax_referer( 'simple_lms_admin', 'nonce' );
+
+        if ( ! current_user_can( 'manage_options' ) ) {
+            wp_send_json_error( array( 'message' => __( 'Permission denied.', 'simple-lms' ) ) );
+        }
+
+        $default_template = $this->get_builtin_default_template();
+        update_option( 'simple_lms_default_template', $default_template );
+
+        wp_send_json_success(
+            array(
+                'message'  => __( 'Default template has been reset.', 'simple-lms' ),
+                'template' => $default_template,
+            )
+        );
+    }
+
+    /**
+     * Get the built-in default template.
+     *
+     * @return string
+     */
+    public static function get_builtin_default_template() {
+        return '<div class="lms-course-single">
+  <div class="lms-course-header">
+    <p>
+      <strong>Wykładowca:</strong> {{LMS_LECTURER}}<br>
+      <strong>Data szkolenia:</strong> {{LMS_DATE}}<br>
+      <strong>Godziny:</strong> {{LMS_TIME}}<br>
+      <strong>Czas trwania:</strong> {{LMS_DURATION}}
+    </p>
+  </div>
+
+  {{#IF_VIDEOS}}
+  <div class="lms-video-section">
+    <h2>Nagrania</h2>
+    {{LMS_VIDEOS}}
+  </div>
+  {{/IF_VIDEOS}}
+
+  {{#IF_CONTENT}}
+  <div class="lms-content-section">
+    {{LMS_CONTENT}}
+  </div>
+  {{/IF_CONTENT}}
+
+  {{#IF_MATERIALS}}
+  <div class="lms-materials-section">
+    <h2>Materiały szkoleniowe</h2>
+    {{LMS_MATERIALS}}
+  </div>
+  {{/IF_MATERIALS}}
+</div>';
     }
 }
