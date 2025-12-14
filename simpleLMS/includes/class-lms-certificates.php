@@ -214,7 +214,7 @@ class LMS_Certificates {
         $pdf = new TCPDF();
         $pdf->SetCreator( PDF_CREATOR );
         $pdf->SetAuthor( $data['lecturer'] );
-        $pdf->SetTitle( 'Certyfikat - ' . $data['course_title'] );
+        $pdf->SetTitle( 'Certificate - ' . $data['course_title'] );
         $pdf->setPrintHeader( false );
         $pdf->setPrintFooter( false );
         $pdf->SetMargins( 15, 15, 15 );
@@ -223,7 +223,7 @@ class LMS_Certificates {
         $pdf->writeHTML( $html, true, false, true, false, '' );
 
         // Output PDF inline.
-        $pdf->Output( 'certyfikat.pdf', 'I' );
+        $pdf->Output( 'certificate.pdf', 'I' );
         exit;
     }
 

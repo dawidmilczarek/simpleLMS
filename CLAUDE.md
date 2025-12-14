@@ -611,9 +611,9 @@ The built-in default template includes a metadata list at the top and structural
 
 ```html
 <ul>
-{{#IF_DATE}}<li>Data: {{LMS_DATE}}</li>{{/IF_DATE}}
-{{#IF_TIME}}<li>Godzina: {{LMS_TIME}}</li>{{/IF_TIME}}
-{{#IF_LECTURER}}<li>Wykładowca: {{LMS_LECTURER}}</li>{{/IF_LECTURER}}
+{{#IF_DATE}}<li>Date: {{LMS_DATE}}</li>{{/IF_DATE}}
+{{#IF_TIME}}<li>Time: {{LMS_TIME}}</li>{{/IF_TIME}}
+{{#IF_LECTURER}}<li>Lecturer: {{LMS_LECTURER}}</li>{{/IF_LECTURER}}
 </ul>
 
 {{#IF_VIDEOS}}

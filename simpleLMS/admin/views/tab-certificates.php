@@ -60,7 +60,7 @@ $template       = get_option( 'simple_lms_certificate_template', LMS_Certificate
 <form method="post" action="">
     <?php wp_nonce_field( 'simple_lms_certificate_settings' ); ?>
 
-    <h2><?php esc_html_e( 'Obrazy', 'simple-lms' ); ?></h2>
+    <h2><?php esc_html_e( 'Images', 'simple-lms' ); ?></h2>
 
     <table class="form-table">
         <tr>
@@ -69,7 +69,7 @@ $template       = get_option( 'simple_lms_certificate_template', LMS_Certificate
             </th>
             <td>
                 <input type="text" id="certificate_logo_url" name="certificate_logo_url" value="<?php echo esc_url( $logo_url ); ?>" class="regular-text">
-                <button type="button" class="button simple-lms-media-upload" data-target="certificate_logo_url"><?php esc_html_e( 'Wybierz obrazek', 'simple-lms' ); ?></button>
+                <button type="button" class="button simple-lms-media-upload" data-target="certificate_logo_url"><?php esc_html_e( 'Select image', 'simple-lms' ); ?></button>
                 <?php if ( $logo_url ) : ?>
                     <br><br>
                     <img src="<?php echo esc_url( $logo_url ); ?>" style="max-width: 200px; height: auto;">
@@ -78,11 +78,11 @@ $template       = get_option( 'simple_lms_certificate_template', LMS_Certificate
         </tr>
         <tr>
             <th scope="row">
-                <label for="certificate_signature_url"><?php esc_html_e( 'Podpis', 'simple-lms' ); ?></label>
+                <label for="certificate_signature_url"><?php esc_html_e( 'Signature', 'simple-lms' ); ?></label>
             </th>
             <td>
                 <input type="text" id="certificate_signature_url" name="certificate_signature_url" value="<?php echo esc_url( $signature_url ); ?>" class="regular-text">
-                <button type="button" class="button simple-lms-media-upload" data-target="certificate_signature_url"><?php esc_html_e( 'Wybierz obrazek', 'simple-lms' ); ?></button>
+                <button type="button" class="button simple-lms-media-upload" data-target="certificate_signature_url"><?php esc_html_e( 'Select image', 'simple-lms' ); ?></button>
                 <?php if ( $signature_url ) : ?>
                     <br><br>
                     <img src="<?php echo esc_url( $signature_url ); ?>" style="max-width: 150px; height: auto;">
@@ -91,12 +91,12 @@ $template       = get_option( 'simple_lms_certificate_template', LMS_Certificate
         </tr>
     </table>
 
-    <h2><?php esc_html_e( 'Wystawca', 'simple-lms' ); ?></h2>
+    <h2><?php esc_html_e( 'Issuer', 'simple-lms' ); ?></h2>
 
     <table class="form-table">
         <tr>
             <th scope="row">
-                <label for="certificate_issuer_company"><?php esc_html_e( 'Firma', 'simple-lms' ); ?></label>
+                <label for="certificate_issuer_company"><?php esc_html_e( 'Company', 'simple-lms' ); ?></label>
             </th>
             <td>
                 <input type="text" id="certificate_issuer_company" name="certificate_issuer_company" value="<?php echo esc_attr( $issuer_company ); ?>" class="regular-text">
@@ -104,7 +104,7 @@ $template       = get_option( 'simple_lms_certificate_template', LMS_Certificate
         </tr>
         <tr>
             <th scope="row">
-                <label for="certificate_issuer_name"><?php esc_html_e( 'Podpisujacy', 'simple-lms' ); ?></label>
+                <label for="certificate_issuer_name"><?php esc_html_e( 'Signatory', 'simple-lms' ); ?></label>
             </th>
             <td>
                 <input type="text" id="certificate_issuer_name" name="certificate_issuer_name" value="<?php echo esc_attr( $issuer_name ); ?>" class="regular-text">
@@ -112,53 +112,53 @@ $template       = get_option( 'simple_lms_certificate_template', LMS_Certificate
         </tr>
         <tr>
             <th scope="row">
-                <label for="certificate_issuer_title"><?php esc_html_e( 'Tytul', 'simple-lms' ); ?></label>
+                <label for="certificate_issuer_title"><?php esc_html_e( 'Title', 'simple-lms' ); ?></label>
             </th>
             <td>
                 <input type="text" id="certificate_issuer_title" name="certificate_issuer_title" value="<?php echo esc_attr( $issuer_title ); ?>" class="regular-text">
-                <p class="description"><?php esc_html_e( 'Np. Prezes Zarzadu, Dyrektor, itp.', 'simple-lms' ); ?></p>
+                <p class="description"><?php esc_html_e( 'E.g. CEO, Director, etc.', 'simple-lms' ); ?></p>
             </td>
         </tr>
     </table>
 
-    <h2><?php esc_html_e( 'Szablon certyfikatu', 'simple-lms' ); ?></h2>
+    <h2><?php esc_html_e( 'Certificate template', 'simple-lms' ); ?></h2>
 
     <p>
         <textarea id="certificate_template" name="certificate_template" rows="15" class="large-text code"><?php echo esc_textarea( $template ); ?></textarea>
     </p>
 
     <p>
-        <button type="submit" name="simple_lms_reset_certificate_template" class="button" onclick="return confirm('<?php esc_attr_e( 'Czy na pewno chcesz zresetowac szablon do domyslnego?', 'simple-lms' ); ?>');">
-            <?php esc_html_e( 'Resetuj do domyslnego', 'simple-lms' ); ?>
+        <button type="submit" name="simple_lms_reset_certificate_template" class="button" onclick="return confirm('<?php esc_attr_e( 'Are you sure you want to reset the template to default?', 'simple-lms' ); ?>');">
+            <?php esc_html_e( 'Reset to default', 'simple-lms' ); ?>
         </button>
     </p>
 
-    <h3><?php esc_html_e( 'Dostepne placeholdery', 'simple-lms' ); ?></h3>
+    <h3><?php esc_html_e( 'Available placeholders', 'simple-lms' ); ?></h3>
 
     <table class="widefat" style="max-width: 600px;">
         <thead>
             <tr>
                 <th><?php esc_html_e( 'Placeholder', 'simple-lms' ); ?></th>
-                <th><?php esc_html_e( 'Opis', 'simple-lms' ); ?></th>
+                <th><?php esc_html_e( 'Description', 'simple-lms' ); ?></th>
             </tr>
         </thead>
         <tbody>
-            <tr><td><code>{{CERT_USER_NAME}}</code></td><td><?php esc_html_e( 'Imie i nazwisko', 'simple-lms' ); ?></td></tr>
-            <tr><td><code>{{CERT_COURSE_TITLE}}</code></td><td><?php esc_html_e( 'Tytul kursu', 'simple-lms' ); ?></td></tr>
-            <tr><td><code>{{CERT_LECTURER}}</code></td><td><?php esc_html_e( 'Wykladowca', 'simple-lms' ); ?></td></tr>
-            <tr><td><code>{{CERT_DURATION}}</code></td><td><?php esc_html_e( 'Czas trwania', 'simple-lms' ); ?></td></tr>
-            <tr><td><code>{{CERT_COMPLETION_DATE}}</code></td><td><?php esc_html_e( 'Data ukonczenia', 'simple-lms' ); ?></td></tr>
-            <tr><td><code>{{CERT_LOGO_URL}}</code></td><td><?php esc_html_e( 'URL logo', 'simple-lms' ); ?></td></tr>
-            <tr><td><code>{{CERT_SIGNATURE_URL}}</code></td><td><?php esc_html_e( 'URL podpisu', 'simple-lms' ); ?></td></tr>
-            <tr><td><code>{{CERT_ISSUER_COMPANY}}</code></td><td><?php esc_html_e( 'Nazwa firmy', 'simple-lms' ); ?></td></tr>
-            <tr><td><code>{{CERT_ISSUER_NAME}}</code></td><td><?php esc_html_e( 'Podpisujacy', 'simple-lms' ); ?></td></tr>
-            <tr><td><code>{{CERT_ISSUER_TITLE}}</code></td><td><?php esc_html_e( 'Tytul podpisujacego', 'simple-lms' ); ?></td></tr>
+            <tr><td><code>{{CERT_USER_NAME}}</code></td><td><?php esc_html_e( 'Full name', 'simple-lms' ); ?></td></tr>
+            <tr><td><code>{{CERT_COURSE_TITLE}}</code></td><td><?php esc_html_e( 'Course title', 'simple-lms' ); ?></td></tr>
+            <tr><td><code>{{CERT_LECTURER}}</code></td><td><?php esc_html_e( 'Lecturer', 'simple-lms' ); ?></td></tr>
+            <tr><td><code>{{CERT_DURATION}}</code></td><td><?php esc_html_e( 'Duration', 'simple-lms' ); ?></td></tr>
+            <tr><td><code>{{CERT_COMPLETION_DATE}}</code></td><td><?php esc_html_e( 'Completion date', 'simple-lms' ); ?></td></tr>
+            <tr><td><code>{{CERT_LOGO_URL}}</code></td><td><?php esc_html_e( 'Logo URL', 'simple-lms' ); ?></td></tr>
+            <tr><td><code>{{CERT_SIGNATURE_URL}}</code></td><td><?php esc_html_e( 'Signature URL', 'simple-lms' ); ?></td></tr>
+            <tr><td><code>{{CERT_ISSUER_COMPANY}}</code></td><td><?php esc_html_e( 'Company name', 'simple-lms' ); ?></td></tr>
+            <tr><td><code>{{CERT_ISSUER_NAME}}</code></td><td><?php esc_html_e( 'Signatory', 'simple-lms' ); ?></td></tr>
+            <tr><td><code>{{CERT_ISSUER_TITLE}}</code></td><td><?php esc_html_e( 'Signatory title', 'simple-lms' ); ?></td></tr>
         </tbody>
     </table>
 
     <p class="submit">
         <button type="submit" name="simple_lms_save_certificate_settings" class="button button-primary">
-            <?php esc_html_e( 'Zapisz ustawienia', 'simple-lms' ); ?>
+            <?php esc_html_e( 'Save settings', 'simple-lms' ); ?>
         </button>
     </p>
 </form>
@@ -171,9 +171,9 @@ jQuery(document).ready(function($) {
         var targetId = button.data('target');
 
         var mediaUploader = wp.media({
-            title: '<?php esc_html_e( 'Wybierz obrazek', 'simple-lms' ); ?>',
+            title: '<?php esc_html_e( 'Select image', 'simple-lms' ); ?>',
             button: {
-                text: '<?php esc_html_e( 'Uzyj tego obrazka', 'simple-lms' ); ?>'
+                text: '<?php esc_html_e( 'Use this image', 'simple-lms' ); ?>'
             },
             multiple: false
         });

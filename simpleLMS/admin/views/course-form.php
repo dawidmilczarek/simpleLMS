@@ -360,15 +360,15 @@ $page_title = $is_edit ? __( 'Edit Course', 'simple-lms' ) : __( 'Add New Course
 
                 <!-- Certificate -->
                 <div class="course-form-box">
-                    <h2><?php esc_html_e( 'Certyfikat', 'simple-lms' ); ?></h2>
+                    <h2><?php esc_html_e( 'Certificate', 'simple-lms' ); ?></h2>
                     <p>
                         <label>
                             <input type="checkbox" name="simple_lms_certificate_enabled" value="1" <?php checked( $certificate_enabled, '1' ); ?>>
-                            <?php esc_html_e( 'Wlacz certyfikat dla tego kursu', 'simple-lms' ); ?>
+                            <?php esc_html_e( 'Enable certificate for this course', 'simple-lms' ); ?>
                         </label>
                     </p>
                     <p class="description">
-                        <?php esc_html_e( 'Jesli zaznaczone, uzytkownicy moga generowac certyfikaty ukonczenia.', 'simple-lms' ); ?>
+                        <?php esc_html_e( 'If checked, users can generate completion certificates.', 'simple-lms' ); ?>
                     </p>
                 </div>
 

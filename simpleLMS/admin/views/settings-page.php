@@ -38,7 +38,7 @@ $active_tab = isset( $_GET['tab'] ) ? sanitize_key( $_GET['tab'] ) : 'general';
             <?php esc_html_e( 'Lecturers', 'simple-lms' ); ?>
         </a>
         <a href="<?php echo esc_url( admin_url( 'admin.php?page=simple-lms-settings&tab=certificates' ) ); ?>" class="nav-tab <?php echo 'certificates' === $active_tab ? 'nav-tab-active' : ''; ?>">
-            <?php esc_html_e( 'Certyfikaty', 'simple-lms' ); ?>
+            <?php esc_html_e( 'Certificates', 'simple-lms' ); ?>
         </a>
     </nav>
 
