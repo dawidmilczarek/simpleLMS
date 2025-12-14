@@ -9,9 +9,11 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
-$courses  = $this->get_old_courses();
-$statuses = $this->get_available_statuses();
-$count    = count( $courses );
+$courses          = $this->get_old_courses();
+$statuses         = $this->get_available_statuses();
+$membership_plans = $this->get_membership_plans();
+$has_memberships  = function_exists( 'wc_memberships' );
+$count            = count( $courses );
 
 // Messages.
 $imported = isset( $_GET['imported'] ) ? intval( $_GET['imported'] ) : 0;
@@ -100,6 +102,29 @@ $error    = isset( $_GET['error'] ) ? sanitize_text_field( $_GET['error'] ) : ''
                                 </select>
                             </td>
                         </tr>
+                        <?php if ( $has_memberships ) : ?>
+                        <tr>
+                            <th scope="row">
+                                <label for="import_memberships"><?php esc_html_e( 'Access restriction (Memberships)', 'simple-lms' ); ?></label>
+                            </th>
+                            <td>
+                                <?php if ( ! empty( $membership_plans ) ) : ?>
+                                    <select name="import_memberships[]" id="import_memberships" multiple style="min-width: 300px; min-height: 100px;">
+                                        <?php foreach ( $membership_plans as $plan ) : ?>
+                                            <option value="<?php echo esc_attr( $plan->ID ); ?>">
+                                                <?php echo esc_html( $plan->post_title ); ?>
+                                            </option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                    <p class="description">
+                                        <?php esc_html_e( 'Select one or more membership plans. Hold Ctrl/Cmd to select multiple. Leave empty for no restriction (public courses).', 'simple-lms' ); ?>
+                                    </p>
+                                <?php else : ?>
+                                    <p class="description"><?php esc_html_e( 'No membership plans found.', 'simple-lms' ); ?></p>
+                                <?php endif; ?>
+                            </td>
+                        </tr>
+                        <?php endif; ?>
                     </table>
 
                     <h3><?php esc_html_e( 'Select Courses to Import', 'simple-lms' ); ?></h3>

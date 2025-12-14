@@ -106,6 +106,25 @@ class SimpleLMS_Import {
     }
 
     /**
+     * Get available membership plans from WooCommerce Memberships.
+     *
+     * @return array
+     */
+    public function get_membership_plans() {
+        if ( ! function_exists( 'wc_memberships' ) ) {
+            return array();
+        }
+
+        return get_posts(
+            array(
+                'post_type'      => 'wc_membership_plan',
+                'posts_per_page' => -1,
+                'post_status'    => 'publish',
+            )
+        );
+    }
+
+    /**
      * Handle the import action.
      */
     public function handle_import() {
@@ -117,6 +136,7 @@ class SimpleLMS_Import {
 
         $status_id = isset( $_POST['import_status'] ) ? intval( $_POST['import_status'] ) : 0;
         $course_ids = isset( $_POST['course_ids'] ) ? array_map( 'intval', $_POST['course_ids'] ) : array();
+        $membership_ids = isset( $_POST['import_memberships'] ) ? array_map( 'intval', $_POST['import_memberships'] ) : array();
 
         if ( ! $status_id ) {
             wp_redirect( admin_url( 'admin.php?page=simple-lms-import&error=no_status' ) );
@@ -134,7 +154,7 @@ class SimpleLMS_Import {
         foreach ( $course_ids as $course_id ) {
             $course = $this->get_course_by_id( $course_id );
             if ( $course ) {
-                $result = $this->import_single_course( $course, $status_id );
+                $result = $this->import_single_course( $course, $status_id, $membership_ids );
                 if ( $result ) {
                     $imported++;
                 } else {
@@ -172,9 +192,10 @@ class SimpleLMS_Import {
      *
      * @param array $course Old course data.
      * @param int   $status_id Status term ID to assign.
+     * @param array $membership_ids Membership plan IDs for access restriction.
      * @return int|false Post ID on success, false on failure.
      */
-    private function import_single_course( $course, $status_id ) {
+    private function import_single_course( $course, $status_id, $membership_ids = array() ) {
         // Create post.
         $post_data = array(
             'post_title'  => sanitize_text_field( $course['title'] ),
@@ -259,6 +280,11 @@ class SimpleLMS_Import {
 
         // Enable certificate by default.
         update_post_meta( $post_id, '_simple_lms_certificate_enabled', '1' );
+
+        // Set membership access restrictions.
+        if ( ! empty( $membership_ids ) ) {
+            update_post_meta( $post_id, '_simple_lms_access_memberships', $membership_ids );
+        }
 
         return $post_id;
     }
