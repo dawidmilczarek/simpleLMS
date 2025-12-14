@@ -18,6 +18,7 @@ $count            = count( $courses );
 // Messages.
 $imported = isset( $_GET['imported'] ) ? intval( $_GET['imported'] ) : 0;
 $errors   = isset( $_GET['errors'] ) ? intval( $_GET['errors'] ) : 0;
+$skipped  = isset( $_GET['skipped'] ) ? intval( $_GET['skipped'] ) : 0;
 $error    = isset( $_GET['error'] ) ? sanitize_text_field( $_GET['error'] ) : '';
 ?>
 
@@ -33,6 +34,13 @@ $error    = isset( $_GET['error'] ) ? sanitize_text_field( $_GET['error'] ) : ''
                     esc_html__( 'Successfully imported %d courses.', 'simple-lms' ),
                     $imported
                 );
+                if ( $skipped > 0 ) {
+                    printf(
+                        /* translators: %d: number of skipped duplicates */
+                        ' ' . esc_html__( '%d duplicate(s) skipped.', 'simple-lms' ),
+                        $skipped
+                    );
+                }
                 if ( $errors > 0 ) {
                     printf(
                         /* translators: %d: number of errors */

@@ -125,6 +125,56 @@ class SimpleLMS_Import {
     }
 
     /**
+     * Deduplicate courses by title.
+     * When multiple courses have the same title, keep the one with more videos/materials.
+     * If counts are equal, keep the first one.
+     *
+     * @param array $course_ids Array of course IDs to deduplicate.
+     * @return array Deduplicated array of course IDs.
+     */
+    private function deduplicate_courses( $course_ids ) {
+        $courses_by_title = array();
+
+        // Group courses by title.
+        foreach ( $course_ids as $course_id ) {
+            $course = $this->get_course_by_id( $course_id );
+            if ( ! $course ) {
+                continue;
+            }
+
+            $title = strtolower( trim( $course['title'] ) );
+            $video_count = is_array( $course['video_links'] ) ? count( $course['video_links'] ) : 0;
+            $material_count = is_array( $course['training_material_links'] ) ? count( $course['training_material_links'] ) : 0;
+            $total_count = $video_count + $material_count;
+
+            if ( ! isset( $courses_by_title[ $title ] ) ) {
+                // First course with this title.
+                $courses_by_title[ $title ] = array(
+                    'id'    => $course_id,
+                    'count' => $total_count,
+                );
+            } else {
+                // Duplicate found - keep the one with more videos/materials.
+                if ( $total_count > $courses_by_title[ $title ]['count'] ) {
+                    $courses_by_title[ $title ] = array(
+                        'id'    => $course_id,
+                        'count' => $total_count,
+                    );
+                }
+                // If counts are equal, keep the first one (do nothing).
+            }
+        }
+
+        // Extract deduplicated IDs.
+        $deduplicated_ids = array();
+        foreach ( $courses_by_title as $data ) {
+            $deduplicated_ids[] = $data['id'];
+        }
+
+        return $deduplicated_ids;
+    }
+
+    /**
      * Handle the import action.
      */
     public function handle_import() {
@@ -148,6 +198,11 @@ class SimpleLMS_Import {
             exit;
         }
 
+        // Deduplicate courses by title - keep the one with more videos/materials.
+        $original_count = count( $course_ids );
+        $course_ids = $this->deduplicate_courses( $course_ids );
+        $skipped = $original_count - count( $course_ids );
+
         $imported = 0;
         $errors = 0;
 
@@ -165,7 +220,7 @@ class SimpleLMS_Import {
             }
         }
 
-        wp_redirect( admin_url( 'admin.php?page=simple-lms-import&imported=' . $imported . '&errors=' . $errors ) );
+        wp_redirect( admin_url( 'admin.php?page=simple-lms-import&imported=' . $imported . '&errors=' . $errors . '&skipped=' . $skipped ) );
         exit;
     }
 
