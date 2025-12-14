@@ -58,36 +58,36 @@ $conditionals = array(
 );
 ?>
 
-<form method="post" action="options.php">
-    <?php settings_fields( 'simple_lms_templates_group' ); ?>
-
-    <div class="simple-lms-template-reference">
-        <h3><?php esc_html_e( 'Available Placeholders', 'simple-lms' ); ?></h3>
-        <div class="placeholder-grid">
-            <div class="placeholder-column">
-                <h4><?php esc_html_e( 'Content Placeholders', 'simple-lms' ); ?></h4>
-                <table class="widefat striped">
-                    <?php foreach ( $placeholders as $tag => $desc ) : ?>
-                    <tr>
-                        <td><code><?php echo esc_html( $tag ); ?></code></td>
-                        <td><?php echo esc_html( $desc ); ?></td>
-                    </tr>
-                    <?php endforeach; ?>
-                </table>
-            </div>
-            <div class="placeholder-column">
-                <h4><?php esc_html_e( 'Conditional Blocks', 'simple-lms' ); ?></h4>
-                <table class="widefat striped">
-                    <?php foreach ( $conditionals as $tag => $desc ) : ?>
-                    <tr>
-                        <td><code><?php echo esc_html( $tag ); ?></code></td>
-                        <td><?php echo esc_html( $desc ); ?></td>
-                    </tr>
-                    <?php endforeach; ?>
-                </table>
-            </div>
+<div class="simple-lms-template-reference">
+    <h3><?php esc_html_e( 'Available Placeholders', 'simple-lms' ); ?></h3>
+    <div class="placeholder-grid">
+        <div class="placeholder-column">
+            <h4><?php esc_html_e( 'Content Placeholders', 'simple-lms' ); ?></h4>
+            <table class="widefat striped">
+                <?php foreach ( $placeholders as $tag => $desc ) : ?>
+                <tr>
+                    <td><code><?php echo esc_html( $tag ); ?></code></td>
+                    <td><?php echo esc_html( $desc ); ?></td>
+                </tr>
+                <?php endforeach; ?>
+            </table>
+        </div>
+        <div class="placeholder-column">
+            <h4><?php esc_html_e( 'Conditional Blocks', 'simple-lms' ); ?></h4>
+            <table class="widefat striped">
+                <?php foreach ( $conditionals as $tag => $desc ) : ?>
+                <tr>
+                    <td><code><?php echo esc_html( $tag ); ?></code></td>
+                    <td><?php echo esc_html( $desc ); ?></td>
+                </tr>
+                <?php endforeach; ?>
+            </table>
         </div>
     </div>
+</div>
+
+<form method="post" action="options.php">
+    <?php settings_fields( 'simple_lms_templates_group' ); ?>
 
     <h2><?php esc_html_e( 'Default Template', 'simple-lms' ); ?></h2>
     <p class="description"><?php esc_html_e( 'This template is used for courses without a status-specific template.', 'simple-lms' ); ?></p>
@@ -95,20 +95,13 @@ $conditionals = array(
     <div class="simple-lms-template-editor">
         <textarea id="simple_lms_default_template" name="simple_lms_default_template" rows="20" class="large-text code"><?php echo esc_textarea( $default_template ); ?></textarea>
     </div>
-</form>
 
-<form method="post" action="" class="simple-lms-reset-template-form">
-    <?php wp_nonce_field( 'simple_lms_reset_default_template' ); ?>
     <p class="simple-lms-reset-template">
-        <button type="submit" name="simple_lms_reset_default_template" class="button button-secondary" onclick="return confirm('<?php esc_attr_e( 'Are you sure you want to reset the template to default?', 'simple-lms' ); ?>');">
+        <button type="button" class="button button-secondary" id="simple-lms-reset-template-btn">
             <?php esc_html_e( 'Reset to Default', 'simple-lms' ); ?>
         </button>
         <span class="description"><?php esc_html_e( 'Restore the built-in default template.', 'simple-lms' ); ?></span>
     </p>
-</form>
-
-<form method="post" action="options.php">
-    <?php settings_fields( 'simple_lms_templates_group' ); ?>
 
     <?php if ( ! empty( $statuses ) && ! is_wp_error( $statuses ) ) : ?>
     <h2><?php esc_html_e( 'Status-Specific Templates', 'simple-lms' ); ?></h2>
@@ -137,6 +130,11 @@ $conditionals = array(
     <?php submit_button(); ?>
 </form>
 
+<form method="post" action="" id="simple-lms-reset-form" style="display:none;">
+    <?php wp_nonce_field( 'simple_lms_reset_default_template' ); ?>
+    <input type="hidden" name="simple_lms_reset_default_template" value="1">
+</form>
+
 <script>
 jQuery(document).ready(function($) {
     // Toggle status template sections.
@@ -146,6 +144,13 @@ jQuery(document).ready(function($) {
 
         $content.slideToggle(200);
         $toggle.attr('aria-expanded', $content.is(':visible'));
+    });
+
+    // Reset template button.
+    $('#simple-lms-reset-template-btn').on('click', function() {
+        if (confirm('<?php echo esc_js( __( 'Are you sure you want to reset the template to default?', 'simple-lms' ) ); ?>')) {
+            $('#simple-lms-reset-form').submit();
+        }
     });
 
     // Initialize code editor for default template.
