@@ -40,7 +40,6 @@ class LMS_Admin {
         add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
         add_action( 'admin_bar_menu', array( $this, 'add_admin_bar_menu' ), 100 );
         add_action( 'wp_ajax_simple_lms_delete_course', array( $this, 'ajax_delete_course' ) );
-        add_action( 'wp_ajax_simple_lms_reset_default_template', array( $this, 'ajax_reset_default_template' ) );
         add_action( 'wp_ajax_simple_lms_search_products', array( $this, 'ajax_search_products' ) );
         add_filter( 'parent_file', array( $this, 'fix_parent_menu' ) );
         add_filter( 'submenu_file', array( $this, 'fix_submenu_file' ) );
@@ -355,13 +354,11 @@ class LMS_Admin {
                     'ajaxUrl' => admin_url( 'admin-ajax.php' ),
                     'nonce'   => wp_create_nonce( 'simple_lms_admin' ),
                     'i18n'    => array(
-                        'confirmDelete'        => __( 'Are you sure you want to delete this preset?', 'simple-lms' ),
-                        'confirmDeleteCourse'  => __( 'Are you sure you want to delete this course?', 'simple-lms' ),
-                        'confirmResetTemplate' => __( 'Are you sure you want to reset the default template? Your current template will be lost.', 'simple-lms' ),
-                        'saving'               => __( 'Saving...', 'simple-lms' ),
-                        'saved'                => __( 'Saved!', 'simple-lms' ),
-                        'error'                => __( 'Error saving. Please try again.', 'simple-lms' ),
-                        'templateReset'        => __( 'Template has been reset.', 'simple-lms' ),
+                        'confirmDelete'       => __( 'Are you sure you want to delete this preset?', 'simple-lms' ),
+                        'confirmDeleteCourse' => __( 'Are you sure you want to delete this course?', 'simple-lms' ),
+                        'saving'              => __( 'Saving...', 'simple-lms' ),
+                        'saved'               => __( 'Saved!', 'simple-lms' ),
+                        'error'               => __( 'Error saving. Please try again.', 'simple-lms' ),
                     ),
                 )
             );
@@ -632,27 +629,6 @@ class LMS_Admin {
     }
 
     /**
-     * AJAX handler for resetting default template.
-     */
-    public function ajax_reset_default_template() {
-        check_ajax_referer( 'simple_lms_admin', 'nonce' );
-
-        if ( ! current_user_can( 'manage_options' ) ) {
-            wp_send_json_error( array( 'message' => __( 'Permission denied.', 'simple-lms' ) ) );
-        }
-
-        $default_template = $this->get_builtin_default_template();
-        update_option( 'simple_lms_default_template', $default_template );
-
-        wp_send_json_success(
-            array(
-                'message'  => __( 'Default template has been reset.', 'simple-lms' ),
-                'template' => $default_template,
-            )
-        );
-    }
-
-    /**
      * AJAX handler for searching subscription products.
      */
     public function ajax_search_products() {
@@ -695,6 +671,26 @@ class LMS_Admin {
         $this->handle_shortcode_preset_forms();
         $this->handle_taxonomy_forms();
         $this->handle_certificate_settings_form();
+        $this->handle_template_reset_form();
+    }
+
+    /**
+     * Handle template reset form.
+     */
+    private function handle_template_reset_form() {
+        if ( isset( $_POST['simple_lms_reset_default_template'] ) && isset( $_POST['_wpnonce'] ) ) {
+            if ( ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['_wpnonce'] ) ), 'simple_lms_reset_default_template' ) ) {
+                return;
+            }
+
+            if ( ! current_user_can( 'manage_options' ) ) {
+                return;
+            }
+
+            $default_template = $this->get_builtin_default_template();
+            update_option( 'simple_lms_default_template', $default_template );
+            $this->admin_notices[] = array( 'type' => 'success', 'message' => __( 'Template reset to default.', 'simple-lms' ) );
+        }
     }
 
     /**
@@ -707,21 +703,32 @@ class LMS_Admin {
                 return;
             }
 
-            $preset_name = isset( $_POST['preset_name'] ) ? sanitize_key( $_POST['preset_name'] ) : '';
+            $preset_label = isset( $_POST['preset_label'] ) ? sanitize_text_field( wp_unslash( $_POST['preset_label'] ) ) : '';
 
-            if ( empty( $preset_name ) ) {
-                $this->admin_notices[] = array( 'type' => 'error', 'message' => __( 'Preset name is required.', 'simple-lms' ) );
+            if ( empty( $preset_label ) ) {
+                $this->admin_notices[] = array( 'type' => 'error', 'message' => __( 'Name is required.', 'simple-lms' ) );
+                return;
+            }
+
+            // Get slug from form or auto-generate from label.
+            $preset_slug = isset( $_POST['preset_slug'] ) ? sanitize_key( $_POST['preset_slug'] ) : '';
+            if ( empty( $preset_slug ) ) {
+                $preset_slug = sanitize_title( $preset_label );
+            }
+
+            if ( empty( $preset_slug ) ) {
+                $this->admin_notices[] = array( 'type' => 'error', 'message' => __( 'Could not generate a valid slug.', 'simple-lms' ) );
                 return;
             }
 
             $presets = get_option( 'simple_lms_shortcode_presets', array() );
 
-            if ( isset( $presets[ $preset_name ] ) ) {
-                $this->admin_notices[] = array( 'type' => 'error', 'message' => __( 'A preset with this name already exists.', 'simple-lms' ) );
+            if ( isset( $presets[ $preset_slug ] ) ) {
+                $this->admin_notices[] = array( 'type' => 'error', 'message' => __( 'A preset with this slug already exists.', 'simple-lms' ) );
                 return;
             }
 
-            $presets[ $preset_name ] = $this->sanitize_preset_data( $preset_name );
+            $presets[ $preset_slug ] = $this->sanitize_preset_data( $preset_slug, $preset_label );
             update_option( 'simple_lms_shortcode_presets', $presets );
             $this->admin_notices[] = array( 'type' => 'success', 'message' => __( 'Preset added successfully.', 'simple-lms' ) );
         }
@@ -732,11 +739,12 @@ class LMS_Admin {
                 return;
             }
 
-            $preset_name = isset( $_POST['preset_name'] ) ? sanitize_key( $_POST['preset_name'] ) : '';
+            $preset_slug  = isset( $_POST['preset_slug'] ) ? sanitize_key( $_POST['preset_slug'] ) : '';
+            $preset_label = isset( $_POST['preset_label'] ) ? sanitize_text_field( wp_unslash( $_POST['preset_label'] ) ) : '';
 
-            if ( ! empty( $preset_name ) ) {
-                $presets                 = get_option( 'simple_lms_shortcode_presets', array() );
-                $presets[ $preset_name ] = $this->sanitize_preset_data( $preset_name );
+            if ( ! empty( $preset_slug ) ) {
+                $presets                  = get_option( 'simple_lms_shortcode_presets', array() );
+                $presets[ $preset_slug ]  = $this->sanitize_preset_data( $preset_slug, $preset_label );
                 update_option( 'simple_lms_shortcode_presets', $presets );
                 $this->admin_notices[] = array( 'type' => 'success', 'message' => __( 'Preset updated successfully.', 'simple-lms' ) );
             }
@@ -760,13 +768,14 @@ class LMS_Admin {
     /**
      * Sanitize preset data from POST.
      *
-     * @param string $preset_name Preset name.
+     * @param string $preset_slug  Preset slug.
+     * @param string $preset_label Preset label (human-readable name).
      * @return array
      */
-    private function sanitize_preset_data( $preset_name ) {
+    private function sanitize_preset_data( $preset_slug, $preset_label ) {
         return array(
-            'name'       => $preset_name,
-            'label'      => isset( $_POST['preset_label'] ) ? sanitize_text_field( wp_unslash( $_POST['preset_label'] ) ) : '',
+            'name'       => $preset_slug,
+            'label'      => $preset_label,
             'statuses'   => isset( $_POST['statuses'] ) ? array_map( 'absint', (array) $_POST['statuses'] ) : array(),
             'categories' => isset( $_POST['categories'] ) ? array_map( 'absint', (array) $_POST['categories'] ) : array(),
             'tags'       => isset( $_POST['tags'] ) ? array_map( 'absint', (array) $_POST['tags'] ) : array(),

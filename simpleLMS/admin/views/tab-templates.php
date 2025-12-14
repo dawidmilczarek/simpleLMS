@@ -10,6 +10,15 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
+// Get admin notices from LMS_Admin.
+$lms     = Simple_LMS::instance();
+$notices = $lms->admin->get_admin_notices();
+
+// Display notices.
+foreach ( $notices as $notice ) {
+    echo '<div class="notice notice-' . esc_attr( $notice['type'] ) . ' is-dismissible"><p>' . esc_html( $notice['message'] ) . '</p></div>';
+}
+
 // Handle template labels save.
 if ( isset( $_POST['simple_lms_save_template_labels'] ) ) {
     if ( ! isset( $_POST['_wpnonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['_wpnonce'] ) ), 'simple_lms_template_labels' ) ) {
@@ -136,12 +145,6 @@ $conditionals = array(
         <textarea id="simple_lms_default_template" name="simple_lms_default_template" rows="20" class="large-text code"><?php echo esc_textarea( $default_template ); ?></textarea>
     </div>
 
-    <p class="simple-lms-reset-template">
-        <button type="button" id="simple-lms-reset-template-btn" class="button button-secondary">
-            <?php esc_html_e( 'Reset to Default', 'simple-lms' ); ?>
-        </button>
-        <span class="description"><?php esc_html_e( 'Restore the built-in default template.', 'simple-lms' ); ?></span>
-    </p>
 
     <?php if ( ! empty( $statuses ) && ! is_wp_error( $statuses ) ) : ?>
     <h2><?php esc_html_e( 'Status-Specific Templates', 'simple-lms' ); ?></h2>
@@ -170,10 +173,18 @@ $conditionals = array(
     <?php submit_button(); ?>
 </form>
 
+<form method="post" action="" class="simple-lms-reset-template-form">
+    <?php wp_nonce_field( 'simple_lms_reset_default_template' ); ?>
+    <p class="simple-lms-reset-template">
+        <button type="submit" name="simple_lms_reset_default_template" class="button button-secondary" onclick="return confirm('<?php esc_attr_e( 'Are you sure you want to reset the template to default?', 'simple-lms' ); ?>');">
+            <?php esc_html_e( 'Reset to Default', 'simple-lms' ); ?>
+        </button>
+        <span class="description"><?php esc_html_e( 'Restore the built-in default template.', 'simple-lms' ); ?></span>
+    </p>
+</form>
+
 <script>
 jQuery(document).ready(function($) {
-    var editorInstance = null;
-
     // Toggle status template sections.
     $('.status-template-header').on('click', function() {
         var $content = $(this).next('.status-template-content');
@@ -185,7 +196,7 @@ jQuery(document).ready(function($) {
 
     // Initialize code editor for default template.
     if (typeof wp !== 'undefined' && wp.codeEditor) {
-        editorInstance = wp.codeEditor.initialize($('#simple_lms_default_template'), {
+        wp.codeEditor.initialize($('#simple_lms_default_template'), {
             codemirror: {
                 mode: 'htmlmixed',
                 lineNumbers: true,
@@ -193,43 +204,5 @@ jQuery(document).ready(function($) {
             }
         });
     }
-
-    // Reset default template button.
-    $('#simple-lms-reset-template-btn').on('click', function() {
-        if (!confirm(simpleLMS.i18n.confirmResetTemplate)) {
-            return;
-        }
-
-        var $btn = $(this);
-        $btn.prop('disabled', true);
-
-        $.ajax({
-            url: simpleLMS.ajaxUrl,
-            type: 'POST',
-            data: {
-                action: 'simple_lms_reset_default_template',
-                nonce: simpleLMS.nonce
-            },
-            success: function(response) {
-                if (response.success) {
-                    // Update textarea value.
-                    if (editorInstance && editorInstance.codemirror) {
-                        editorInstance.codemirror.setValue(response.data.template);
-                    } else {
-                        $('#simple_lms_default_template').val(response.data.template);
-                    }
-                    alert(simpleLMS.i18n.templateReset);
-                } else {
-                    alert(response.data.message || simpleLMS.i18n.error);
-                }
-            },
-            error: function() {
-                alert(simpleLMS.i18n.error);
-            },
-            complete: function() {
-                $btn.prop('disabled', false);
-            }
-        });
-    });
 });
 </script>

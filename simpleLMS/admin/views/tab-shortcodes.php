@@ -57,17 +57,23 @@ if ( isset( $_GET['action'] ) && 'edit' === $_GET['action'] && isset( $_GET['pre
 
     <div class="taxonomy-form-column">
         <?php if ( $editing_preset ) : ?>
-        <h2><?php esc_html_e( 'Edit Preset', 'simple-lms' ); ?>: <?php echo esc_html( $editing_preset['name'] ); ?></h2>
+        <h2><?php esc_html_e( 'Edit Preset', 'simple-lms' ); ?></h2>
         <form method="post" action="">
             <?php wp_nonce_field( 'simple_lms_edit_preset' ); ?>
-            <input type="hidden" name="preset_name" value="<?php echo esc_attr( $editing_preset['name'] ); ?>">
+            <input type="hidden" name="preset_slug" value="<?php echo esc_attr( $editing_preset['name'] ); ?>">
 
             <table class="form-table">
                 <tr>
-                    <th><label for="preset_label"><?php esc_html_e( 'Label', 'simple-lms' ); ?></label></th>
+                    <th><label for="preset_label"><?php esc_html_e( 'Name', 'simple-lms' ); ?></label></th>
                     <td>
-                        <input type="text" id="preset_label" name="preset_label" value="<?php echo esc_attr( $editing_preset['label'] ?? '' ); ?>" class="regular-text">
-                        <p class="description"><?php esc_html_e( 'Human-readable name for admin reference.', 'simple-lms' ); ?></p>
+                        <input type="text" id="preset_label" name="preset_label" value="<?php echo esc_attr( $editing_preset['label'] ?? '' ); ?>" class="regular-text" required>
+                    </td>
+                </tr>
+                <tr>
+                    <th><label><?php esc_html_e( 'Slug', 'simple-lms' ); ?></label></th>
+                    <td>
+                        <code><?php echo esc_html( $editing_preset['name'] ); ?></code>
+                        <p class="description"><?php esc_html_e( 'The slug cannot be changed after creation.', 'simple-lms' ); ?></p>
                     </td>
                 </tr>
                 <tr>
@@ -191,17 +197,16 @@ if ( isset( $_GET['action'] ) && 'edit' === $_GET['action'] && isset( $_GET['pre
 
             <table class="form-table">
                 <tr>
-                    <th><label for="preset_name"><?php esc_html_e( 'Preset Name (slug)', 'simple-lms' ); ?></label></th>
+                    <th><label for="preset_label"><?php esc_html_e( 'Name', 'simple-lms' ); ?></label></th>
                     <td>
-                        <input type="text" id="preset_name" name="preset_name" value="" class="regular-text" pattern="[a-z0-9\-]+" required>
-                        <p class="description"><?php esc_html_e( 'Lowercase letters, numbers, and hyphens only. Used in shortcode.', 'simple-lms' ); ?></p>
+                        <input type="text" id="preset_label" name="preset_label" value="" class="regular-text" required>
                     </td>
                 </tr>
                 <tr>
-                    <th><label for="preset_label"><?php esc_html_e( 'Label', 'simple-lms' ); ?></label></th>
+                    <th><label for="preset_slug"><?php esc_html_e( 'Slug', 'simple-lms' ); ?></label></th>
                     <td>
-                        <input type="text" id="preset_label" name="preset_label" value="" class="regular-text">
-                        <p class="description"><?php esc_html_e( 'Human-readable name for admin reference.', 'simple-lms' ); ?></p>
+                        <input type="text" id="preset_slug" name="preset_slug" value="" class="regular-text" pattern="[a-z0-9\-]*">
+                        <p class="description"><?php esc_html_e( 'Auto-generated from name if empty. Used in shortcode.', 'simple-lms' ); ?></p>
                     </td>
                 </tr>
                 <tr>
@@ -317,21 +322,19 @@ if ( isset( $_GET['action'] ) && 'edit' === $_GET['action'] && isset( $_GET['pre
                 </tr>
             </thead>
             <tbody>
-                <?php foreach ( $presets as $preset_name => $preset ) : ?>
+                <?php foreach ( $presets as $preset_slug => $preset ) : ?>
                 <tr>
                     <td>
-                        <strong><?php echo esc_html( $preset_name ); ?></strong>
-                        <?php if ( ! empty( $preset['label'] ) ) : ?>
-                        <p class="description"><?php echo esc_html( $preset['label'] ); ?></p>
-                        <?php endif; ?>
+                        <strong><?php echo esc_html( ! empty( $preset['label'] ) ? $preset['label'] : $preset_slug ); ?></strong>
+                        <p class="description"><?php echo esc_html( $preset_slug ); ?></p>
                     </td>
-                    <td><code>[lms_courses preset="<?php echo esc_attr( $preset_name ); ?>"]</code></td>
+                    <td><code>[lms_courses preset="<?php echo esc_attr( $preset_slug ); ?>"]</code></td>
                     <td>
-                        <a href="<?php echo esc_url( admin_url( 'admin.php?page=simple-lms-settings&tab=shortcodes&action=edit&preset=' . $preset_name ) ); ?>">
+                        <a href="<?php echo esc_url( admin_url( 'admin.php?page=simple-lms-settings&tab=shortcodes&action=edit&preset=' . $preset_slug ) ); ?>">
                             <?php esc_html_e( 'Edit', 'simple-lms' ); ?>
                         </a>
                         |
-                        <a href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin.php?page=simple-lms-settings&tab=shortcodes&action=delete&preset=' . $preset_name ), 'delete_preset_' . $preset_name ) ); ?>" onclick="return confirm('<?php esc_attr_e( 'Are you sure you want to delete this preset?', 'simple-lms' ); ?>');">
+                        <a href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin.php?page=simple-lms-settings&tab=shortcodes&action=delete&preset=' . $preset_slug ), 'delete_preset_' . $preset_slug ) ); ?>" onclick="return confirm('<?php esc_attr_e( 'Are you sure you want to delete this preset?', 'simple-lms' ); ?>');">
                             <?php esc_html_e( 'Delete', 'simple-lms' ); ?>
                         </a>
                     </td>
