@@ -30,13 +30,6 @@ class Simple_LMS {
     public $post_types;
 
     /**
-     * Meta boxes class instance.
-     *
-     * @var LMS_Meta_Boxes
-     */
-    public $meta_boxes;
-
-    /**
      * Admin class instance.
      *
      * @var LMS_Admin
@@ -103,8 +96,8 @@ class Simple_LMS {
      */
     private function includes() {
         // Core classes.
+        require_once SIMPLE_LMS_PLUGIN_DIR . 'includes/class-lms-course-data.php';
         require_once SIMPLE_LMS_PLUGIN_DIR . 'includes/class-lms-post-types.php';
-        require_once SIMPLE_LMS_PLUGIN_DIR . 'includes/class-lms-meta-boxes.php';
         require_once SIMPLE_LMS_PLUGIN_DIR . 'includes/class-lms-access-control.php';
         require_once SIMPLE_LMS_PLUGIN_DIR . 'includes/class-lms-templates.php';
         require_once SIMPLE_LMS_PLUGIN_DIR . 'includes/class-lms-shortcodes.php';
@@ -135,9 +128,6 @@ class Simple_LMS {
     public function init() {
         // Initialize post types and taxonomies.
         $this->post_types = new LMS_Post_Types();
-
-        // Initialize meta boxes.
-        $this->meta_boxes = new LMS_Meta_Boxes();
 
         // Initialize access control.
         $this->access_control = new LMS_Access_Control();

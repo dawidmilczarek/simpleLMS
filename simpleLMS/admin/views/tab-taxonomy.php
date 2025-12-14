@@ -48,87 +48,9 @@ $default_setting = $tax_config['default_setting'];
 // Get settings for default value.
 $settings = get_option( 'simple_lms_settings', array() );
 
-// Handle form submissions.
-$message = '';
-$error   = '';
-
-// Save default setting.
-if ( isset( $_POST['simple_lms_save_default'] ) && isset( $_POST['_wpnonce'] ) ) {
-    if ( wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['_wpnonce'] ) ), 'simple_lms_save_default' ) ) {
-        $default_value = isset( $_POST['default_value'] ) ? sanitize_text_field( wp_unslash( $_POST['default_value'] ) ) : '';
-        $settings[ $default_setting ] = $default_value;
-        update_option( 'simple_lms_settings', $settings );
-        $message = __( 'Default value saved.', 'simple-lms' );
-    }
-}
-
-// Add new term.
-if ( isset( $_POST['simple_lms_add_term'] ) && isset( $_POST['_wpnonce'] ) ) {
-    if ( wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['_wpnonce'] ) ), 'simple_lms_add_term' ) ) {
-        $term_name = isset( $_POST['term_name'] ) ? sanitize_text_field( wp_unslash( $_POST['term_name'] ) ) : '';
-        $term_slug = isset( $_POST['term_slug'] ) ? sanitize_title( wp_unslash( $_POST['term_slug'] ) ) : '';
-        $term_desc = isset( $_POST['term_description'] ) ? sanitize_textarea_field( wp_unslash( $_POST['term_description'] ) ) : '';
-
-        if ( ! empty( $term_name ) ) {
-            $result = wp_insert_term(
-                $term_name,
-                $taxonomy,
-                array(
-                    'slug'        => $term_slug,
-                    'description' => $term_desc,
-                )
-            );
-
-            if ( is_wp_error( $result ) ) {
-                $error = $result->get_error_message();
-            } else {
-                $message = sprintf( __( '%s added successfully.', 'simple-lms' ), $singular );
-            }
-        }
-    }
-}
-
-// Delete term.
-if ( isset( $_GET['action'] ) && 'delete' === $_GET['action'] && isset( $_GET['term_id'] ) && isset( $_GET['_wpnonce'] ) ) {
-    if ( wp_verify_nonce( sanitize_text_field( wp_unslash( $_GET['_wpnonce'] ) ), 'delete_term_' . absint( $_GET['term_id'] ) ) ) {
-        $term_id = absint( $_GET['term_id'] );
-        $result  = wp_delete_term( $term_id, $taxonomy );
-
-        if ( is_wp_error( $result ) ) {
-            $error = $result->get_error_message();
-        } else {
-            $message = sprintf( __( '%s deleted successfully.', 'simple-lms' ), $singular );
-        }
-    }
-}
-
-// Edit term.
-if ( isset( $_POST['simple_lms_edit_term'] ) && isset( $_POST['_wpnonce'] ) ) {
-    if ( wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['_wpnonce'] ) ), 'simple_lms_edit_term' ) ) {
-        $term_id   = isset( $_POST['term_id'] ) ? absint( $_POST['term_id'] ) : 0;
-        $term_name = isset( $_POST['term_name'] ) ? sanitize_text_field( wp_unslash( $_POST['term_name'] ) ) : '';
-        $term_slug = isset( $_POST['term_slug'] ) ? sanitize_title( wp_unslash( $_POST['term_slug'] ) ) : '';
-        $term_desc = isset( $_POST['term_description'] ) ? sanitize_textarea_field( wp_unslash( $_POST['term_description'] ) ) : '';
-
-        if ( $term_id && ! empty( $term_name ) ) {
-            $result = wp_update_term(
-                $term_id,
-                $taxonomy,
-                array(
-                    'name'        => $term_name,
-                    'slug'        => $term_slug,
-                    'description' => $term_desc,
-                )
-            );
-
-            if ( is_wp_error( $result ) ) {
-                $error = $result->get_error_message();
-            } else {
-                $message = sprintf( __( '%s updated successfully.', 'simple-lms' ), $singular );
-            }
-        }
-    }
-}
+// Get admin notices from LMS_Admin.
+$lms     = Simple_LMS::instance();
+$notices = $lms->admin->get_admin_notices();
 
 // Get terms.
 $terms = get_terms(
@@ -148,17 +70,11 @@ if ( isset( $_GET['action'] ) && 'edit' === $_GET['action'] && isset( $_GET['ter
 $settings = get_option( 'simple_lms_settings', array() );
 ?>
 
-<?php if ( $message ) : ?>
-<div class="notice notice-success is-dismissible">
-    <p><?php echo esc_html( $message ); ?></p>
+<?php foreach ( $notices as $notice ) : ?>
+<div class="notice notice-<?php echo esc_attr( $notice['type'] ); ?> is-dismissible">
+    <p><?php echo esc_html( $notice['message'] ); ?></p>
 </div>
-<?php endif; ?>
-
-<?php if ( $error ) : ?>
-<div class="notice notice-error is-dismissible">
-    <p><?php echo esc_html( $error ); ?></p>
-</div>
-<?php endif; ?>
+<?php endforeach; ?>
 
 <?php if ( $default_setting ) : ?>
 <div class="taxonomy-default-setting">

@@ -23,12 +23,20 @@ class LMS_Admin {
     private $courses_page_hook;
 
     /**
+     * Admin notices to display.
+     *
+     * @var array
+     */
+    private $admin_notices = array();
+
+    /**
      * Constructor.
      */
     public function __construct() {
         add_action( 'admin_menu', array( $this, 'add_admin_menu' ) );
         add_action( 'admin_init', array( $this, 'register_settings' ) );
         add_action( 'admin_init', array( $this, 'handle_course_form' ) );
+        add_action( 'admin_init', array( $this, 'handle_settings_forms' ) );
         add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
         add_action( 'admin_bar_menu', array( $this, 'add_admin_bar_menu' ), 100 );
         add_action( 'wp_ajax_simple_lms_delete_course', array( $this, 'ajax_delete_course' ) );
@@ -609,67 +617,18 @@ class LMS_Admin {
      * @return array
      */
     public static function get_membership_plans() {
-        if ( ! function_exists( 'wc_memberships' ) ) {
-            return array();
-        }
-
-        return get_posts(
-            array(
-                'post_type'      => 'wc_membership_plan',
-                'posts_per_page' => -1,
-                'post_status'    => 'publish',
-            )
-        );
+        return LMS_Course_Data::get_membership_plans();
     }
 
     /**
      * Get subscription products.
      *
+     * @param string $search       Optional search term.
+     * @param array  $selected_ids Optional array of selected product IDs to include.
      * @return array
      */
     public static function get_subscription_products( $search = '', $selected_ids = array() ) {
-        if ( ! class_exists( 'WC_Subscriptions' ) ) {
-            return array();
-        }
-
-        $status_filter = Simple_LMS::get_setting( 'product_status_filter', 'publish' );
-        $status = 'any' === $status_filter ? array( 'publish', 'draft', 'trash' ) : 'publish';
-
-        $args = array(
-            'type'   => array( 'subscription', 'variable-subscription' ),
-            'limit'  => 50, // Limit for performance.
-            'status' => $status,
-        );
-
-        // If searching, add search parameter.
-        if ( ! empty( $search ) ) {
-            $args['s'] = $search;
-        }
-
-        // If we have selected IDs, we need to include them even if they don't match search.
-        $products = wc_get_products( $args );
-
-        // Also fetch selected products that might not be in the search results.
-        if ( ! empty( $selected_ids ) ) {
-            $selected_products = wc_get_products(
-                array(
-                    'type'    => array( 'subscription', 'variable-subscription' ),
-                    'include' => $selected_ids,
-                    'status'  => $status,
-                    'limit'   => -1,
-                )
-            );
-
-            // Merge and dedupe.
-            $product_ids = array_map( function( $p ) { return $p->get_id(); }, $products );
-            foreach ( $selected_products as $selected ) {
-                if ( ! in_array( $selected->get_id(), $product_ids, true ) ) {
-                    $products[] = $selected;
-                }
-            }
-        }
-
-        return $products;
+        return LMS_Course_Data::get_subscription_products( $search, $selected_ids );
     }
 
     /**
@@ -722,6 +681,255 @@ class LMS_Admin {
         }
 
         wp_send_json_success( $results );
+    }
+
+    /**
+     * Handle settings tab forms.
+     */
+    public function handle_settings_forms() {
+        // Only process on settings page.
+        if ( ! isset( $_GET['page'] ) || 'simple-lms-settings' !== $_GET['page'] ) {
+            return;
+        }
+
+        $this->handle_shortcode_preset_forms();
+        $this->handle_taxonomy_forms();
+        $this->handle_certificate_settings_form();
+    }
+
+    /**
+     * Handle shortcode preset forms.
+     */
+    private function handle_shortcode_preset_forms() {
+        // Add new preset.
+        if ( isset( $_POST['simple_lms_add_preset'] ) && isset( $_POST['_wpnonce'] ) ) {
+            if ( ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['_wpnonce'] ) ), 'simple_lms_add_preset' ) ) {
+                return;
+            }
+
+            $preset_name = isset( $_POST['preset_name'] ) ? sanitize_key( $_POST['preset_name'] ) : '';
+
+            if ( empty( $preset_name ) ) {
+                $this->admin_notices[] = array( 'type' => 'error', 'message' => __( 'Preset name is required.', 'simple-lms' ) );
+                return;
+            }
+
+            $presets = get_option( 'simple_lms_shortcode_presets', array() );
+
+            if ( isset( $presets[ $preset_name ] ) ) {
+                $this->admin_notices[] = array( 'type' => 'error', 'message' => __( 'A preset with this name already exists.', 'simple-lms' ) );
+                return;
+            }
+
+            $presets[ $preset_name ] = $this->sanitize_preset_data( $preset_name );
+            update_option( 'simple_lms_shortcode_presets', $presets );
+            $this->admin_notices[] = array( 'type' => 'success', 'message' => __( 'Preset added successfully.', 'simple-lms' ) );
+        }
+
+        // Edit preset.
+        if ( isset( $_POST['simple_lms_edit_preset'] ) && isset( $_POST['_wpnonce'] ) ) {
+            if ( ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['_wpnonce'] ) ), 'simple_lms_edit_preset' ) ) {
+                return;
+            }
+
+            $preset_name = isset( $_POST['preset_name'] ) ? sanitize_key( $_POST['preset_name'] ) : '';
+
+            if ( ! empty( $preset_name ) ) {
+                $presets                 = get_option( 'simple_lms_shortcode_presets', array() );
+                $presets[ $preset_name ] = $this->sanitize_preset_data( $preset_name );
+                update_option( 'simple_lms_shortcode_presets', $presets );
+                $this->admin_notices[] = array( 'type' => 'success', 'message' => __( 'Preset updated successfully.', 'simple-lms' ) );
+            }
+        }
+
+        // Delete preset.
+        if ( isset( $_GET['action'] ) && 'delete' === $_GET['action'] && isset( $_GET['preset'] ) && isset( $_GET['_wpnonce'] ) ) {
+            $preset_name = sanitize_key( $_GET['preset'] );
+            if ( wp_verify_nonce( sanitize_text_field( wp_unslash( $_GET['_wpnonce'] ) ), 'delete_preset_' . $preset_name ) ) {
+                $presets = get_option( 'simple_lms_shortcode_presets', array() );
+
+                if ( isset( $presets[ $preset_name ] ) ) {
+                    unset( $presets[ $preset_name ] );
+                    update_option( 'simple_lms_shortcode_presets', $presets );
+                    $this->admin_notices[] = array( 'type' => 'success', 'message' => __( 'Preset deleted successfully.', 'simple-lms' ) );
+                }
+            }
+        }
+    }
+
+    /**
+     * Sanitize preset data from POST.
+     *
+     * @param string $preset_name Preset name.
+     * @return array
+     */
+    private function sanitize_preset_data( $preset_name ) {
+        return array(
+            'name'       => $preset_name,
+            'label'      => isset( $_POST['preset_label'] ) ? sanitize_text_field( wp_unslash( $_POST['preset_label'] ) ) : '',
+            'statuses'   => isset( $_POST['statuses'] ) ? array_map( 'absint', (array) $_POST['statuses'] ) : array(),
+            'categories' => isset( $_POST['categories'] ) ? array_map( 'absint', (array) $_POST['categories'] ) : array(),
+            'tags'       => isset( $_POST['tags'] ) ? array_map( 'absint', (array) $_POST['tags'] ) : array(),
+            'order'      => isset( $_POST['order'] ) && 'ASC' === $_POST['order'] ? 'ASC' : 'DESC',
+            'orderby'    => isset( $_POST['orderby'] ) ? sanitize_key( $_POST['orderby'] ) : 'date',
+            'limit'      => isset( $_POST['limit'] ) ? intval( $_POST['limit'] ) : -1,
+            'elements'   => isset( $_POST['elements'] ) ? array_map( 'sanitize_key', (array) $_POST['elements'] ) : array( 'title', 'status', 'date', 'time', 'duration', 'lecturer' ),
+        );
+    }
+
+    /**
+     * Handle taxonomy forms.
+     */
+    private function handle_taxonomy_forms() {
+        $tab = isset( $_GET['tab'] ) ? sanitize_key( $_GET['tab'] ) : '';
+        $taxonomy_tabs = array( 'categories', 'tags', 'statuses', 'lecturers' );
+
+        if ( ! in_array( $tab, $taxonomy_tabs, true ) ) {
+            return;
+        }
+
+        $taxonomy_map = array(
+            'categories' => 'simple_lms_category',
+            'tags'       => 'simple_lms_tag',
+            'statuses'   => 'simple_lms_status',
+            'lecturers'  => 'simple_lms_lecturer',
+        );
+        $taxonomy = $taxonomy_map[ $tab ];
+
+        // Save default setting.
+        if ( isset( $_POST['simple_lms_save_default'] ) && isset( $_POST['_wpnonce'] ) ) {
+            if ( wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['_wpnonce'] ) ), 'simple_lms_save_default' ) ) {
+                $default_key_map = array(
+                    'categories' => 'default_category',
+                    'statuses'   => 'default_status',
+                    'lecturers'  => 'default_lecturer',
+                );
+
+                if ( isset( $default_key_map[ $tab ] ) ) {
+                    $default_value = isset( $_POST['default_value'] ) ? sanitize_text_field( wp_unslash( $_POST['default_value'] ) ) : '';
+                    Simple_LMS::update_setting( $default_key_map[ $tab ], $default_value );
+                    $this->admin_notices[] = array( 'type' => 'success', 'message' => __( 'Default value saved.', 'simple-lms' ) );
+                }
+            }
+        }
+
+        // Add term.
+        if ( isset( $_POST['simple_lms_add_term'] ) && isset( $_POST['_wpnonce'] ) ) {
+            if ( wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['_wpnonce'] ) ), 'simple_lms_add_term' ) ) {
+                $term_name = isset( $_POST['term_name'] ) ? sanitize_text_field( wp_unslash( $_POST['term_name'] ) ) : '';
+                $term_slug = isset( $_POST['term_slug'] ) ? sanitize_title( wp_unslash( $_POST['term_slug'] ) ) : '';
+                $term_desc = isset( $_POST['term_description'] ) ? sanitize_textarea_field( wp_unslash( $_POST['term_description'] ) ) : '';
+
+                if ( ! empty( $term_name ) ) {
+                    $result = wp_insert_term(
+                        $term_name,
+                        $taxonomy,
+                        array(
+                            'slug'        => $term_slug,
+                            'description' => $term_desc,
+                        )
+                    );
+                    if ( is_wp_error( $result ) ) {
+                        $this->admin_notices[] = array( 'type' => 'error', 'message' => $result->get_error_message() );
+                    } else {
+                        $this->admin_notices[] = array( 'type' => 'success', 'message' => __( 'Term added successfully.', 'simple-lms' ) );
+                    }
+                }
+            }
+        }
+
+        // Edit term.
+        if ( isset( $_POST['simple_lms_edit_term'] ) && isset( $_POST['_wpnonce'] ) ) {
+            if ( wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['_wpnonce'] ) ), 'simple_lms_edit_term' ) ) {
+                $term_id   = isset( $_POST['term_id'] ) ? absint( $_POST['term_id'] ) : 0;
+                $term_name = isset( $_POST['term_name'] ) ? sanitize_text_field( wp_unslash( $_POST['term_name'] ) ) : '';
+                $term_slug = isset( $_POST['term_slug'] ) ? sanitize_title( wp_unslash( $_POST['term_slug'] ) ) : '';
+                $term_desc = isset( $_POST['term_description'] ) ? sanitize_textarea_field( wp_unslash( $_POST['term_description'] ) ) : '';
+
+                if ( $term_id && ! empty( $term_name ) ) {
+                    $result = wp_update_term(
+                        $term_id,
+                        $taxonomy,
+                        array(
+                            'name'        => $term_name,
+                            'slug'        => $term_slug,
+                            'description' => $term_desc,
+                        )
+                    );
+                    if ( is_wp_error( $result ) ) {
+                        $this->admin_notices[] = array( 'type' => 'error', 'message' => $result->get_error_message() );
+                    } else {
+                        $this->admin_notices[] = array( 'type' => 'success', 'message' => __( 'Term updated successfully.', 'simple-lms' ) );
+                    }
+                }
+            }
+        }
+
+        // Delete term.
+        if ( isset( $_GET['action'] ) && 'delete' === $_GET['action'] && isset( $_GET['term_id'] ) && isset( $_GET['_wpnonce'] ) ) {
+            $term_id = absint( $_GET['term_id'] );
+            if ( wp_verify_nonce( sanitize_text_field( wp_unslash( $_GET['_wpnonce'] ) ), 'delete_term_' . $term_id ) ) {
+                $result = wp_delete_term( $term_id, $taxonomy );
+                if ( is_wp_error( $result ) ) {
+                    $this->admin_notices[] = array( 'type' => 'error', 'message' => $result->get_error_message() );
+                } else {
+                    $this->admin_notices[] = array( 'type' => 'success', 'message' => __( 'Term deleted successfully.', 'simple-lms' ) );
+                }
+            }
+        }
+    }
+
+    /**
+     * Handle certificate settings form.
+     */
+    private function handle_certificate_settings_form() {
+        if ( ! isset( $_GET['tab'] ) || 'certificates' !== $_GET['tab'] ) {
+            return;
+        }
+
+        // Save certificate settings.
+        if ( isset( $_POST['simple_lms_save_certificate_settings'] ) && isset( $_POST['_wpnonce'] ) ) {
+            if ( ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['_wpnonce'] ) ), 'simple_lms_certificate_settings' ) ) {
+                return;
+            }
+
+            if ( isset( $_POST['certificate_logo_url'] ) ) {
+                update_option( 'simple_lms_certificate_logo_url', esc_url_raw( wp_unslash( $_POST['certificate_logo_url'] ) ) );
+            }
+            if ( isset( $_POST['certificate_signature_url'] ) ) {
+                update_option( 'simple_lms_certificate_signature_url', esc_url_raw( wp_unslash( $_POST['certificate_signature_url'] ) ) );
+            }
+            if ( isset( $_POST['certificate_template'] ) ) {
+                update_option( 'simple_lms_certificate_template', wp_kses_post( wp_unslash( $_POST['certificate_template'] ) ) );
+            }
+
+            if ( isset( $_POST['certificate_labels'] ) && is_array( $_POST['certificate_labels'] ) ) {
+                $labels_to_save = array();
+                foreach ( $_POST['certificate_labels'] as $key => $value ) {
+                    $labels_to_save[ sanitize_key( $key ) ] = sanitize_text_field( wp_unslash( $value ) );
+                }
+                update_option( 'simple_lms_certificate_labels', $labels_to_save );
+            }
+
+            $this->admin_notices[] = array( 'type' => 'success', 'message' => __( 'Settings saved.', 'simple-lms' ) );
+        }
+
+        // Reset template.
+        if ( isset( $_POST['simple_lms_reset_certificate_template'] ) && isset( $_POST['_wpnonce'] ) ) {
+            if ( wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['_wpnonce'] ) ), 'simple_lms_certificate_settings' ) ) {
+                update_option( 'simple_lms_certificate_template', LMS_Certificates::get_default_certificate_template() );
+                $this->admin_notices[] = array( 'type' => 'success', 'message' => __( 'Template reset to default.', 'simple-lms' ) );
+            }
+        }
+    }
+
+    /**
+     * Get admin notices.
+     *
+     * @return array
+     */
+    public function get_admin_notices() {
+        return $this->admin_notices;
     }
 
     /**

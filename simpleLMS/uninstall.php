@@ -37,6 +37,12 @@ function simple_lms_register_taxonomies_for_uninstall() {
         'simple_lms_course',
         array( 'hierarchical' => true )
     );
+
+    register_taxonomy(
+        'simple_lms_lecturer',
+        'simple_lms_course',
+        array( 'hierarchical' => false )
+    );
 }
 
 /**
@@ -47,14 +53,13 @@ function simple_lms_delete_options() {
     delete_option( 'simple_lms_default_template' );
     delete_option( 'simple_lms_status_templates' );
     delete_option( 'simple_lms_shortcode_presets' );
+    delete_option( 'simple_lms_template_labels' );
 
     // Certificate options.
     delete_option( 'simple_lms_certificate_template' );
     delete_option( 'simple_lms_certificate_logo_url' );
     delete_option( 'simple_lms_certificate_signature_url' );
-    delete_option( 'simple_lms_certificate_issuer_company' );
-    delete_option( 'simple_lms_certificate_issuer_name' );
-    delete_option( 'simple_lms_certificate_issuer_title' );
+    delete_option( 'simple_lms_certificate_labels' );
 }
 
 /**
@@ -83,6 +88,7 @@ function simple_lms_delete_taxonomies() {
         'simple_lms_category',
         'simple_lms_tag',
         'simple_lms_status',
+        'simple_lms_lecturer',
     );
 
     foreach ( $taxonomies as $taxonomy ) {

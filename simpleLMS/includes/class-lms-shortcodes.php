@@ -181,7 +181,7 @@ class LMS_Shortcodes {
      * @return string
      */
     private function render_course_list_item( $post_id, $elements ) {
-        $data = $this->get_course_data( $post_id );
+        $data = LMS_Course_Data::get( $post_id );
 
         $parts = array();
 
@@ -240,56 +240,5 @@ class LMS_Shortcodes {
         $output .= '</li>';
 
         return $output;
-    }
-
-    /**
-     * Get course data.
-     *
-     * @param int $post_id Course post ID.
-     * @return array
-     */
-    private function get_course_data( $post_id ) {
-        $date       = get_post_meta( $post_id, '_simple_lms_date', true );
-        $time_start = get_post_meta( $post_id, '_simple_lms_time_start', true );
-        $time_end   = get_post_meta( $post_id, '_simple_lms_time_end', true );
-        $duration   = get_post_meta( $post_id, '_simple_lms_duration', true );
-
-        // Get lecturer from taxonomy.
-        $lecturer_terms = wp_get_post_terms( $post_id, 'simple_lms_lecturer', array( 'fields' => 'names' ) );
-        $lecturer       = ! empty( $lecturer_terms ) && ! is_wp_error( $lecturer_terms ) ? implode( ', ', $lecturer_terms ) : '';
-
-        // Format date.
-        $date_format    = Simple_LMS::get_setting( 'date_format', 'd.m.Y' );
-        $formatted_date = '';
-        if ( ! empty( $date ) ) {
-            $timestamp = strtotime( $date );
-            if ( $timestamp ) {
-                $formatted_date = date_i18n( $date_format, $timestamp );
-            }
-        }
-
-        // Format time range.
-        $time_range = '';
-        if ( ! empty( $time_start ) && ! empty( $time_end ) ) {
-            $time_range = $time_start . ' - ' . $time_end;
-        } elseif ( ! empty( $time_start ) ) {
-            $time_range = $time_start;
-        }
-
-        // Get taxonomies.
-        $categories = wp_get_post_terms( $post_id, 'simple_lms_category' );
-        $tags       = wp_get_post_terms( $post_id, 'simple_lms_tag' );
-        $statuses   = wp_get_post_terms( $post_id, 'simple_lms_status' );
-
-        return array(
-            'title'    => get_the_title( $post_id ),
-            'date'     => $formatted_date,
-            'time'     => $time_range,
-            'duration' => $duration,
-            'lecturer' => $lecturer,
-            'category' => ! empty( $categories ) && ! is_wp_error( $categories ) ? $categories[0]->name : '',
-            'tags'     => ! empty( $tags ) && ! is_wp_error( $tags ) ? implode( ', ', wp_list_pluck( $tags, 'name' ) ) : '',
-            'status'   => ! empty( $statuses ) && ! is_wp_error( $statuses ) ? $statuses[0]->name : '',
-        );
     }
 }

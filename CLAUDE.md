@@ -29,8 +29,8 @@ simpleLMS/
 │
 ├── includes/
 │   ├── class-simple-lms.php          # Main plugin class
+│   ├── class-lms-course-data.php     # Course data helper (shared by templates & shortcodes)
 │   ├── class-lms-post-types.php      # CPT & taxonomy registration
-│   ├── class-lms-meta-boxes.php      # Course meta fields (legacy, kept for compatibility)
 │   ├── class-lms-access-control.php  # Membership/subscription checks
 │   ├── class-lms-templates.php       # Template engine & placeholder replacement
 │   ├── class-lms-shortcodes.php      # Shortcode rendering
@@ -82,6 +82,9 @@ Uses `wp_options` table for plugin data (no custom tables). This is the WordPres
 | `simple_lms_status_templates` | array | Status-specific templates (status_id => template HTML) |
 | `simple_lms_shortcode_presets` | array | Shortcode presets (preset_name => settings) |
 | `simple_lms_template_labels` | array | Customizable labels for default template (date, time, lecturer) |
+| `simple_lms_certificate_template` | string | Certificate HTML template |
+| `simple_lms_certificate_logo_url` | string | Logo image URL for certificates |
+| `simple_lms_certificate_signature_url` | string | Signature image URL for certificates |
 | `simple_lms_certificate_labels` | array | Customizable labels for certificate frontend elements |
 
 ### WordPress Native Tables (used as normal)
@@ -745,12 +748,11 @@ Plugin includes optional certificate generation for courses using TCPDF library.
 | Option Key | Type | Description |
 |------------|------|-------------|
 | `simple_lms_certificate_template` | string | HTML template for PDF |
-| `simple_lms_certificate_logo_url` | string | Logo image URL |
-| `simple_lms_certificate_signature_url` | string | Signature image URL |
-| `simple_lms_certificate_issuer_company` | string | Issuer company name |
-| `simple_lms_certificate_issuer_name` | string | Issuer person name |
-| `simple_lms_certificate_issuer_title` | string | Issuer person title |
+| `simple_lms_certificate_logo_url` | string | Logo image URL (configurable via Media Library) |
+| `simple_lms_certificate_signature_url` | string | Signature image URL (configurable via Media Library) |
 | `simple_lms_certificate_labels` | array | Customizable frontend labels (see below) |
+
+> **Note:** Issuer data (company name, signatory name/title) should be entered directly in the certificate template as static text.
 
 ### Certificate Frontend Labels (`simple_lms_certificate_labels`)
 
@@ -784,11 +786,8 @@ Plugin includes optional certificate generation for courses using TCPDF library.
 | `{{CERT_LECTURER}}` | Lecturer name |
 | `{{CERT_DURATION}}` | Course duration |
 | `{{CERT_COMPLETION_DATE}}` | Completion date |
-| `{{CERT_LOGO_URL}}` | Logo URL |
-| `{{CERT_SIGNATURE_URL}}` | Signature URL |
-| `{{CERT_ISSUER_COMPANY}}` | Company name |
-| `{{CERT_ISSUER_NAME}}` | Issuer name |
-| `{{CERT_ISSUER_TITLE}}` | Issuer title |
+| `{{CERT_LOGO_URL}}` | Logo URL (from settings) |
+| `{{CERT_SIGNATURE_URL}}` | Signature URL (from settings) |
 
 ### Template Placeholders
 

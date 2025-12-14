@@ -10,60 +10,19 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
-// Handle form submission.
-if ( isset( $_POST['simple_lms_save_certificate_settings'] ) ) {
-    // Verify nonce.
-    if ( ! isset( $_POST['_wpnonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['_wpnonce'] ) ), 'simple_lms_certificate_settings' ) ) {
-        wp_die( esc_html__( 'Security check failed.', 'simple-lms' ) );
-    }
+// Get admin notices from LMS_Admin.
+$lms     = Simple_LMS::instance();
+$notices = $lms->admin->get_admin_notices();
 
-    // Save settings.
-    if ( isset( $_POST['certificate_logo_url'] ) ) {
-        update_option( 'simple_lms_certificate_logo_url', esc_url_raw( wp_unslash( $_POST['certificate_logo_url'] ) ) );
-    }
-    if ( isset( $_POST['certificate_signature_url'] ) ) {
-        update_option( 'simple_lms_certificate_signature_url', esc_url_raw( wp_unslash( $_POST['certificate_signature_url'] ) ) );
-    }
-    if ( isset( $_POST['certificate_issuer_company'] ) ) {
-        update_option( 'simple_lms_certificate_issuer_company', sanitize_text_field( wp_unslash( $_POST['certificate_issuer_company'] ) ) );
-    }
-    if ( isset( $_POST['certificate_issuer_name'] ) ) {
-        update_option( 'simple_lms_certificate_issuer_name', sanitize_text_field( wp_unslash( $_POST['certificate_issuer_name'] ) ) );
-    }
-    if ( isset( $_POST['certificate_issuer_title'] ) ) {
-        update_option( 'simple_lms_certificate_issuer_title', sanitize_text_field( wp_unslash( $_POST['certificate_issuer_title'] ) ) );
-    }
-    if ( isset( $_POST['certificate_template'] ) ) {
-        update_option( 'simple_lms_certificate_template', wp_kses_post( wp_unslash( $_POST['certificate_template'] ) ) );
-    }
-
-    // Save frontend labels.
-    if ( isset( $_POST['certificate_labels'] ) && is_array( $_POST['certificate_labels'] ) ) {
-        $labels_to_save = array();
-        foreach ( $_POST['certificate_labels'] as $key => $value ) {
-            $labels_to_save[ sanitize_key( $key ) ] = sanitize_text_field( wp_unslash( $value ) );
-        }
-        update_option( 'simple_lms_certificate_labels', $labels_to_save );
-    }
-
-    echo '<div class="notice notice-success"><p>' . esc_html__( 'Settings saved.', 'simple-lms' ) . '</p></div>';
-}
-
-// Handle reset template.
-if ( isset( $_POST['simple_lms_reset_certificate_template'] ) ) {
-    if ( isset( $_POST['_wpnonce'] ) && wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['_wpnonce'] ) ), 'simple_lms_certificate_settings' ) ) {
-        update_option( 'simple_lms_certificate_template', LMS_Certificates::get_default_certificate_template() );
-        echo '<div class="notice notice-success"><p>' . esc_html__( 'Template reset to default.', 'simple-lms' ) . '</p></div>';
-    }
+// Display notices.
+foreach ( $notices as $notice ) {
+    echo '<div class="notice notice-' . esc_attr( $notice['type'] ) . ' is-dismissible"><p>' . esc_html( $notice['message'] ) . '</p></div>';
 }
 
 // Get current values.
-$logo_url       = get_option( 'simple_lms_certificate_logo_url', '' );
-$signature_url  = get_option( 'simple_lms_certificate_signature_url', '' );
-$issuer_company = get_option( 'simple_lms_certificate_issuer_company', '' );
-$issuer_name    = get_option( 'simple_lms_certificate_issuer_name', '' );
-$issuer_title   = get_option( 'simple_lms_certificate_issuer_title', '' );
-$template       = get_option( 'simple_lms_certificate_template', LMS_Certificates::get_default_certificate_template() );
+$logo_url      = get_option( 'simple_lms_certificate_logo_url', '' );
+$signature_url = get_option( 'simple_lms_certificate_signature_url', '' );
+$template      = get_option( 'simple_lms_certificate_template', LMS_Certificates::get_default_certificate_template() );
 
 // Get frontend labels with defaults.
 $frontend_labels = get_option( 'simple_lms_certificate_labels', array() );
@@ -105,36 +64,6 @@ $labels          = wp_parse_args( $frontend_labels, $default_labels );
         </tr>
     </table>
 
-    <h2><?php esc_html_e( 'Issuer', 'simple-lms' ); ?></h2>
-
-    <table class="form-table">
-        <tr>
-            <th scope="row">
-                <label for="certificate_issuer_company"><?php esc_html_e( 'Company', 'simple-lms' ); ?></label>
-            </th>
-            <td>
-                <input type="text" id="certificate_issuer_company" name="certificate_issuer_company" value="<?php echo esc_attr( $issuer_company ); ?>" class="regular-text">
-            </td>
-        </tr>
-        <tr>
-            <th scope="row">
-                <label for="certificate_issuer_name"><?php esc_html_e( 'Signatory', 'simple-lms' ); ?></label>
-            </th>
-            <td>
-                <input type="text" id="certificate_issuer_name" name="certificate_issuer_name" value="<?php echo esc_attr( $issuer_name ); ?>" class="regular-text">
-            </td>
-        </tr>
-        <tr>
-            <th scope="row">
-                <label for="certificate_issuer_title"><?php esc_html_e( 'Title', 'simple-lms' ); ?></label>
-            </th>
-            <td>
-                <input type="text" id="certificate_issuer_title" name="certificate_issuer_title" value="<?php echo esc_attr( $issuer_title ); ?>" class="regular-text">
-                <p class="description"><?php esc_html_e( 'E.g. CEO, Director, etc.', 'simple-lms' ); ?></p>
-            </td>
-        </tr>
-    </table>
-
     <h2><?php esc_html_e( 'Certificate template', 'simple-lms' ); ?></h2>
 
     <p>
@@ -164,9 +93,6 @@ $labels          = wp_parse_args( $frontend_labels, $default_labels );
             <tr><td><code>{{CERT_COMPLETION_DATE}}</code></td><td><?php esc_html_e( 'Completion date', 'simple-lms' ); ?></td></tr>
             <tr><td><code>{{CERT_LOGO_URL}}</code></td><td><?php esc_html_e( 'Logo URL', 'simple-lms' ); ?></td></tr>
             <tr><td><code>{{CERT_SIGNATURE_URL}}</code></td><td><?php esc_html_e( 'Signature URL', 'simple-lms' ); ?></td></tr>
-            <tr><td><code>{{CERT_ISSUER_COMPANY}}</code></td><td><?php esc_html_e( 'Company name', 'simple-lms' ); ?></td></tr>
-            <tr><td><code>{{CERT_ISSUER_NAME}}</code></td><td><?php esc_html_e( 'Signatory', 'simple-lms' ); ?></td></tr>
-            <tr><td><code>{{CERT_ISSUER_TITLE}}</code></td><td><?php esc_html_e( 'Signatory title', 'simple-lms' ); ?></td></tr>
         </tbody>
     </table>
 

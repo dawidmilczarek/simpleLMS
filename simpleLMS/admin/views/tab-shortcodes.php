@@ -10,84 +10,9 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
-$message = '';
-$error   = '';
-
-// Handle form submissions.
-
-// Add new preset.
-if ( isset( $_POST['simple_lms_add_preset'] ) && isset( $_POST['_wpnonce'] ) ) {
-    if ( wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['_wpnonce'] ) ), 'simple_lms_add_preset' ) ) {
-        $preset_name = isset( $_POST['preset_name'] ) ? sanitize_key( $_POST['preset_name'] ) : '';
-
-        if ( ! empty( $preset_name ) ) {
-            $presets = get_option( 'simple_lms_shortcode_presets', array() );
-
-            if ( isset( $presets[ $preset_name ] ) ) {
-                $error = __( 'A preset with this name already exists.', 'simple-lms' );
-            } else {
-                $preset = array(
-                    'name'       => $preset_name,
-                    'label'      => isset( $_POST['preset_label'] ) ? sanitize_text_field( wp_unslash( $_POST['preset_label'] ) ) : '',
-                    'statuses'   => isset( $_POST['statuses'] ) ? array_map( 'absint', (array) $_POST['statuses'] ) : array(),
-                    'categories' => isset( $_POST['categories'] ) ? array_map( 'absint', (array) $_POST['categories'] ) : array(),
-                    'tags'       => isset( $_POST['tags'] ) ? array_map( 'absint', (array) $_POST['tags'] ) : array(),
-                    'order'      => isset( $_POST['order'] ) && 'ASC' === $_POST['order'] ? 'ASC' : 'DESC',
-                    'orderby'    => isset( $_POST['orderby'] ) ? sanitize_key( $_POST['orderby'] ) : 'date',
-                    'limit'      => isset( $_POST['limit'] ) ? intval( $_POST['limit'] ) : -1,
-                    'elements'   => isset( $_POST['elements'] ) ? array_map( 'sanitize_key', (array) $_POST['elements'] ) : array( 'title', 'status', 'date', 'time', 'duration', 'lecturer' ),
-                );
-
-                $presets[ $preset_name ] = $preset;
-                update_option( 'simple_lms_shortcode_presets', $presets );
-                $message = __( 'Preset added successfully.', 'simple-lms' );
-            }
-        } else {
-            $error = __( 'Preset name is required.', 'simple-lms' );
-        }
-    }
-}
-
-// Edit preset.
-if ( isset( $_POST['simple_lms_edit_preset'] ) && isset( $_POST['_wpnonce'] ) ) {
-    if ( wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['_wpnonce'] ) ), 'simple_lms_edit_preset' ) ) {
-        $preset_name = isset( $_POST['preset_name'] ) ? sanitize_key( $_POST['preset_name'] ) : '';
-
-        if ( ! empty( $preset_name ) ) {
-            $presets = get_option( 'simple_lms_shortcode_presets', array() );
-
-            $preset = array(
-                'name'       => $preset_name,
-                'label'      => isset( $_POST['preset_label'] ) ? sanitize_text_field( wp_unslash( $_POST['preset_label'] ) ) : '',
-                'statuses'   => isset( $_POST['statuses'] ) ? array_map( 'absint', (array) $_POST['statuses'] ) : array(),
-                'categories' => isset( $_POST['categories'] ) ? array_map( 'absint', (array) $_POST['categories'] ) : array(),
-                'tags'       => isset( $_POST['tags'] ) ? array_map( 'absint', (array) $_POST['tags'] ) : array(),
-                'order'      => isset( $_POST['order'] ) && 'ASC' === $_POST['order'] ? 'ASC' : 'DESC',
-                'orderby'    => isset( $_POST['orderby'] ) ? sanitize_key( $_POST['orderby'] ) : 'date',
-                'limit'      => isset( $_POST['limit'] ) ? intval( $_POST['limit'] ) : -1,
-                'elements'   => isset( $_POST['elements'] ) ? array_map( 'sanitize_key', (array) $_POST['elements'] ) : array( 'title', 'status', 'date', 'time', 'duration', 'lecturer' ),
-            );
-
-            $presets[ $preset_name ] = $preset;
-            update_option( 'simple_lms_shortcode_presets', $presets );
-            $message = __( 'Preset updated successfully.', 'simple-lms' );
-        }
-    }
-}
-
-// Delete preset.
-if ( isset( $_GET['action'] ) && 'delete' === $_GET['action'] && isset( $_GET['preset'] ) && isset( $_GET['_wpnonce'] ) ) {
-    $preset_name = sanitize_key( $_GET['preset'] );
-    if ( wp_verify_nonce( sanitize_text_field( wp_unslash( $_GET['_wpnonce'] ) ), 'delete_preset_' . $preset_name ) ) {
-        $presets = get_option( 'simple_lms_shortcode_presets', array() );
-
-        if ( isset( $presets[ $preset_name ] ) ) {
-            unset( $presets[ $preset_name ] );
-            update_option( 'simple_lms_shortcode_presets', $presets );
-            $message = __( 'Preset deleted successfully.', 'simple-lms' );
-        }
-    }
-}
+// Get admin notices from LMS_Admin.
+$lms      = Simple_LMS::instance();
+$notices  = $lms->admin->get_admin_notices();
 
 // Get data for form.
 $presets    = get_option( 'simple_lms_shortcode_presets', array() );
@@ -118,17 +43,11 @@ if ( isset( $_GET['action'] ) && 'edit' === $_GET['action'] && isset( $_GET['pre
 }
 ?>
 
-<?php if ( $message ) : ?>
-<div class="notice notice-success is-dismissible">
-    <p><?php echo esc_html( $message ); ?></p>
+<?php foreach ( $notices as $notice ) : ?>
+<div class="notice notice-<?php echo esc_attr( $notice['type'] ); ?> is-dismissible">
+    <p><?php echo esc_html( $notice['message'] ); ?></p>
 </div>
-<?php endif; ?>
-
-<?php if ( $error ) : ?>
-<div class="notice notice-error is-dismissible">
-    <p><?php echo esc_html( $error ); ?></p>
-</div>
-<?php endif; ?>
+<?php endforeach; ?>
 
 <div class="simple-lms-shortcodes">
     <p class="description">

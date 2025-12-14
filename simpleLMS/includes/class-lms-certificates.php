@@ -232,17 +232,10 @@ class LMS_Certificates {
         $signature_url = get_option( 'simple_lms_certificate_signature_url', '' );
         $template      = get_option( 'simple_lms_certificate_template', self::get_default_certificate_template() );
 
-        $issuer_company = get_option( 'simple_lms_certificate_issuer_company', '' );
-        $issuer_name    = get_option( 'simple_lms_certificate_issuer_name', '' );
-        $issuer_title   = get_option( 'simple_lms_certificate_issuer_title', '' );
-
         // Parse template.
         $html = $this->parse_certificate_template( $template, array_merge( $data, array(
-            'logo_url'       => $logo_url,
-            'signature_url'  => $signature_url,
-            'issuer_company' => $issuer_company,
-            'issuer_name'    => $issuer_name,
-            'issuer_title'   => $issuer_title,
+            'logo_url'      => $logo_url,
+            'signature_url' => $signature_url,
         ) ) );
 
         // Get PDF filename and title from settings.
@@ -282,9 +275,6 @@ class LMS_Certificates {
             '{{CERT_COMPLETION_DATE}}' => esc_html( $data['completion_date'] ),
             '{{CERT_LOGO_URL}}'        => esc_url( $data['logo_url'] ),
             '{{CERT_SIGNATURE_URL}}'   => esc_url( $data['signature_url'] ),
-            '{{CERT_ISSUER_COMPANY}}'  => esc_html( $data['issuer_company'] ),
-            '{{CERT_ISSUER_NAME}}'     => esc_html( $data['issuer_name'] ),
-            '{{CERT_ISSUER_TITLE}}'    => esc_html( $data['issuer_title'] ),
         );
 
         return str_replace( array_keys( $placeholders ), array_values( $placeholders ), $template );
