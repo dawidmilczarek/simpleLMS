@@ -14,6 +14,32 @@ if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
 }
 
 /**
+ * Register taxonomies temporarily for uninstall.
+ *
+ * Taxonomies must be registered before we can use get_terms() and wp_delete_term().
+ * Since the plugin is being uninstalled, the normal registration code doesn't run.
+ */
+function simple_lms_register_taxonomies_for_uninstall() {
+    register_taxonomy(
+        'simple_lms_category',
+        'simple_lms_course',
+        array( 'hierarchical' => true )
+    );
+
+    register_taxonomy(
+        'simple_lms_tag',
+        'simple_lms_course',
+        array( 'hierarchical' => false )
+    );
+
+    register_taxonomy(
+        'simple_lms_status',
+        'simple_lms_course',
+        array( 'hierarchical' => true )
+    );
+}
+
+/**
  * Delete all plugin options.
  */
 function simple_lms_delete_options() {
@@ -60,13 +86,16 @@ function simple_lms_delete_taxonomies() {
             )
         );
 
-        if ( ! is_wp_error( $terms ) ) {
+        if ( ! is_wp_error( $terms ) && ! empty( $terms ) ) {
             foreach ( $terms as $term_id ) {
                 wp_delete_term( $term_id, $taxonomy );
             }
         }
     }
 }
+
+// Register taxonomies first (required for get_terms to work).
+simple_lms_register_taxonomies_for_uninstall();
 
 // Run cleanup.
 simple_lms_delete_options();

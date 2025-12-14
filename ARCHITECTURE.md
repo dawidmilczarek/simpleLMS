@@ -448,6 +448,39 @@ Database tables use `utf8mb4` character set.
 
 ---
 
+## Uninstall Process
+
+When the plugin is **deleted** (not just deactivated), `uninstall.php` runs and cleans up all plugin data:
+
+### What Gets Deleted
+
+| Data Type | Storage | Cleanup Method |
+|-----------|---------|----------------|
+| Plugin settings | `wp_options` | `delete_option()` |
+| Default template | `wp_options` | `delete_option()` |
+| Status templates | `wp_options` | `delete_option()` |
+| Shortcode presets | `wp_options` | `delete_option()` |
+| Courses | `wp_posts` | `wp_delete_post(true)` |
+| Course meta | `wp_postmeta` | Auto-deleted with posts |
+| Categories | `wp_terms` | `wp_delete_term()` |
+| Tags | `wp_terms` | `wp_delete_term()` |
+| Statuses | `wp_terms` | `wp_delete_term()` |
+
+### Technical Note: Taxonomy Registration
+
+Taxonomies must be **temporarily registered** in `uninstall.php` before terms can be deleted:
+
+```php
+// Required because plugin code doesn't run during uninstall
+register_taxonomy('simple_lms_category', 'simple_lms_course', array('hierarchical' => true));
+register_taxonomy('simple_lms_tag', 'simple_lms_course', array('hierarchical' => false));
+register_taxonomy('simple_lms_status', 'simple_lms_course', array('hierarchical' => true));
+```
+
+Without this, `get_terms()` returns `WP_Error` for unregistered taxonomies and terms remain orphaned in the database.
+
+---
+
 ## Dependencies
 
 **Required:**
