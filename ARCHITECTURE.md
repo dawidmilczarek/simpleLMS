@@ -34,8 +34,7 @@ simpleLMS/
 │   ├── class-lms-access-control.php  # Membership/subscription checks
 │   ├── class-lms-templates.php       # Template engine & placeholder replacement
 │   ├── class-lms-shortcodes.php      # Shortcode rendering
-│   ├── class-lms-admin.php           # Admin pages & settings
-│   └── class-lms-database.php        # Database table management
+│   └── class-lms-admin.php           # Admin pages & settings
 │
 ├── admin/
 │   ├── views/
@@ -64,41 +63,16 @@ simpleLMS/
 
 ## Database Schema
 
-### Custom Tables (created on plugin activation)
+### Storage Approach (WordPress Best Practice)
 
-#### 1. `{prefix}simple_lms_templates`
-Stores course templates.
+Uses `wp_options` table for plugin data (no custom tables). This is the WordPress standard approach - simpler, uses built-in caching, and easier to maintain.
 
-| Column | Type | Description |
-|--------|------|-------------|
-| `id` | BIGINT UNSIGNED | Primary key |
-| `name` | VARCHAR(255) | Template name (for admin reference) |
-| `status_id` | BIGINT UNSIGNED | Course status term_id (NULL = default template) |
-| `content` | LONGTEXT | Template HTML with placeholders |
-| `is_default` | TINYINT(1) | 1 = default template, 0 = status-specific |
-| `created_at` | DATETIME | Creation timestamp |
-| `updated_at` | DATETIME | Last update timestamp |
-
-#### 2. `{prefix}simple_lms_shortcode_presets`
-Stores shortcode preset configurations.
-
-| Column | Type | Description |
-|--------|------|-------------|
-| `id` | BIGINT UNSIGNED | Primary key |
-| `name` | VARCHAR(100) | Preset slug (used in shortcode) |
-| `label` | VARCHAR(255) | Human-readable name |
-| `settings` | LONGTEXT | JSON-encoded settings |
-| `created_at` | DATETIME | Creation timestamp |
-| `updated_at` | DATETIME | Last update timestamp |
-
-#### 3. `{prefix}simple_lms_settings`
-Stores plugin settings.
-
-| Column | Type | Description |
-|--------|------|-------------|
-| `id` | BIGINT UNSIGNED | Primary key |
-| `option_name` | VARCHAR(100) | Setting key |
-| `option_value` | LONGTEXT | Setting value (JSON for complex data) |
+| Option Key | Type | Description |
+|------------|------|-------------|
+| `simple_lms_settings` | array | General plugin settings |
+| `simple_lms_default_template` | string | Default template HTML |
+| `simple_lms_status_templates` | array | Status-specific templates (status_id => template HTML) |
+| `simple_lms_shortcode_presets` | array | Shortcode presets (preset_name => settings) |
 
 ### WordPress Native Tables (used as normal)
 - `wp_posts` - courses (post_type = 'lms_course')
@@ -120,8 +94,9 @@ Stores plugin settings.
 | Meta Key | Type | Description |
 |----------|------|-------------|
 | `_lms_date` | date | Course/training date |
-| `_lms_time_range` | string | Time range (e.g., "10:00 - 16:00") |
-| `_lms_duration` | string | Duration (e.g., "5 godzin") |
+| `_lms_time_start` | string | Start time (e.g., "10:00") |
+| `_lms_time_end` | string | End time (e.g., "16:00") |
+| `_lms_duration` | string | Duration (e.g., "6h") - auto-calculated but editable |
 | `_lms_lecturer` | string | Lecturer/trainer name |
 | `_lms_videos` | array | Array of videos (see below) |
 | `_lms_materials` | array | Array of materials (see below) |
@@ -201,7 +176,9 @@ wcs_user_has_subscription($user_id, $product_id, 'active')
 ## Template System
 
 ### Template Storage
-Templates stored in `{prefix}simple_lms_templates` table.
+Templates stored in `wp_options` table:
+- `simple_lms_default_template` - default template
+- `simple_lms_status_templates` - array of status_id => template
 
 ### Template Hierarchy
 1. Status-specific template (if course has status with assigned template)
@@ -214,7 +191,7 @@ Templates stored in `{prefix}simple_lms_templates` table.
 |-------------|-------------|
 | `{{LMS_TITLE}}` | Course title |
 | `{{LMS_DATE}}` | Formatted course date |
-| `{{LMS_TIME}}` | Time range (e.g., "10:00 - 16:00") |
+| `{{LMS_TIME}}` | Time range (e.g., "10:00 - 16:00") - combined from start/end |
 | `{{LMS_DURATION}}` | Duration (e.g., "5 godzin") |
 | `{{LMS_LECTURER}}` | Lecturer name |
 | `{{LMS_VIDEOS}}` | All videos rendered (titles + embedded players) |
@@ -295,17 +272,36 @@ Each preset defines:
 | `label` | string | required | Human-readable name for admin |
 | `statuses` | array | all | Filter by course statuses |
 | `categories` | array | all | Filter by categories |
+| `tags` | array | all | Filter by course tags |
 | `order` | string | DESC | ASC or DESC |
 | `orderby` | string | date | date, title, menu_order |
 | `limit` | int | -1 | Number of courses (-1 = all) |
-| `show_date` | bool | true | Display date |
-| `show_time` | bool | true | Display time range |
-| `show_duration` | bool | true | Display duration |
-| `show_lecturer` | bool | true | Display lecturer |
-| `show_status` | bool | true | Display status badge |
-| `show_category` | bool | false | Display category |
-| `show_thumbnail` | bool | true | Display featured image |
 | `columns` | int | 3 | Grid columns (1-4) |
+
+**Element Display & Order:**
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `elements` | array | (see below) | Ordered list of elements to display |
+
+The `elements` array defines which elements are shown AND their order (drag-drop in admin):
+
+```php
+// Default element order
+'elements' => [
+    'thumbnail',   // Featured image with status badge
+    'title',       // Course title (linked)
+    'date',        // Course date
+    'time',        // Time range
+    'duration',    // Duration
+    'lecturer',    // Lecturer name
+    'category',    // Category name (hidden by default)
+]
+```
+
+Admin UI shows a drag-drop list where you can:
+- Reorder elements by dragging
+- Toggle visibility with checkbox for each element
 
 ### Shortcode Output Structure
 ```html
@@ -343,7 +339,7 @@ simpleLMS
     ├── Tab: General
     │   ├── Default redirect URL
     │   ├── Date format
-    │   └── Other options
+    │   └── Default values (see below)
     ├── Tab: Templates
     │   ├── Default template editor
     │   └── Status-specific template editors
@@ -351,6 +347,19 @@ simpleLMS
         ├── List of presets
         └── Add/edit preset form
 ```
+
+### Default Values (General Tab)
+
+Configurable default values for new courses. All fields are simple text inputs (empty on fresh install).
+
+| Setting | Example | Description |
+|---------|---------|-------------|
+| Default Material Label | `Pobierz` | Pre-filled label when adding new material |
+| Default Video Title | `Nagranie` | Pre-filled title when adding new video |
+| Default Lecturer | `Dawid Milczarek` | Pre-filled lecturer field |
+| Default Time Range | `10:00 - 15:00` | Pre-filled time range (uses time picker) |
+| Default Duration | `5h` | Pre-filled duration (auto-calculated from time range, but editable) |
+| Default Status | `Nagranie` | Pre-selected status for new courses |
 
 ### Taxonomy Pages (under Courses submenu or separate)
 - Categories (lms_course_category)
@@ -363,7 +372,7 @@ simpleLMS
 
 ### Phase 1: Foundation
 1. Create main plugin file with activation/deactivation hooks
-2. Create database class with table creation on activation
+2. Set up wp_options defaults on activation
 3. Register Custom Post Type `lms_course` (URL: `/course/course-title/`)
 4. Register taxonomies (categories, tags, statuses)
 5. Create meta boxes for course fields (with repeater for videos/materials)
@@ -490,9 +499,9 @@ Plugin will work without membership/subscription plugins but access control feat
 ┌─────────────────────────────────────────────────────────────┐
 │ Course Details                                              │
 ├─────────────────────────────────────────────────────────────┤
-│ Date:        [____/____/________]                          │
-│ Time Range:  [__________] (e.g., 10:00 - 16:00)            │
-│ Duration:    [__________] (e.g., 5 godzin)                 │
+│ Date:        [📅 Date Picker____________]                   │
+│ Time Range:  [🕐 Start] - [🕐 End]  (time pickers)          │
+│ Duration:    [__________] (auto-calc from time, editable)  │
 │ Lecturer:    [____________________________]                 │
 ├─────────────────────────────────────────────────────────────┤
 │ Videos                                          [+ Add Video]│
