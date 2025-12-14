@@ -41,30 +41,32 @@ $default_labels  = LMS_Admin::get_default_template_labels();
 $labels          = wp_parse_args( $template_labels, $default_labels );
 
 $placeholders = array(
-    '{{LMS_TITLE}}'    => __( 'Course title', 'simple-lms' ),
-    '{{LMS_DATE}}'     => __( 'Formatted course date', 'simple-lms' ),
-    '{{LMS_TIME}}'     => __( 'Time range (e.g., 10:00 - 16:00)', 'simple-lms' ),
-    '{{LMS_DURATION}}' => __( 'Duration (e.g., 5 hours)', 'simple-lms' ),
-    '{{LMS_LECTURER}}' => __( 'Lecturer name', 'simple-lms' ),
-    '{{LMS_VIDEOS}}'   => __( 'All videos (embedded)', 'simple-lms' ),
-    '{{LMS_MATERIALS}}' => __( 'All materials (links)', 'simple-lms' ),
-    '{{LMS_CATEGORY}}' => __( 'Primary category name', 'simple-lms' ),
-    '{{LMS_TAGS}}'     => __( 'Course tags (comma-separated)', 'simple-lms' ),
-    '{{LMS_STATUS}}'   => __( 'Course status', 'simple-lms' ),
-    '{{LMS_CONTENT}}'  => __( 'Post editor content', 'simple-lms' ),
+    '{{LMS_TITLE}}'       => __( 'Course title', 'simple-lms' ),
+    '{{LMS_DATE}}'        => __( 'Formatted course date', 'simple-lms' ),
+    '{{LMS_TIME}}'        => __( 'Time range (e.g., 10:00 - 16:00)', 'simple-lms' ),
+    '{{LMS_DURATION}}'    => __( 'Duration (e.g., 5 hours)', 'simple-lms' ),
+    '{{LMS_LECTURER}}'    => __( 'Lecturer name', 'simple-lms' ),
+    '{{LMS_VIDEOS}}'      => __( 'All videos (embedded)', 'simple-lms' ),
+    '{{LMS_MATERIALS}}'   => __( 'All materials (links)', 'simple-lms' ),
+    '{{LMS_CATEGORY}}'    => __( 'Primary category name', 'simple-lms' ),
+    '{{LMS_TAGS}}'        => __( 'Course tags (comma-separated)', 'simple-lms' ),
+    '{{LMS_STATUS}}'      => __( 'Course status', 'simple-lms' ),
+    '{{LMS_CONTENT}}'     => __( 'Post editor content', 'simple-lms' ),
+    '{{LMS_CERTIFICATE}}' => __( 'Certificate download form', 'simple-lms' ),
 );
 
 $conditionals = array(
-    '{{#IF_DATE}}...{{/IF_DATE}}'         => __( 'Shows if date is set', 'simple-lms' ),
-    '{{#IF_TIME}}...{{/IF_TIME}}'         => __( 'Shows if time range is set', 'simple-lms' ),
-    '{{#IF_DURATION}}...{{/IF_DURATION}}' => __( 'Shows if duration is set', 'simple-lms' ),
-    '{{#IF_LECTURER}}...{{/IF_LECTURER}}' => __( 'Shows if lecturer is set', 'simple-lms' ),
-    '{{#IF_VIDEOS}}...{{/IF_VIDEOS}}'     => __( 'Shows if videos exist', 'simple-lms' ),
-    '{{#IF_MATERIALS}}...{{/IF_MATERIALS}}' => __( 'Shows if materials exist', 'simple-lms' ),
-    '{{#IF_CATEGORY}}...{{/IF_CATEGORY}}' => __( 'Shows if category is set', 'simple-lms' ),
-    '{{#IF_TAGS}}...{{/IF_TAGS}}'         => __( 'Shows if tags exist', 'simple-lms' ),
-    '{{#IF_STATUS}}...{{/IF_STATUS}}'     => __( 'Shows if status is set', 'simple-lms' ),
-    '{{#IF_CONTENT}}...{{/IF_CONTENT}}'   => __( 'Shows if content exists', 'simple-lms' ),
+    '{{#IF_DATE}}...{{/IF_DATE}}'               => __( 'Shows if date is set', 'simple-lms' ),
+    '{{#IF_TIME}}...{{/IF_TIME}}'               => __( 'Shows if time range is set', 'simple-lms' ),
+    '{{#IF_DURATION}}...{{/IF_DURATION}}'       => __( 'Shows if duration is set', 'simple-lms' ),
+    '{{#IF_LECTURER}}...{{/IF_LECTURER}}'       => __( 'Shows if lecturer is set', 'simple-lms' ),
+    '{{#IF_VIDEOS}}...{{/IF_VIDEOS}}'           => __( 'Shows if videos exist', 'simple-lms' ),
+    '{{#IF_MATERIALS}}...{{/IF_MATERIALS}}'     => __( 'Shows if materials exist', 'simple-lms' ),
+    '{{#IF_CATEGORY}}...{{/IF_CATEGORY}}'       => __( 'Shows if category is set', 'simple-lms' ),
+    '{{#IF_TAGS}}...{{/IF_TAGS}}'               => __( 'Shows if tags exist', 'simple-lms' ),
+    '{{#IF_STATUS}}...{{/IF_STATUS}}'           => __( 'Shows if status is set', 'simple-lms' ),
+    '{{#IF_CONTENT}}...{{/IF_CONTENT}}'         => __( 'Shows if content exists', 'simple-lms' ),
+    '{{#IF_CERTIFICATE}}...{{/IF_CERTIFICATE}}' => __( 'Shows if certificate is available', 'simple-lms' ),
 );
 ?>
 
