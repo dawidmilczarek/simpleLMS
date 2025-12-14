@@ -953,14 +953,15 @@ class LMS_Admin {
      */
     private function sanitize_preset_data() {
         return array(
-            'statuses'    => isset( $_POST['statuses'] ) ? array_map( 'absint', (array) $_POST['statuses'] ) : array(),
-            'categories'  => isset( $_POST['categories'] ) ? array_map( 'absint', (array) $_POST['categories'] ) : array(),
-            'tags'        => isset( $_POST['tags'] ) ? array_map( 'absint', (array) $_POST['tags'] ) : array(),
-            'order'       => isset( $_POST['order'] ) && 'ASC' === $_POST['order'] ? 'ASC' : 'DESC',
-            'orderby'     => isset( $_POST['orderby'] ) ? sanitize_key( $_POST['orderby'] ) : 'date',
-            'limit'       => isset( $_POST['limit'] ) ? intval( $_POST['limit'] ) : -1,
-            'elements'    => isset( $_POST['elements'] ) ? array_map( 'sanitize_key', (array) $_POST['elements'] ) : array( 'title', 'status', 'date', 'time', 'duration', 'lecturer' ),
-            'link_titles' => isset( $_POST['link_titles'] ) ? true : false,
+            'statuses'        => isset( $_POST['statuses'] ) ? array_map( 'absint', (array) $_POST['statuses'] ) : array(),
+            'categories'      => isset( $_POST['categories'] ) ? array_map( 'absint', (array) $_POST['categories'] ) : array(),
+            'tags'            => isset( $_POST['tags'] ) ? array_map( 'absint', (array) $_POST['tags'] ) : array(),
+            'order'           => isset( $_POST['order'] ) && 'ASC' === $_POST['order'] ? 'ASC' : 'DESC',
+            'orderby'         => isset( $_POST['orderby'] ) ? sanitize_key( $_POST['orderby'] ) : 'date',
+            'limit'           => isset( $_POST['limit'] ) ? intval( $_POST['limit'] ) : -1,
+            'elements'        => isset( $_POST['elements'] ) ? array_map( 'sanitize_key', (array) $_POST['elements'] ) : array( 'title', 'status', 'date', 'time', 'duration', 'lecturer' ),
+            'link_titles'     => isset( $_POST['link_titles'] ) ? true : false,
+            'restrict_access' => isset( $_POST['restrict_access'] ) ? true : false,
         );
     }
 

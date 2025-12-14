@@ -59,14 +59,29 @@ class LMS_Shortcodes {
             return '';
         }
 
-        $elements    = isset( $preset['elements'] ) ? $preset['elements'] : array( 'title', 'status', 'date', 'time', 'duration', 'lecturer' );
-        $link_titles = isset( $preset['link_titles'] ) ? $preset['link_titles'] : true;
+        $elements        = isset( $preset['elements'] ) ? $preset['elements'] : array( 'title', 'status', 'date', 'time', 'duration', 'lecturer' );
+        $link_titles     = isset( $preset['link_titles'] ) ? $preset['link_titles'] : true;
+        $restrict_access = isset( $preset['restrict_access'] ) ? $preset['restrict_access'] : false;
+
+        // Get access control instance if needed.
+        $access_control = null;
+        if ( $restrict_access ) {
+            $lms            = Simple_LMS::instance();
+            $access_control = $lms->access_control;
+        }
 
         $output = '<ul class="lms-courses-list" data-preset="' . esc_attr( $atts['preset'] ) . '">';
 
         while ( $courses->have_posts() ) {
             $courses->the_post();
-            $output .= $this->render_course_list_item( get_the_ID(), $elements, $link_titles );
+            $post_id = get_the_ID();
+
+            // Skip courses user doesn't have access to.
+            if ( $restrict_access && $access_control && ! $access_control->user_has_access( $post_id ) ) {
+                continue;
+            }
+
+            $output .= $this->render_course_list_item( $post_id, $elements, $link_titles );
         }
 
         $output .= '</ul>';

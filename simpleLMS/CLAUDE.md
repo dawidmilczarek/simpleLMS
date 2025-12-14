@@ -340,6 +340,7 @@ Each preset defines:
 | `orderby` | string | date | `date` (course date), `title` (alphabetical), `menu_order` (manual) |
 | `limit` | int | -1 | Number of courses to show (-1 = all) |
 | `link_titles` | bool | true | Make course titles clickable links (false = plain text) |
+| `restrict_access` | bool | false | Only show courses the user has access to (based on memberships/subscriptions) |
 
 **Element Display & Order:**
 

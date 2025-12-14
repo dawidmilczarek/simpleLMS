@@ -148,6 +148,16 @@ if ( isset( $_GET['action'] ) && 'edit' === $_GET['action'] && isset( $_GET['pre
                     </td>
                 </tr>
                 <tr>
+                    <th><label for="restrict_access"><?php esc_html_e( 'Restrict by Access', 'simple-lms' ); ?></label></th>
+                    <td>
+                        <label>
+                            <input type="checkbox" id="restrict_access" name="restrict_access" value="1" <?php checked( $editing_preset['restrict_access'] ?? false ); ?>>
+                            <?php esc_html_e( 'Only show courses the user has access to', 'simple-lms' ); ?>
+                        </label>
+                        <p class="description"><?php esc_html_e( 'Based on membership plans and subscription products.', 'simple-lms' ); ?></p>
+                    </td>
+                </tr>
+                <tr>
                     <th><label><?php esc_html_e( 'Display Elements', 'simple-lms' ); ?></label></th>
                     <td>
                         <p class="description"><?php esc_html_e( 'Drag to reorder. Check to display.', 'simple-lms' ); ?></p>
@@ -281,6 +291,16 @@ if ( isset( $_GET['action'] ) && 'edit' === $_GET['action'] && isset( $_GET['pre
                             <input type="checkbox" id="link_titles_new" name="link_titles" value="1" checked>
                             <?php esc_html_e( 'Make course titles clickable links', 'simple-lms' ); ?>
                         </label>
+                    </td>
+                </tr>
+                <tr>
+                    <th><label for="restrict_access_new"><?php esc_html_e( 'Restrict by Access', 'simple-lms' ); ?></label></th>
+                    <td>
+                        <label>
+                            <input type="checkbox" id="restrict_access_new" name="restrict_access" value="1">
+                            <?php esc_html_e( 'Only show courses the user has access to', 'simple-lms' ); ?>
+                        </label>
+                        <p class="description"><?php esc_html_e( 'Based on membership plans and subscription products.', 'simple-lms' ); ?></p>
                     </td>
                 </tr>
                 <tr>
