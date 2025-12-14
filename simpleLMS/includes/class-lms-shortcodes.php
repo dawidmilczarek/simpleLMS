@@ -59,17 +59,31 @@ class LMS_Shortcodes {
             return '';
         }
 
-        $columns  = isset( $preset['columns'] ) ? absint( $preset['columns'] ) : 3;
-        $elements = isset( $preset['elements'] ) ? $preset['elements'] : array( 'title', 'status', 'date', 'time', 'duration', 'lecturer' );
+        $display_mode = isset( $preset['display_mode'] ) ? $preset['display_mode'] : 'list';
+        $columns      = isset( $preset['columns'] ) ? absint( $preset['columns'] ) : 3;
+        $elements     = isset( $preset['elements'] ) ? $preset['elements'] : array( 'title', 'status', 'date', 'time', 'duration', 'lecturer' );
 
-        $output = '<div class="lms-courses-grid lms-columns-' . esc_attr( $columns ) . '" data-preset="' . esc_attr( $atts['preset'] ) . '">';
+        if ( 'list' === $display_mode ) {
+            // List mode - courses in a simple list with comma-separated elements.
+            $output = '<ul class="lms-courses-list" data-preset="' . esc_attr( $atts['preset'] ) . '">';
 
-        while ( $courses->have_posts() ) {
-            $courses->the_post();
-            $output .= $this->render_course_card( get_the_ID(), $elements );
+            while ( $courses->have_posts() ) {
+                $courses->the_post();
+                $output .= $this->render_course_list_item( get_the_ID(), $elements );
+            }
+
+            $output .= '</ul>';
+        } else {
+            // Grid mode - courses in a grid layout.
+            $output = '<div class="lms-courses-grid lms-columns-' . esc_attr( $columns ) . '" data-preset="' . esc_attr( $atts['preset'] ) . '">';
+
+            while ( $courses->have_posts() ) {
+                $courses->the_post();
+                $output .= $this->render_course_card( get_the_ID(), $elements );
+            }
+
+            $output .= '</div>';
         }
-
-        $output .= '</div>';
 
         wp_reset_postdata();
 
@@ -92,16 +106,17 @@ class LMS_Shortcodes {
         // Return default preset if 'all' doesn't exist.
         if ( 'all' === $preset_name ) {
             return array(
-                'name'       => 'all',
-                'label'      => 'All Courses',
-                'statuses'   => array(),
-                'categories' => array(),
-                'tags'       => array(),
-                'order'      => 'DESC',
-                'orderby'    => 'date',
-                'limit'      => -1,
-                'columns'    => 3,
-                'elements'   => array( 'title', 'status', 'date', 'time', 'duration', 'lecturer' ),
+                'name'         => 'all',
+                'label'        => 'All Courses',
+                'statuses'     => array(),
+                'categories'   => array(),
+                'tags'         => array(),
+                'order'        => 'DESC',
+                'orderby'      => 'date',
+                'limit'        => -1,
+                'display_mode' => 'list',
+                'columns'      => 3,
+                'elements'     => array( 'title', 'status', 'date', 'time', 'duration', 'lecturer' ),
             );
         }
 
@@ -238,6 +253,75 @@ class LMS_Shortcodes {
         }
 
         $output .= '</article>';
+
+        return $output;
+    }
+
+    /**
+     * Render a single course list item.
+     *
+     * @param int   $post_id  Course post ID.
+     * @param array $elements Elements to display.
+     * @return string
+     */
+    private function render_course_list_item( $post_id, $elements ) {
+        $data = $this->get_course_card_data( $post_id );
+
+        $parts = array();
+
+        foreach ( $elements as $element ) {
+            switch ( $element ) {
+                case 'title':
+                    $parts[] = '<a href="' . esc_url( get_permalink( $post_id ) ) . '" class="lms-course-link">' . esc_html( $data['title'] ) . '</a>';
+                    break;
+
+                case 'status':
+                    if ( ! empty( $data['status'] ) ) {
+                        $parts[] = '<span class="lms-meta-status">' . esc_html( $data['status'] ) . '</span>';
+                    }
+                    break;
+
+                case 'date':
+                    if ( ! empty( $data['date'] ) ) {
+                        $parts[] = '<span class="lms-meta-date">' . esc_html( $data['date'] ) . '</span>';
+                    }
+                    break;
+
+                case 'time':
+                    if ( ! empty( $data['time'] ) ) {
+                        $parts[] = '<span class="lms-meta-time">' . esc_html( $data['time'] ) . '</span>';
+                    }
+                    break;
+
+                case 'duration':
+                    if ( ! empty( $data['duration'] ) ) {
+                        $parts[] = '<span class="lms-meta-duration">' . esc_html( $data['duration'] ) . '</span>';
+                    }
+                    break;
+
+                case 'lecturer':
+                    if ( ! empty( $data['lecturer'] ) ) {
+                        $parts[] = '<span class="lms-meta-lecturer">' . esc_html( $data['lecturer'] ) . '</span>';
+                    }
+                    break;
+
+                case 'category':
+                    if ( ! empty( $data['category'] ) ) {
+                        $parts[] = '<span class="lms-meta-category">' . esc_html( $data['category'] ) . '</span>';
+                    }
+                    break;
+
+                case 'tags':
+                    if ( ! empty( $data['tags'] ) ) {
+                        $parts[] = '<span class="lms-meta-tags">' . esc_html( $data['tags'] ) . '</span>';
+                    }
+                    break;
+            }
+        }
+
+        $output = '<li class="lms-course-item">';
+        $output .= implode( ', ', $parts );
+        $output .= '</li>';
 
         return $output;
     }

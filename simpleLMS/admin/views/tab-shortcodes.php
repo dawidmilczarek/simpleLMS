@@ -197,6 +197,17 @@ $default_elements = array( 'title', 'status', 'date', 'time', 'duration', 'lectu
                 </tr>
                 <tr>
                     <th scope="row">
+                        <label for="display_mode"><?php esc_html_e( 'Display Mode', 'simple-lms' ); ?></label>
+                    </th>
+                    <td>
+                        <select id="display_mode" name="display_mode">
+                            <option value="list" selected><?php esc_html_e( 'List (comma-separated)', 'simple-lms' ); ?></option>
+                            <option value="grid"><?php esc_html_e( 'Grid', 'simple-lms' ); ?></option>
+                        </select>
+                    </td>
+                </tr>
+                <tr id="columns-row" style="display: none;">
+                    <th scope="row">
                         <label for="columns"><?php esc_html_e( 'Columns', 'simple-lms' ); ?></label>
                     </th>
                     <td>

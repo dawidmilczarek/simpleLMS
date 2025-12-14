@@ -621,16 +621,17 @@ class LMS_Admin {
         }
 
         $preset = array(
-            'name'       => $preset_name,
-            'label'      => isset( $_POST['preset_label'] ) ? sanitize_text_field( wp_unslash( $_POST['preset_label'] ) ) : '',
-            'statuses'   => isset( $_POST['statuses'] ) ? array_map( 'absint', (array) $_POST['statuses'] ) : array(),
-            'categories' => isset( $_POST['categories'] ) ? array_map( 'absint', (array) $_POST['categories'] ) : array(),
-            'tags'       => isset( $_POST['tags'] ) ? array_map( 'absint', (array) $_POST['tags'] ) : array(),
-            'order'      => isset( $_POST['order'] ) && 'ASC' === $_POST['order'] ? 'ASC' : 'DESC',
-            'orderby'    => isset( $_POST['orderby'] ) ? sanitize_key( $_POST['orderby'] ) : 'date',
-            'limit'      => isset( $_POST['limit'] ) ? intval( $_POST['limit'] ) : -1,
-            'columns'    => isset( $_POST['columns'] ) ? absint( $_POST['columns'] ) : 3,
-            'elements'   => isset( $_POST['elements'] ) ? array_map( 'sanitize_key', (array) $_POST['elements'] ) : array( 'title', 'status', 'date', 'time', 'duration', 'lecturer' ),
+            'name'         => $preset_name,
+            'label'        => isset( $_POST['preset_label'] ) ? sanitize_text_field( wp_unslash( $_POST['preset_label'] ) ) : '',
+            'statuses'     => isset( $_POST['statuses'] ) ? array_map( 'absint', (array) $_POST['statuses'] ) : array(),
+            'categories'   => isset( $_POST['categories'] ) ? array_map( 'absint', (array) $_POST['categories'] ) : array(),
+            'tags'         => isset( $_POST['tags'] ) ? array_map( 'absint', (array) $_POST['tags'] ) : array(),
+            'order'        => isset( $_POST['order'] ) && 'ASC' === $_POST['order'] ? 'ASC' : 'DESC',
+            'orderby'      => isset( $_POST['orderby'] ) ? sanitize_key( $_POST['orderby'] ) : 'date',
+            'limit'        => isset( $_POST['limit'] ) ? intval( $_POST['limit'] ) : -1,
+            'columns'      => isset( $_POST['columns'] ) ? absint( $_POST['columns'] ) : 3,
+            'display_mode' => isset( $_POST['display_mode'] ) ? sanitize_key( $_POST['display_mode'] ) : 'list',
+            'elements'     => isset( $_POST['elements'] ) ? array_map( 'sanitize_key', (array) $_POST['elements'] ) : array( 'title', 'status', 'date', 'time', 'duration', 'lecturer' ),
         );
 
         $presets                 = get_option( 'simple_lms_shortcode_presets', array() );

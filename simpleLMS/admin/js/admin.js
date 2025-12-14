@@ -190,6 +190,26 @@
             $('#cancel-edit').on('click', function() {
                 self.resetForm();
             });
+
+            // Toggle columns visibility based on display mode.
+            $('#display_mode').on('change', function() {
+                self.toggleColumnsVisibility();
+            });
+
+            // Initial toggle on page load.
+            this.toggleColumnsVisibility();
+        },
+
+        /**
+         * Toggle columns row visibility based on display mode.
+         */
+        toggleColumnsVisibility: function() {
+            var displayMode = $('#display_mode').val();
+            if (displayMode === 'grid') {
+                $('#columns-row').show();
+            } else {
+                $('#columns-row').hide();
+            }
         },
 
         /**
@@ -220,6 +240,7 @@
                 orderby: $('#orderby').val(),
                 order: $('#order').val(),
                 limit: $('#limit').val(),
+                display_mode: $('#display_mode').val(),
                 columns: $('#columns').val(),
                 elements: elements
             };
@@ -257,7 +278,11 @@
             $('#orderby').val(preset.orderby || 'date');
             $('#order').val(preset.order || 'DESC');
             $('#limit').val(preset.limit !== undefined ? preset.limit : -1);
+            $('#display_mode').val(preset.display_mode || 'list');
             $('#columns').val(preset.columns || 3);
+
+            // Toggle columns visibility based on loaded display mode.
+            this.toggleColumnsVisibility();
 
             // Clear and set checkboxes.
             $('#preset-form input[type="checkbox"]').prop('checked', false);
@@ -331,6 +356,10 @@
             $('#preset_name').prop('readonly', false);
             $('#preset-form-title').text('Add New Preset');
             $('#cancel-edit').hide();
+
+            // Reset display mode to list (default).
+            $('#display_mode').val('list');
+            this.toggleColumnsVisibility();
 
             // Reset elements to default order and selection.
             var defaultElements = ['title', 'status', 'date', 'time', 'duration', 'lecturer'];

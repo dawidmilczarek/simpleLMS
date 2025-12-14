@@ -74,6 +74,17 @@
     }
 }
 
+/* Course List (Shortcode - list mode) */
+.lms-courses-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.lms-course-item {
+    margin-bottom: 0.5em;
+}
+
 /* Certificate Form - inline layout */
 .lms-certificate-form {
     margin: 1em 0;

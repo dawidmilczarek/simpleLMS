@@ -334,7 +334,8 @@ Each preset defines:
 | `order` | string | DESC | ASC (oldest/A first) or DESC (newest/Z first) |
 | `orderby` | string | date | `date` (course date), `title` (alphabetical), `menu_order` (manual) |
 | `limit` | int | -1 | Number of courses to show (-1 = all) |
-| `columns` | int | 3 | Grid columns: 1 (full), 2, 3, or 4 per row |
+| `display_mode` | string | list | Display mode: `list` (comma-separated) or `grid` |
+| `columns` | int | 3 | Grid columns: 1 (full), 2, 3, or 4 per row (only for grid mode) |
 
 **Element Display & Order:**
 
@@ -363,6 +364,20 @@ Admin UI shows a drag-drop list where you can:
 - Toggle visibility with checkbox for each element
 
 ### Shortcode Output Structure
+
+**List Mode (default):**
+```html
+<ul class="lms-courses-list" data-preset="all">
+  <li class="lms-course-item">
+    <a href="..." class="lms-course-link">Course Title</a>,
+    <span class="lms-meta-status">Recording</span>,
+    <span class="lms-meta-date">15.01.2025</span>
+  </li>
+  <!-- more courses... -->
+</ul>
+```
+
+**Grid Mode:**
 ```html
 <div class="lms-courses-grid lms-columns-3" data-preset="featured">
   <article class="lms-course-card">
@@ -500,7 +515,9 @@ Only essential structural styles:
 |---------|--------|
 | `.lms-video-embed` | Responsive 16:9 iframe container |
 | `.lms-materials-list` | List style reset (no bullets) |
-| `.lms-courses-grid` | CSS Grid layout |
+| `.lms-courses-list` | List style reset for course list mode |
+| `.lms-course-item` | Basic margin for list items |
+| `.lms-courses-grid` | CSS Grid layout (grid mode) |
 | `.lms-columns-*` | Grid column definitions (1-4) |
 | Responsive breakpoints | Grid adjustments for mobile |
 
