@@ -16,6 +16,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 class LMS_Admin {
 
     /**
+     * Courses list page hook suffix.
+     *
+     * @var string
+     */
+    private $courses_page_hook;
+
+    /**
      * Constructor.
      */
     public function __construct() {
@@ -30,6 +37,7 @@ class LMS_Admin {
         add_action( 'wp_ajax_simple_lms_reset_default_template', array( $this, 'ajax_reset_default_template' ) );
         add_filter( 'parent_file', array( $this, 'fix_parent_menu' ) );
         add_filter( 'submenu_file', array( $this, 'fix_submenu_file' ) );
+        add_filter( 'set-screen-option', array( $this, 'set_screen_option' ), 10, 3 );
     }
 
     /**
@@ -37,7 +45,7 @@ class LMS_Admin {
      */
     public function add_admin_menu() {
         // Main menu - points to courses list.
-        add_menu_page(
+        $this->courses_page_hook = add_menu_page(
             __( 'simpleLMS', 'simple-lms' ),
             __( 'simpleLMS', 'simple-lms' ),
             'edit_posts',
@@ -46,6 +54,9 @@ class LMS_Admin {
             'dashicons-welcome-learn-more',
             30
         );
+
+        // Add screen options for courses list.
+        add_action( 'load-' . $this->courses_page_hook, array( $this, 'add_courses_screen_options' ) );
 
         // Courses submenu (same as main - will be renamed).
         add_submenu_page(
@@ -76,6 +87,35 @@ class LMS_Admin {
             'simple-lms-settings',
             array( $this, 'render_settings_page' )
         );
+    }
+
+    /**
+     * Add screen options for courses list.
+     */
+    public function add_courses_screen_options() {
+        add_screen_option(
+            'per_page',
+            array(
+                'label'   => __( 'Courses per page', 'simple-lms' ),
+                'default' => 20,
+                'option'  => 'simple_lms_courses_per_page',
+            )
+        );
+    }
+
+    /**
+     * Save screen option value.
+     *
+     * @param mixed  $status Screen option status.
+     * @param string $option Option name.
+     * @param mixed  $value  Option value.
+     * @return mixed
+     */
+    public function set_screen_option( $status, $option, $value ) {
+        if ( 'simple_lms_courses_per_page' === $option ) {
+            return absint( $value );
+        }
+        return $status;
     }
 
     /**
@@ -394,9 +434,7 @@ class LMS_Admin {
             update_post_meta( $post_id, '_simple_lms_duration', sanitize_text_field( wp_unslash( $_POST['simple_lms_duration'] ) ) );
         }
 
-        if ( isset( $_POST['simple_lms_lecturer'] ) ) {
-            update_post_meta( $post_id, '_simple_lms_lecturer', sanitize_text_field( wp_unslash( $_POST['simple_lms_lecturer'] ) ) );
-        }
+        // Lecturer is now saved as taxonomy in save_course_taxonomies().
 
         // Videos.
         if ( isset( $_POST['simple_lms_videos'] ) && is_array( $_POST['simple_lms_videos'] ) ) {
@@ -480,6 +518,14 @@ class LMS_Admin {
             wp_set_post_terms( $post_id, $status, 'simple_lms_status' );
         } else {
             wp_set_post_terms( $post_id, array(), 'simple_lms_status' );
+        }
+
+        // Lecturer.
+        if ( isset( $_POST['simple_lms_lecturer'] ) && ! empty( $_POST['simple_lms_lecturer'] ) ) {
+            $lecturer = absint( $_POST['simple_lms_lecturer'] );
+            wp_set_post_terms( $post_id, array( $lecturer ), 'simple_lms_lecturer' );
+        } else {
+            wp_set_post_terms( $post_id, array(), 'simple_lms_lecturer' );
         }
     }
 

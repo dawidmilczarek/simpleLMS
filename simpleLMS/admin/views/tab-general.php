@@ -11,12 +11,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 $settings = get_option( 'simple_lms_settings', array() );
-$statuses = get_terms(
-    array(
-        'taxonomy'   => 'simple_lms_status',
-        'hide_empty' => false,
-    )
-);
 ?>
 <form method="post" action="options.php">
     <?php settings_fields( 'simple_lms_settings_group' ); ?>
@@ -62,17 +56,9 @@ $statuses = get_terms(
     </table>
 
     <h2><?php esc_html_e( 'Default Values for New Courses', 'simple-lms' ); ?></h2>
-    <p class="description"><?php esc_html_e( 'These values will be pre-filled when creating new courses.', 'simple-lms' ); ?></p>
+    <p class="description"><?php esc_html_e( 'These values will be pre-filled when creating new courses. Default taxonomy values can be set in their respective tabs.', 'simple-lms' ); ?></p>
 
     <table class="form-table">
-        <tr>
-            <th scope="row">
-                <label for="default_lecturer"><?php esc_html_e( 'Default Lecturer', 'simple-lms' ); ?></label>
-            </th>
-            <td>
-                <input type="text" id="default_lecturer" name="simple_lms_settings[default_lecturer]" value="<?php echo esc_attr( isset( $settings['default_lecturer'] ) ? $settings['default_lecturer'] : '' ); ?>" class="regular-text">
-            </td>
-        </tr>
         <tr>
             <th scope="row">
                 <label for="default_time_start"><?php esc_html_e( 'Default Time Range', 'simple-lms' ); ?></label>
@@ -107,30 +93,6 @@ $statuses = get_terms(
             <td>
                 <input type="text" id="default_material_label" name="simple_lms_settings[default_material_label]" value="<?php echo esc_attr( isset( $settings['default_material_label'] ) ? $settings['default_material_label'] : '' ); ?>" class="regular-text">
                 <p class="description"><?php esc_html_e( 'Pre-filled label when adding a new material.', 'simple-lms' ); ?></p>
-            </td>
-        </tr>
-        <tr>
-            <th scope="row">
-                <label for="default_status"><?php esc_html_e( 'Default Status', 'simple-lms' ); ?></label>
-            </th>
-            <td>
-                <select id="default_status" name="simple_lms_settings[default_status]">
-                    <option value=""><?php esc_html_e( '— None —', 'simple-lms' ); ?></option>
-                    <?php
-                    if ( ! empty( $statuses ) && ! is_wp_error( $statuses ) ) {
-                        foreach ( $statuses as $status ) {
-                            $selected = isset( $settings['default_status'] ) && $settings['default_status'] === $status->slug ? 'selected' : '';
-                            printf(
-                                '<option value="%s" %s>%s</option>',
-                                esc_attr( $status->slug ),
-                                esc_attr( $selected ),
-                                esc_html( $status->name )
-                            );
-                        }
-                    }
-                    ?>
-                </select>
-                <p class="description"><?php esc_html_e( 'Pre-selected status for new courses.', 'simple-lms' ); ?></p>
             </td>
         </tr>
     </table>

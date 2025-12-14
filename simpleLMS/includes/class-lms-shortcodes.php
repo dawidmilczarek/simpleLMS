@@ -253,7 +253,10 @@ class LMS_Shortcodes {
         $time_start = get_post_meta( $post_id, '_simple_lms_time_start', true );
         $time_end   = get_post_meta( $post_id, '_simple_lms_time_end', true );
         $duration   = get_post_meta( $post_id, '_simple_lms_duration', true );
-        $lecturer   = get_post_meta( $post_id, '_simple_lms_lecturer', true );
+
+        // Get lecturer from taxonomy.
+        $lecturer_terms = wp_get_post_terms( $post_id, 'simple_lms_lecturer', array( 'fields' => 'names' ) );
+        $lecturer       = ! empty( $lecturer_terms ) && ! is_wp_error( $lecturer_terms ) ? implode( ', ', $lecturer_terms ) : '';
 
         // Format date.
         $date_format    = Simple_LMS::get_setting( 'date_format', 'd.m.Y' );

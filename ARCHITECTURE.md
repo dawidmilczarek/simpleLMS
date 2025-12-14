@@ -16,7 +16,7 @@ A lightweight LMS plugin for WordPress/WooCommerce that integrates with WooComme
 2. **Access Control**: Integration with WooCommerce Memberships & Subscriptions (OR logic)
 3. **Template System**: Admin-editable templates with placeholders, assigned per status
 4. **Shortcode System**: Configurable presets for course listings
-5. **Taxonomies**: Course Categories, Course Tags, Course Statuses
+5. **Taxonomies**: Course Categories, Course Tags, Course Statuses, Lecturers
 
 ---
 
@@ -44,7 +44,7 @@ simpleLMS/
 │   │   ├── tab-general.php           # General settings tab
 │   │   ├── tab-templates.php         # Templates tab
 │   │   ├── tab-shortcodes.php        # Shortcode presets tab
-│   │   └── tab-taxonomy.php          # Taxonomy management (categories, tags, statuses)
+│   │   └── tab-taxonomy.php          # Taxonomy management (categories, tags, statuses, lecturers)
 │   ├── css/
 │   │   └── admin.css
 │   └── js/
@@ -79,7 +79,8 @@ Uses `wp_options` table for plugin data (no custom tables). This is the WordPres
 ### WordPress Native Tables (used as normal)
 - `wp_posts` - courses (post_type = 'simple_lms_course')
 - `wp_postmeta` - course meta fields
-- `wp_terms` / `wp_term_taxonomy` - categories, tags, statuses
+- `wp_terms` / `wp_term_taxonomy` - categories, tags, statuses, lecturers
+- `wp_usermeta` - user preferences (e.g., `simple_lms_courses_per_page` for Screen Options)
 
 ---
 
@@ -99,12 +100,13 @@ Uses `wp_options` table for plugin data (no custom tables). This is the WordPres
 | `_simple_lms_time_start` | string | Start time (e.g., "10:00") |
 | `_simple_lms_time_end` | string | End time (e.g., "16:00") |
 | `_simple_lms_duration` | string | Duration (e.g., "6h") - auto-calculated but editable |
-| `_simple_lms_lecturer` | string | Lecturer/trainer name |
 | `_simple_lms_videos` | array | Array of videos (see below) |
 | `_simple_lms_materials` | array | Array of materials (see below) |
 | `_simple_lms_access_memberships` | array | Allowed membership plan IDs |
 | `_simple_lms_access_products` | array | Allowed subscription product IDs |
 | `_simple_lms_redirect_url` | string | Custom redirect URL (default: global setting) |
+
+> **Note**: Lecturer is now stored as a taxonomy (`simple_lms_lecturer`), not as post meta.
 
 ### Video Structure (`_simple_lms_videos`)
 ```php
@@ -140,6 +142,12 @@ Uses `wp_options` table for plugin data (no custom tables). This is the WordPres
 - Examples: "Nagranie", "Zoom", "Zaplanowane"
 - **Used for template assignment** (each status can have its own template)
 - Used for shortcode filtering
+
+### 4. Lecturers (`simple_lms_lecturer`)
+- Non-hierarchical
+- Admin can create unlimited lecturers
+- Used for filtering in courses list
+- Displayed on course pages via `{{LMS_LECTURER}}` placeholder
 
 ---
 
@@ -363,7 +371,7 @@ simpleLMS
     │   ├── Guest redirect URL (for non-logged-in users, default: '/')
     │   ├── Default redirect URL (for logged-in users without access)
     │   ├── Date format
-    │   └── Default values (see below)
+    │   └── Default values (time range, duration, video title, material label)
     ├── Tab: Templates
     │   ├── Default template editor
     │   └── Status-specific template editors
@@ -371,14 +379,20 @@ simpleLMS
     │   ├── List of presets
     │   └── Add/edit preset form
     ├── Tab: Categories
-    │   ├── Add form (top)
-    │   └── List of categories (below)
+    │   ├── Default category setting
+    │   ├── Add form
+    │   └── List of categories
     ├── Tab: Tags
-    │   ├── Add form (top)
-    │   └── List of tags (below)
-    └── Tab: Statuses
-        ├── Add form (top)
-        └── List of statuses (below)
+    │   ├── Add form
+    │   └── List of tags
+    ├── Tab: Statuses
+    │   ├── Default status setting
+    │   ├── Add form
+    │   └── List of statuses
+    └── Tab: Lecturers
+        ├── Default lecturer setting
+        ├── Add form
+        └── List of lecturers
 ```
 
 ### Key Admin Features
@@ -658,10 +672,13 @@ Custom table view for managing courses.
 
 ### Features
 - **Search**: Search courses by title
-- **Filter**: Filter by course status taxonomy
+- **Filters**: Filter by category, tags, status, lecturer (combinable with AND logic)
+- **Sorting**: Clickable column headers for Title, Course Date, Lecturer, Published
 - **Pagination**: Navigate through courses
-- **Columns**: Title, Status, Course Date, Lecturer, Published status
+- **Screen Options**: Configurable items per page (WordPress standard Screen Options panel)
+- **Columns**: Title, Category, Tags, Status, Course Date, Lecturer, Published
 - **Actions**: Edit, View, Delete (with AJAX confirmation)
+- **Reset**: Button to clear all active filters
 
 ---
 

@@ -30,7 +30,7 @@ $date           = $is_edit ? get_post_meta( $course_id, '_simple_lms_date', true
 $time_start     = $is_edit ? get_post_meta( $course_id, '_simple_lms_time_start', true ) : ( $settings['default_time_start'] ?? '' );
 $time_end       = $is_edit ? get_post_meta( $course_id, '_simple_lms_time_end', true ) : ( $settings['default_time_end'] ?? '' );
 $duration       = $is_edit ? get_post_meta( $course_id, '_simple_lms_duration', true ) : ( $settings['default_duration'] ?? '' );
-$lecturer       = $is_edit ? get_post_meta( $course_id, '_simple_lms_lecturer', true ) : ( $settings['default_lecturer'] ?? '' );
+// Lecturer is now a taxonomy, not post meta.
 $videos         = $is_edit ? get_post_meta( $course_id, '_simple_lms_videos', true ) : array();
 $materials      = $is_edit ? get_post_meta( $course_id, '_simple_lms_materials', true ) : array();
 $memberships    = $is_edit ? get_post_meta( $course_id, '_simple_lms_access_memberships', true ) : array();
@@ -43,17 +43,35 @@ $memberships = is_array( $memberships ) ? $memberships : array();
 $products  = is_array( $products ) ? $products : array();
 
 // Get taxonomies.
-$categories      = get_terms( array( 'taxonomy' => 'simple_lms_category', 'hide_empty' => false ) );
-$statuses        = get_terms( array( 'taxonomy' => 'simple_lms_status', 'hide_empty' => false ) );
-$course_cats     = $is_edit ? wp_get_post_terms( $course_id, 'simple_lms_category', array( 'fields' => 'ids' ) ) : array();
-$course_tags     = $is_edit ? wp_get_post_terms( $course_id, 'simple_lms_tag', array( 'fields' => 'names' ) ) : array();
-$course_statuses = $is_edit ? wp_get_post_terms( $course_id, 'simple_lms_status', array( 'fields' => 'ids' ) ) : array();
+$categories       = get_terms( array( 'taxonomy' => 'simple_lms_category', 'hide_empty' => false ) );
+$statuses         = get_terms( array( 'taxonomy' => 'simple_lms_status', 'hide_empty' => false ) );
+$lecturers        = get_terms( array( 'taxonomy' => 'simple_lms_lecturer', 'hide_empty' => false ) );
+$course_cats      = $is_edit ? wp_get_post_terms( $course_id, 'simple_lms_category', array( 'fields' => 'ids' ) ) : array();
+$course_tags      = $is_edit ? wp_get_post_terms( $course_id, 'simple_lms_tag', array( 'fields' => 'names' ) ) : array();
+$course_statuses  = $is_edit ? wp_get_post_terms( $course_id, 'simple_lms_status', array( 'fields' => 'ids' ) ) : array();
+$course_lecturers = $is_edit ? wp_get_post_terms( $course_id, 'simple_lms_lecturer', array( 'fields' => 'ids' ) ) : array();
 
 // Default status for new courses.
 if ( ! $is_edit && ! empty( $settings['default_status'] ) ) {
     $default_status_term = get_term_by( 'slug', $settings['default_status'], 'simple_lms_status' );
     if ( $default_status_term ) {
         $course_statuses = array( $default_status_term->term_id );
+    }
+}
+
+// Default category for new courses.
+if ( ! $is_edit && ! empty( $settings['default_category'] ) ) {
+    $default_category_term = get_term_by( 'slug', $settings['default_category'], 'simple_lms_category' );
+    if ( $default_category_term ) {
+        $course_cats = array( $default_category_term->term_id );
+    }
+}
+
+// Default lecturer for new courses.
+if ( ! $is_edit && ! empty( $settings['default_lecturer'] ) ) {
+    $default_lecturer_term = get_term_by( 'slug', $settings['default_lecturer'], 'simple_lms_lecturer' );
+    if ( $default_lecturer_term ) {
+        $course_lecturers = array( $default_lecturer_term->term_id );
     }
 }
 
@@ -109,12 +127,6 @@ $page_title = $is_edit ? __( 'Edit Course', 'simple-lms' ) : __( 'Add New Course
                             <th><label for="simple_lms_duration"><?php esc_html_e( 'Duration', 'simple-lms' ); ?></label></th>
                             <td>
                                 <input type="text" id="simple_lms_duration" name="simple_lms_duration" value="<?php echo esc_attr( $duration ); ?>" placeholder="<?php esc_attr_e( 'e.g., 6h', 'simple-lms' ); ?>">
-                            </td>
-                        </tr>
-                        <tr>
-                            <th><label for="simple_lms_lecturer"><?php esc_html_e( 'Lecturer', 'simple-lms' ); ?></label></th>
-                            <td>
-                                <input type="text" id="simple_lms_lecturer" name="simple_lms_lecturer" value="<?php echo esc_attr( $lecturer ); ?>" class="regular-text">
                             </td>
                         </tr>
                     </table>
@@ -352,6 +364,23 @@ $page_title = $is_edit ? __( 'Edit Course', 'simple-lms' ) : __( 'Add New Course
                         <?php endforeach; ?>
                     <?php else : ?>
                         <p class="description"><?php esc_html_e( 'No statuses found.', 'simple-lms' ); ?> <a href="<?php echo esc_url( admin_url( 'admin.php?page=simple-lms-settings&tab=statuses' ) ); ?>"><?php esc_html_e( 'Add statuses', 'simple-lms' ); ?></a></p>
+                    <?php endif; ?>
+                </div>
+
+                <!-- Lecturer Taxonomy -->
+                <div class="course-form-box">
+                    <h2><?php esc_html_e( 'Lecturer', 'simple-lms' ); ?></h2>
+                    <?php if ( ! empty( $lecturers ) && ! is_wp_error( $lecturers ) ) : ?>
+                        <select name="simple_lms_lecturer" id="simple_lms_lecturer" class="widefat">
+                            <option value=""><?php esc_html_e( '— Select Lecturer —', 'simple-lms' ); ?></option>
+                            <?php foreach ( $lecturers as $lecturer ) : ?>
+                            <option value="<?php echo esc_attr( $lecturer->term_id ); ?>" <?php selected( in_array( $lecturer->term_id, $course_lecturers, true ) ); ?>>
+                                <?php echo esc_html( $lecturer->name ); ?>
+                            </option>
+                            <?php endforeach; ?>
+                        </select>
+                    <?php else : ?>
+                        <p class="description"><?php esc_html_e( 'No lecturers found.', 'simple-lms' ); ?> <a href="<?php echo esc_url( admin_url( 'admin.php?page=simple-lms-settings&tab=lecturers' ) ); ?>"><?php esc_html_e( 'Add lecturers', 'simple-lms' ); ?></a></p>
                     <?php endif; ?>
                 </div>
 

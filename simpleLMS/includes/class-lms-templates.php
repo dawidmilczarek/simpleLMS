@@ -182,14 +182,15 @@ class LMS_Templates {
         $time_start = get_post_meta( $post_id, '_simple_lms_time_start', true );
         $time_end   = get_post_meta( $post_id, '_simple_lms_time_end', true );
         $duration   = get_post_meta( $post_id, '_simple_lms_duration', true );
-        $lecturer   = get_post_meta( $post_id, '_simple_lms_lecturer', true );
         $videos     = get_post_meta( $post_id, '_simple_lms_videos', true );
         $materials  = get_post_meta( $post_id, '_simple_lms_materials', true );
 
         // Get taxonomies.
-        $categories = wp_get_post_terms( $post_id, 'simple_lms_category' );
-        $tags       = wp_get_post_terms( $post_id, 'simple_lms_tag' );
-        $statuses   = wp_get_post_terms( $post_id, 'simple_lms_status' );
+        $categories       = wp_get_post_terms( $post_id, 'simple_lms_category' );
+        $tags             = wp_get_post_terms( $post_id, 'simple_lms_tag' );
+        $statuses         = wp_get_post_terms( $post_id, 'simple_lms_status' );
+        $lecturer_terms   = wp_get_post_terms( $post_id, 'simple_lms_lecturer', array( 'fields' => 'names' ) );
+        $lecturer         = ! empty( $lecturer_terms ) && ! is_wp_error( $lecturer_terms ) ? implode( ', ', $lecturer_terms ) : '';
 
         // Format date.
         $date_format   = Simple_LMS::get_setting( 'date_format', 'd.m.Y' );

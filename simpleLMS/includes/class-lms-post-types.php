@@ -169,5 +169,35 @@ class LMS_Post_Types {
         );
 
         register_taxonomy( 'simple_lms_status', array( 'simple_lms_course' ), $status_args );
+
+        // Course Lecturers.
+        $lecturer_labels = array(
+            'name'                       => _x( 'Lecturers', 'taxonomy general name', 'simple-lms' ),
+            'singular_name'              => _x( 'Lecturer', 'taxonomy singular name', 'simple-lms' ),
+            'search_items'               => __( 'Search Lecturers', 'simple-lms' ),
+            'popular_items'              => __( 'Popular Lecturers', 'simple-lms' ),
+            'all_items'                  => __( 'All Lecturers', 'simple-lms' ),
+            'edit_item'                  => __( 'Edit Lecturer', 'simple-lms' ),
+            'update_item'                => __( 'Update Lecturer', 'simple-lms' ),
+            'add_new_item'               => __( 'Add New Lecturer', 'simple-lms' ),
+            'new_item_name'              => __( 'New Lecturer Name', 'simple-lms' ),
+            'separate_items_with_commas' => __( 'Separate lecturers with commas', 'simple-lms' ),
+            'add_or_remove_items'        => __( 'Add or remove lecturers', 'simple-lms' ),
+            'choose_from_most_used'      => __( 'Choose from the most used lecturers', 'simple-lms' ),
+            'not_found'                  => __( 'No lecturers found.', 'simple-lms' ),
+            'menu_name'                  => __( 'Lecturers', 'simple-lms' ),
+        );
+
+        $lecturer_args = array(
+            'hierarchical'      => false,
+            'labels'            => $lecturer_labels,
+            'show_ui'           => true,
+            'show_admin_column' => true,
+            'query_var'         => true,
+            'rewrite'           => array( 'slug' => 'course-lecturer' ),
+            'show_in_rest'      => true,
+        );
+
+        register_taxonomy( 'simple_lms_lecturer', array( 'simple_lms_course' ), $lecturer_args );
     }
 }
