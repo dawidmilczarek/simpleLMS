@@ -139,6 +139,15 @@ if ( isset( $_GET['action'] ) && 'edit' === $_GET['action'] && isset( $_GET['pre
                     </td>
                 </tr>
                 <tr>
+                    <th><label for="link_titles"><?php esc_html_e( 'Link Titles', 'simple-lms' ); ?></label></th>
+                    <td>
+                        <label>
+                            <input type="checkbox" id="link_titles" name="link_titles" value="1" <?php checked( $editing_preset['link_titles'] ?? true ); ?>>
+                            <?php esc_html_e( 'Make course titles clickable links', 'simple-lms' ); ?>
+                        </label>
+                    </td>
+                </tr>
+                <tr>
                     <th><label><?php esc_html_e( 'Display Elements', 'simple-lms' ); ?></label></th>
                     <td>
                         <p class="description"><?php esc_html_e( 'Drag to reorder. Check to display.', 'simple-lms' ); ?></p>
@@ -263,6 +272,15 @@ if ( isset( $_GET['action'] ) && 'edit' === $_GET['action'] && isset( $_GET['pre
                     <td>
                         <input type="number" id="limit" name="limit" value="-1" min="-1" class="small-text">
                         <p class="description"><?php esc_html_e( 'Number of courses to show. Use -1 for unlimited.', 'simple-lms' ); ?></p>
+                    </td>
+                </tr>
+                <tr>
+                    <th><label for="link_titles_new"><?php esc_html_e( 'Link Titles', 'simple-lms' ); ?></label></th>
+                    <td>
+                        <label>
+                            <input type="checkbox" id="link_titles_new" name="link_titles" value="1" checked>
+                            <?php esc_html_e( 'Make course titles clickable links', 'simple-lms' ); ?>
+                        </label>
                     </td>
                 </tr>
                 <tr>

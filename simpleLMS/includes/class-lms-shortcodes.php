@@ -59,13 +59,14 @@ class LMS_Shortcodes {
             return '';
         }
 
-        $elements = isset( $preset['elements'] ) ? $preset['elements'] : array( 'title', 'status', 'date', 'time', 'duration', 'lecturer' );
+        $elements    = isset( $preset['elements'] ) ? $preset['elements'] : array( 'title', 'status', 'date', 'time', 'duration', 'lecturer' );
+        $link_titles = isset( $preset['link_titles'] ) ? $preset['link_titles'] : true;
 
         $output = '<ul class="lms-courses-list" data-preset="' . esc_attr( $atts['preset'] ) . '">';
 
         while ( $courses->have_posts() ) {
             $courses->the_post();
-            $output .= $this->render_course_list_item( get_the_ID(), $elements );
+            $output .= $this->render_course_list_item( get_the_ID(), $elements, $link_titles );
         }
 
         $output .= '</ul>';
@@ -174,11 +175,12 @@ class LMS_Shortcodes {
     /**
      * Render a single course list item.
      *
-     * @param int   $post_id  Course post ID.
-     * @param array $elements Elements to display.
+     * @param int   $post_id     Course post ID.
+     * @param array $elements    Elements to display.
+     * @param bool  $link_titles Whether to make titles clickable links.
      * @return string
      */
-    private function render_course_list_item( $post_id, $elements ) {
+    private function render_course_list_item( $post_id, $elements, $link_titles = true ) {
         $data = LMS_Course_Data::get( $post_id );
 
         $parts = array();
@@ -186,7 +188,11 @@ class LMS_Shortcodes {
         foreach ( $elements as $element ) {
             switch ( $element ) {
                 case 'title':
-                    $parts[] = '<a href="' . esc_url( get_permalink( $post_id ) ) . '" class="lms-course-link">' . esc_html( $data['title'] ) . '</a>';
+                    if ( $link_titles ) {
+                        $parts[] = '<a href="' . esc_url( get_permalink( $post_id ) ) . '" class="lms-course-link">' . esc_html( $data['title'] ) . '</a>';
+                    } else {
+                        $parts[] = '<span class="lms-course-title">' . esc_html( $data['title'] ) . '</span>';
+                    }
                     break;
 
                 case 'status':

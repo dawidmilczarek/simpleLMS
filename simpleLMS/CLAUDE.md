@@ -339,6 +339,7 @@ Each preset defines:
 | `order` | string | DESC | ASC (oldest/A first) or DESC (newest/Z first) |
 | `orderby` | string | date | `date` (course date), `title` (alphabetical), `menu_order` (manual) |
 | `limit` | int | -1 | Number of courses to show (-1 = all) |
+| `link_titles` | bool | true | Make course titles clickable links (false = plain text) |
 
 **Element Display & Order:**
 
@@ -351,7 +352,7 @@ The `elements` array defines which elements are shown AND their order (drag-drop
 ```php
 // Default element order
 'elements' => [
-    'title',       // Course title (linked)
+    'title',       // Course title (linked if link_titles is true)
     'status',      // Status badge
     'date',        // Course date
     'time',        // Time range
@@ -371,9 +372,20 @@ Admin UI shows a drag-drop list where you can:
 Courses are rendered as a list with comma-separated elements:
 
 ```html
+<!-- With link_titles enabled (default) -->
 <ul class="lms-courses-list" data-preset="all">
   <li class="lms-course-item">
     <a href="..." class="lms-course-link">Course Title</a>,
+    <span class="lms-meta-status">Recording</span>,
+    <span class="lms-meta-date">15.01.2025</span>
+  </li>
+  <!-- more courses... -->
+</ul>
+
+<!-- With link_titles disabled -->
+<ul class="lms-courses-list" data-preset="all">
+  <li class="lms-course-item">
+    <span class="lms-course-title">Course Title</span>,
     <span class="lms-meta-status">Recording</span>,
     <span class="lms-meta-date">15.01.2025</span>
   </li>
