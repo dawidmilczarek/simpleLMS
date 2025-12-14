@@ -16,6 +16,7 @@
             this.initCourseActions();
             this.initProductSelect();
             this.initSlugGeneration();
+            this.initScreenOptions();
         },
 
         /**
@@ -305,6 +306,24 @@
             $slug.on('input', function() {
                 var cleaned = self.slugify($(this).val());
                 $(this).val(cleaned);
+            });
+        },
+
+        /**
+         * Initialize column toggle in screen options.
+         */
+        initScreenOptions: function() {
+            $(document).on('change', '.simple-lms-column-toggle', function() {
+                var $checkbox = $(this);
+                var column = $checkbox.data('column');
+                var visible = $checkbox.is(':checked');
+
+                $.post(simpleLMS.ajaxUrl, {
+                    action: 'simple_lms_toggle_column',
+                    nonce: simpleLMS.nonce,
+                    column: column,
+                    visible: visible
+                });
             });
         },
 

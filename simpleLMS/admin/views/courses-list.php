@@ -116,6 +116,34 @@ $lecturers  = get_terms( array( 'taxonomy' => 'simple_lms_lecturer', 'hide_empty
 
 $date_format = Simple_LMS::get_setting( 'date_format', 'd.m.Y' );
 
+// Get user's column preferences.
+$user_id = get_current_user_id();
+$hidden_columns = get_user_meta( $user_id, 'simple_lms_hidden_columns', true );
+if ( ! is_array( $hidden_columns ) ) {
+    $hidden_columns = array(); // Show all columns by default.
+}
+
+// Available columns (title is always visible).
+$available_columns = array(
+    'date'        => __( 'Date', 'simple-lms' ),
+    'status'      => __( 'Status', 'simple-lms' ),
+    'lecturer'    => __( 'Lecturer', 'simple-lms' ),
+    'videos'      => __( 'Videos', 'simple-lms' ),
+    'materials'   => __( 'Materials', 'simple-lms' ),
+    'category'    => __( 'Category', 'simple-lms' ),
+    'tags'        => __( 'Tags', 'simple-lms' ),
+    'memberships' => __( 'Memberships', 'simple-lms' ),
+    'products'    => __( 'Products', 'simple-lms' ),
+    'post_status' => __( 'Published', 'simple-lms' ),
+);
+
+/**
+ * Check if column is visible.
+ */
+function simple_lms_is_column_visible( $column, $hidden_columns ) {
+    return ! in_array( $column, $hidden_columns, true );
+}
+
 /**
  * Helper function to generate sortable column URL.
  */
@@ -290,35 +318,89 @@ function simple_lms_sort_class( $column, $current_orderby, $current_order ) {
                             <span class="sorting-indicators"><span class="sorting-indicator asc" aria-hidden="true"></span><span class="sorting-indicator desc" aria-hidden="true"></span></span>
                         </a>
                     </th>
-                    <th scope="col" class="column-category"><?php esc_html_e( 'Category', 'simple-lms' ); ?></th>
-                    <th scope="col" class="column-tags"><?php esc_html_e( 'Tags', 'simple-lms' ); ?></th>
-                    <th scope="col" class="column-status"><?php esc_html_e( 'Status', 'simple-lms' ); ?></th>
+                    <?php if ( simple_lms_is_column_visible( 'date', $hidden_columns ) ) : ?>
                     <th scope="col" class="column-course-date <?php echo esc_attr( simple_lms_sort_class( 'course_date', $orderby, $order ) ); ?>">
                         <a href="<?php echo esc_url( simple_lms_sort_url( 'course_date', $orderby, $order ) ); ?>">
-                            <span><?php esc_html_e( 'Course Date', 'simple-lms' ); ?></span>
+                            <span><?php esc_html_e( 'Date', 'simple-lms' ); ?></span>
                             <span class="sorting-indicators"><span class="sorting-indicator asc" aria-hidden="true"></span><span class="sorting-indicator desc" aria-hidden="true"></span></span>
                         </a>
                     </th>
+                    <?php endif; ?>
+                    <?php if ( simple_lms_is_column_visible( 'status', $hidden_columns ) ) : ?>
+                    <th scope="col" class="column-status"><?php esc_html_e( 'Status', 'simple-lms' ); ?></th>
+                    <?php endif; ?>
+                    <?php if ( simple_lms_is_column_visible( 'lecturer', $hidden_columns ) ) : ?>
                     <th scope="col" class="column-lecturer"><?php esc_html_e( 'Lecturer', 'simple-lms' ); ?></th>
+                    <?php endif; ?>
+                    <?php if ( simple_lms_is_column_visible( 'videos', $hidden_columns ) ) : ?>
+                    <th scope="col" class="column-videos"><?php esc_html_e( 'Videos', 'simple-lms' ); ?></th>
+                    <?php endif; ?>
+                    <?php if ( simple_lms_is_column_visible( 'materials', $hidden_columns ) ) : ?>
+                    <th scope="col" class="column-materials"><?php esc_html_e( 'Materials', 'simple-lms' ); ?></th>
+                    <?php endif; ?>
+                    <?php if ( simple_lms_is_column_visible( 'category', $hidden_columns ) ) : ?>
+                    <th scope="col" class="column-category"><?php esc_html_e( 'Category', 'simple-lms' ); ?></th>
+                    <?php endif; ?>
+                    <?php if ( simple_lms_is_column_visible( 'tags', $hidden_columns ) ) : ?>
+                    <th scope="col" class="column-tags"><?php esc_html_e( 'Tags', 'simple-lms' ); ?></th>
+                    <?php endif; ?>
+                    <?php if ( simple_lms_is_column_visible( 'memberships', $hidden_columns ) ) : ?>
+                    <th scope="col" class="column-memberships"><?php esc_html_e( 'Memberships', 'simple-lms' ); ?></th>
+                    <?php endif; ?>
+                    <?php if ( simple_lms_is_column_visible( 'products', $hidden_columns ) ) : ?>
+                    <th scope="col" class="column-products"><?php esc_html_e( 'Products', 'simple-lms' ); ?></th>
+                    <?php endif; ?>
+                    <?php if ( simple_lms_is_column_visible( 'post_status', $hidden_columns ) ) : ?>
                     <th scope="col" class="column-post-status <?php echo esc_attr( simple_lms_sort_class( 'post_status', $orderby, $order ) ); ?>">
                         <a href="<?php echo esc_url( simple_lms_sort_url( 'post_status', $orderby, $order ) ); ?>">
                             <span><?php esc_html_e( 'Published', 'simple-lms' ); ?></span>
                             <span class="sorting-indicators"><span class="sorting-indicator asc" aria-hidden="true"></span><span class="sorting-indicator desc" aria-hidden="true"></span></span>
                         </a>
                     </th>
+                    <?php endif; ?>
                 </tr>
             </thead>
             <tbody>
                 <?php if ( $courses_query->have_posts() ) : ?>
                     <?php while ( $courses_query->have_posts() ) : $courses_query->the_post(); ?>
                     <?php
-                    $course_id        = get_the_ID();
-                    $course_date      = get_post_meta( $course_id, '_simple_lms_date', true );
-                    $course_status    = wp_get_post_terms( $course_id, 'simple_lms_status', array( 'fields' => 'names' ) );
-                    $course_category  = wp_get_post_terms( $course_id, 'simple_lms_category', array( 'fields' => 'names' ) );
-                    $course_tags      = wp_get_post_terms( $course_id, 'simple_lms_tag', array( 'fields' => 'names' ) );
-                    $course_lecturer  = wp_get_post_terms( $course_id, 'simple_lms_lecturer', array( 'fields' => 'names' ) );
-                    $post_status      = get_post_status( $course_id );
+                    $course_id           = get_the_ID();
+                    $course_date         = get_post_meta( $course_id, '_simple_lms_date', true );
+                    $course_status       = wp_get_post_terms( $course_id, 'simple_lms_status', array( 'fields' => 'names' ) );
+                    $course_category     = wp_get_post_terms( $course_id, 'simple_lms_category', array( 'fields' => 'names' ) );
+                    $course_tags         = wp_get_post_terms( $course_id, 'simple_lms_tag', array( 'fields' => 'names' ) );
+                    $course_lecturer     = wp_get_post_terms( $course_id, 'simple_lms_lecturer', array( 'fields' => 'names' ) );
+                    $course_videos       = get_post_meta( $course_id, '_simple_lms_videos', true );
+                    $course_materials    = get_post_meta( $course_id, '_simple_lms_materials', true );
+                    $course_memberships  = get_post_meta( $course_id, '_simple_lms_access_memberships', true );
+                    $course_products     = get_post_meta( $course_id, '_simple_lms_access_products', true );
+                    $post_status         = get_post_status( $course_id );
+
+                    // Count videos and materials.
+                    $videos_count    = is_array( $course_videos ) ? count( $course_videos ) : 0;
+                    $materials_count = is_array( $course_materials ) ? count( $course_materials ) : 0;
+
+                    // Get membership plan names.
+                    $membership_names = array();
+                    if ( ! empty( $course_memberships ) && is_array( $course_memberships ) ) {
+                        foreach ( $course_memberships as $plan_id ) {
+                            $plan = get_post( $plan_id );
+                            if ( $plan ) {
+                                $membership_names[] = $plan->post_title;
+                            }
+                        }
+                    }
+
+                    // Get product names.
+                    $product_names = array();
+                    if ( ! empty( $course_products ) && is_array( $course_products ) && function_exists( 'wc_get_product' ) ) {
+                        foreach ( $course_products as $product_id ) {
+                            $product = wc_get_product( $product_id );
+                            if ( $product ) {
+                                $product_names[] = $product->get_name();
+                            }
+                        }
+                    }
 
                     $formatted_date = '';
                     if ( $course_date ) {
@@ -361,21 +443,52 @@ function simple_lms_sort_class( $column, $current_orderby, $current_order ) {
                                 </span>
                             </div>
                         </td>
-                        <td class="column-category" data-colname="<?php esc_attr_e( 'Category', 'simple-lms' ); ?>">
-                            <?php echo ! empty( $course_category ) && ! is_wp_error( $course_category ) ? esc_html( implode( ', ', $course_category ) ) : '—'; ?>
+                        <?php if ( simple_lms_is_column_visible( 'date', $hidden_columns ) ) : ?>
+                        <td class="column-course-date" data-colname="<?php esc_attr_e( 'Date', 'simple-lms' ); ?>">
+                            <?php echo $formatted_date ? esc_html( $formatted_date ) : '—'; ?>
                         </td>
-                        <td class="column-tags" data-colname="<?php esc_attr_e( 'Tags', 'simple-lms' ); ?>">
-                            <?php echo ! empty( $course_tags ) && ! is_wp_error( $course_tags ) ? esc_html( implode( ', ', $course_tags ) ) : '—'; ?>
-                        </td>
+                        <?php endif; ?>
+                        <?php if ( simple_lms_is_column_visible( 'status', $hidden_columns ) ) : ?>
                         <td class="column-status" data-colname="<?php esc_attr_e( 'Status', 'simple-lms' ); ?>">
                             <?php echo ! empty( $course_status ) && ! is_wp_error( $course_status ) ? esc_html( implode( ', ', $course_status ) ) : '—'; ?>
                         </td>
-                        <td class="column-course-date" data-colname="<?php esc_attr_e( 'Course Date', 'simple-lms' ); ?>">
-                            <?php echo $formatted_date ? esc_html( $formatted_date ) : '—'; ?>
-                        </td>
+                        <?php endif; ?>
+                        <?php if ( simple_lms_is_column_visible( 'lecturer', $hidden_columns ) ) : ?>
                         <td class="column-lecturer" data-colname="<?php esc_attr_e( 'Lecturer', 'simple-lms' ); ?>">
                             <?php echo ! empty( $course_lecturer ) && ! is_wp_error( $course_lecturer ) ? esc_html( implode( ', ', $course_lecturer ) ) : '—'; ?>
                         </td>
+                        <?php endif; ?>
+                        <?php if ( simple_lms_is_column_visible( 'videos', $hidden_columns ) ) : ?>
+                        <td class="column-videos" data-colname="<?php esc_attr_e( 'Videos', 'simple-lms' ); ?>">
+                            <?php echo esc_html( $videos_count ); ?>
+                        </td>
+                        <?php endif; ?>
+                        <?php if ( simple_lms_is_column_visible( 'materials', $hidden_columns ) ) : ?>
+                        <td class="column-materials" data-colname="<?php esc_attr_e( 'Materials', 'simple-lms' ); ?>">
+                            <?php echo esc_html( $materials_count ); ?>
+                        </td>
+                        <?php endif; ?>
+                        <?php if ( simple_lms_is_column_visible( 'category', $hidden_columns ) ) : ?>
+                        <td class="column-category" data-colname="<?php esc_attr_e( 'Category', 'simple-lms' ); ?>">
+                            <?php echo ! empty( $course_category ) && ! is_wp_error( $course_category ) ? esc_html( implode( ', ', $course_category ) ) : '—'; ?>
+                        </td>
+                        <?php endif; ?>
+                        <?php if ( simple_lms_is_column_visible( 'tags', $hidden_columns ) ) : ?>
+                        <td class="column-tags" data-colname="<?php esc_attr_e( 'Tags', 'simple-lms' ); ?>">
+                            <?php echo ! empty( $course_tags ) && ! is_wp_error( $course_tags ) ? esc_html( implode( ', ', $course_tags ) ) : '—'; ?>
+                        </td>
+                        <?php endif; ?>
+                        <?php if ( simple_lms_is_column_visible( 'memberships', $hidden_columns ) ) : ?>
+                        <td class="column-memberships" data-colname="<?php esc_attr_e( 'Memberships', 'simple-lms' ); ?>">
+                            <?php echo ! empty( $membership_names ) ? esc_html( implode( ', ', $membership_names ) ) : '—'; ?>
+                        </td>
+                        <?php endif; ?>
+                        <?php if ( simple_lms_is_column_visible( 'products', $hidden_columns ) ) : ?>
+                        <td class="column-products" data-colname="<?php esc_attr_e( 'Products', 'simple-lms' ); ?>">
+                            <?php echo ! empty( $product_names ) ? esc_html( implode( ', ', $product_names ) ) : '—'; ?>
+                        </td>
+                        <?php endif; ?>
+                        <?php if ( simple_lms_is_column_visible( 'post_status', $hidden_columns ) ) : ?>
                         <td class="column-post-status" data-colname="<?php esc_attr_e( 'Published', 'simple-lms' ); ?>">
                             <?php if ( 'publish' === $post_status ) : ?>
                                 <span class="status-publish"><?php esc_html_e( 'Published', 'simple-lms' ); ?></span>
@@ -383,12 +496,21 @@ function simple_lms_sort_class( $column, $current_orderby, $current_order ) {
                                 <span class="status-draft"><?php esc_html_e( 'Draft', 'simple-lms' ); ?></span>
                             <?php endif; ?>
                         </td>
+                        <?php endif; ?>
                     </tr>
                     <?php endwhile; ?>
                     <?php wp_reset_postdata(); ?>
                 <?php else : ?>
+                    <?php
+                    $visible_columns = 2; // Checkbox + Title (always visible).
+                    foreach ( array_keys( $available_columns ) as $col ) {
+                        if ( simple_lms_is_column_visible( $col, $hidden_columns ) ) {
+                            $visible_columns++;
+                        }
+                    }
+                    ?>
                     <tr>
-                        <td colspan="8"><?php esc_html_e( 'No courses found.', 'simple-lms' ); ?></td>
+                        <td colspan="<?php echo esc_attr( $visible_columns ); ?>"><?php esc_html_e( 'No courses found.', 'simple-lms' ); ?></td>
                     </tr>
                 <?php endif; ?>
             </tbody>

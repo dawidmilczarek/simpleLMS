@@ -42,6 +42,7 @@ class LMS_Admin {
         add_action( 'wp_ajax_simple_lms_delete_course', array( $this, 'ajax_delete_course' ) );
         add_action( 'wp_ajax_simple_lms_duplicate_course', array( $this, 'ajax_duplicate_course' ) );
         add_action( 'wp_ajax_simple_lms_search_products', array( $this, 'ajax_search_products' ) );
+        add_action( 'wp_ajax_simple_lms_toggle_column', array( $this, 'ajax_toggle_column' ) );
         add_filter( 'parent_file', array( $this, 'fix_parent_menu' ) );
         add_filter( 'submenu_file', array( $this, 'fix_submenu_file' ) );
         add_filter( 'set-screen-option', array( $this, 'set_screen_option' ), 10, 3 );
@@ -118,6 +119,58 @@ class LMS_Admin {
                 'option'  => 'simple_lms_courses_per_page',
             )
         );
+
+        // Add column visibility options.
+        add_filter( 'screen_settings', array( $this, 'render_column_options' ), 10, 2 );
+    }
+
+    /**
+     * Render column visibility options in Screen Options.
+     *
+     * @param string    $settings Screen settings HTML.
+     * @param WP_Screen $screen   Current screen object.
+     * @return string
+     */
+    public function render_column_options( $settings, $screen ) {
+        if ( 'toplevel_page_simple-lms' !== $screen->id ) {
+            return $settings;
+        }
+
+        $user_id        = get_current_user_id();
+        $hidden_columns = get_user_meta( $user_id, 'simple_lms_hidden_columns', true );
+        if ( ! is_array( $hidden_columns ) ) {
+            $hidden_columns = array();
+        }
+
+        $columns = array(
+            'date'        => __( 'Date', 'simple-lms' ),
+            'status'      => __( 'Status', 'simple-lms' ),
+            'lecturer'    => __( 'Lecturer', 'simple-lms' ),
+            'videos'      => __( 'Videos', 'simple-lms' ),
+            'materials'   => __( 'Materials', 'simple-lms' ),
+            'category'    => __( 'Category', 'simple-lms' ),
+            'tags'        => __( 'Tags', 'simple-lms' ),
+            'memberships' => __( 'Memberships', 'simple-lms' ),
+            'products'    => __( 'Products', 'simple-lms' ),
+            'post_status' => __( 'Published', 'simple-lms' ),
+        );
+
+        $settings .= '<fieldset class="metabox-prefs">';
+        $settings .= '<legend>' . esc_html__( 'Columns', 'simple-lms' ) . '</legend>';
+
+        foreach ( $columns as $key => $label ) {
+            $checked = ! in_array( $key, $hidden_columns, true ) ? 'checked="checked"' : '';
+            $settings .= sprintf(
+                '<label><input type="checkbox" class="simple-lms-column-toggle" data-column="%s" %s> %s</label>',
+                esc_attr( $key ),
+                $checked,
+                esc_html( $label )
+            );
+        }
+
+        $settings .= '</fieldset>';
+
+        return $settings;
     }
 
     /**
@@ -654,6 +707,42 @@ class LMS_Admin {
             'message'     => __( 'Course duplicated successfully.', 'simple-lms' ),
             'redirect_url' => admin_url( 'admin.php?page=simple-lms-add&course_id=' . $new_post_id ),
         ) );
+    }
+
+    /**
+     * AJAX handler for toggling column visibility.
+     */
+    public function ajax_toggle_column() {
+        check_ajax_referer( 'simple_lms_admin', 'nonce' );
+
+        $column  = isset( $_POST['column'] ) ? sanitize_key( $_POST['column'] ) : '';
+        $visible = isset( $_POST['visible'] ) && 'true' === $_POST['visible'];
+
+        $valid_columns = array( 'date', 'status', 'lecturer', 'videos', 'materials', 'category', 'tags', 'memberships', 'products', 'post_status' );
+
+        if ( ! in_array( $column, $valid_columns, true ) ) {
+            wp_send_json_error( array( 'message' => __( 'Invalid column.', 'simple-lms' ) ) );
+        }
+
+        $user_id        = get_current_user_id();
+        $hidden_columns = get_user_meta( $user_id, 'simple_lms_hidden_columns', true );
+        if ( ! is_array( $hidden_columns ) ) {
+            $hidden_columns = array();
+        }
+
+        if ( $visible ) {
+            // Remove from hidden.
+            $hidden_columns = array_diff( $hidden_columns, array( $column ) );
+        } else {
+            // Add to hidden.
+            if ( ! in_array( $column, $hidden_columns, true ) ) {
+                $hidden_columns[] = $column;
+            }
+        }
+
+        update_user_meta( $user_id, 'simple_lms_hidden_columns', array_values( $hidden_columns ) );
+
+        wp_send_json_success();
     }
 
     /**

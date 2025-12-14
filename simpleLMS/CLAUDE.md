@@ -735,8 +735,8 @@ Custom table view for managing courses.
 - **Filters**: Filter by category, tags, status, lecturer, published status (combinable with AND logic)
 - **Sorting**: Clickable column headers for Title, Course Date, Lecturer, Published
 - **Pagination**: Navigate through courses
-- **Screen Options**: Configurable items per page (WordPress standard Screen Options panel)
-- **Columns**: Title, Category, Tags, Status, Course Date, Lecturer, Published
+- **Screen Options**: Configure items per page and toggle column visibility (Title always visible)
+- **Columns**: Title, Date, Status, Lecturer, Videos, Materials, Category, Tags, Memberships, Products, Published
 - **Actions**: Edit, Duplicate, View, Delete (with AJAX confirmation)
 - **Reset**: Button to clear all active filters
 

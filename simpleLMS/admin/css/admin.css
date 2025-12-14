@@ -238,18 +238,41 @@
     border: 1px dashed #2271b1;
 }
 
-/* Courses List */
+/* Courses List - Columns */
+.simple-lms-courses .column-title {
+    width: 33%;
+}
+
+.simple-lms-courses .column-course-date {
+    width: 100px;
+}
+
 .simple-lms-courses .column-status {
+    width: 100px;
+}
+
+.simple-lms-courses .column-lecturer {
     width: 120px;
 }
 
-.simple-lms-courses .column-date,
-.simple-lms-courses .column-lecturer {
-    width: 150px;
+.simple-lms-courses .column-videos,
+.simple-lms-courses .column-materials {
+    width: 70px;
+    text-align: center;
+}
+
+.simple-lms-courses .column-category,
+.simple-lms-courses .column-tags {
+    width: 100px;
+}
+
+.simple-lms-courses .column-memberships,
+.simple-lms-courses .column-products {
+    width: 120px;
 }
 
 .simple-lms-courses .column-post-status {
-    width: 100px;
+    width: 90px;
 }
 
 .simple-lms-courses .status-publish {
