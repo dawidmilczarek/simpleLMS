@@ -37,6 +37,10 @@ $memberships    = $is_edit ? get_post_meta( $course_id, '_simple_lms_access_memb
 $products       = $is_edit ? get_post_meta( $course_id, '_simple_lms_access_products', true ) : array();
 $redirect_url   = $is_edit ? get_post_meta( $course_id, '_simple_lms_redirect_url', true ) : '';
 
+// Certificate enabled - defaults to '1' (enabled) for new courses.
+$certificate_enabled_meta = $is_edit ? get_post_meta( $course_id, '_simple_lms_certificate_enabled', true ) : '';
+$certificate_enabled = ( '' === $certificate_enabled_meta ) ? '1' : $certificate_enabled_meta;
+
 $videos    = is_array( $videos ) ? $videos : array();
 $materials = is_array( $materials ) ? $materials : array();
 $memberships = is_array( $memberships ) ? $memberships : array();
@@ -352,6 +356,20 @@ $page_title = $is_edit ? __( 'Edit Course', 'simple-lms' ) : __( 'Add New Course
                         </p>
                         <?php endif; ?>
                     </div>
+                </div>
+
+                <!-- Certificate -->
+                <div class="course-form-box">
+                    <h2><?php esc_html_e( 'Certyfikat', 'simple-lms' ); ?></h2>
+                    <p>
+                        <label>
+                            <input type="checkbox" name="simple_lms_certificate_enabled" value="1" <?php checked( $certificate_enabled, '1' ); ?>>
+                            <?php esc_html_e( 'Wlacz certyfikat dla tego kursu', 'simple-lms' ); ?>
+                        </label>
+                    </p>
+                    <p class="description">
+                        <?php esc_html_e( 'Jesli zaznaczone, uzytkownicy moga generowac certyfikaty ukonczenia.', 'simple-lms' ); ?>
+                    </p>
                 </div>
 
                 <!-- Status Taxonomy -->

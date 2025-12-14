@@ -37,6 +37,9 @@ $active_tab = isset( $_GET['tab'] ) ? sanitize_key( $_GET['tab'] ) : 'general';
         <a href="<?php echo esc_url( admin_url( 'admin.php?page=simple-lms-settings&tab=lecturers' ) ); ?>" class="nav-tab <?php echo 'lecturers' === $active_tab ? 'nav-tab-active' : ''; ?>">
             <?php esc_html_e( 'Lecturers', 'simple-lms' ); ?>
         </a>
+        <a href="<?php echo esc_url( admin_url( 'admin.php?page=simple-lms-settings&tab=certificates' ) ); ?>" class="nav-tab <?php echo 'certificates' === $active_tab ? 'nav-tab-active' : ''; ?>">
+            <?php esc_html_e( 'Certyfikaty', 'simple-lms' ); ?>
+        </a>
     </nav>
 
     <div class="tab-content">
@@ -47,6 +50,9 @@ $active_tab = isset( $_GET['tab'] ) ? sanitize_key( $_GET['tab'] ) : 'general';
                 break;
             case 'shortcodes':
                 include SIMPLE_LMS_PLUGIN_DIR . 'admin/views/tab-shortcodes.php';
+                break;
+            case 'certificates':
+                include SIMPLE_LMS_PLUGIN_DIR . 'admin/views/tab-certificates.php';
                 break;
             case 'categories':
             case 'tags':

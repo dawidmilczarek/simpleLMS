@@ -79,6 +79,16 @@ class LMS_Admin {
             array( $this, 'render_course_form' )
         );
 
+        // Generate Certificate submenu.
+        add_submenu_page(
+            'simple-lms',
+            __( 'Generuj certyfikat', 'simple-lms' ),
+            __( 'Generuj certyfikat', 'simple-lms' ),
+            'manage_options',
+            'simple-lms-certificates',
+            array( $this, 'render_certificates_page' )
+        );
+
         // Settings submenu.
         add_submenu_page(
             'simple-lms',
@@ -298,18 +308,24 @@ class LMS_Admin {
 
             // Check if we need Select2 on course form page.
             $is_course_form = 'simplelms_page_simple-lms-add' === $hook || ( isset( $_GET['page'] ) && 'simple-lms-add' === $_GET['page'] );
+            $is_certificates_tab = isset( $_GET['page'] ) && 'simple-lms-settings' === $_GET['page'] && isset( $_GET['tab'] ) && 'certificates' === $_GET['tab'];
             $has_select2    = false;
 
             if ( $is_course_form ) {
                 wp_enqueue_editor();
                 wp_enqueue_media();
+            }
 
-                // Enqueue Select2 from WooCommerce.
-                if ( class_exists( 'WC_Subscriptions' ) && function_exists( 'WC' ) ) {
-                    wp_enqueue_style( 'select2', WC()->plugin_url() . '/assets/css/select2.css', array(), '4.0.3' );
-                    wp_enqueue_script( 'select2', WC()->plugin_url() . '/assets/js/select2/select2.full.min.js', array( 'jquery' ), '4.0.3', true );
-                    $has_select2 = true;
-                }
+            // Enqueue Select2 from WooCommerce for course form.
+            if ( $is_course_form && class_exists( 'WC_Subscriptions' ) && function_exists( 'WC' ) ) {
+                wp_enqueue_style( 'select2', WC()->plugin_url() . '/assets/css/select2.css', array(), '4.0.3' );
+                wp_enqueue_script( 'select2', WC()->plugin_url() . '/assets/js/select2/select2.full.min.js', array( 'jquery' ), '4.0.3', true );
+                $has_select2 = true;
+            }
+
+            // Enqueue media for certificates settings tab.
+            if ( $is_certificates_tab ) {
+                wp_enqueue_media();
             }
 
             // Admin script - add select2 dependency if loaded.
@@ -371,6 +387,17 @@ class LMS_Admin {
         }
 
         include SIMPLE_LMS_PLUGIN_DIR . 'admin/views/course-form.php';
+    }
+
+    /**
+     * Render certificates generation page.
+     */
+    public function render_certificates_page() {
+        if ( ! current_user_can( 'manage_options' ) ) {
+            return;
+        }
+
+        include SIMPLE_LMS_PLUGIN_DIR . 'admin/views/certificates-generate.php';
     }
 
     /**
@@ -510,6 +537,10 @@ class LMS_Admin {
         if ( isset( $_POST['simple_lms_redirect_url'] ) ) {
             update_post_meta( $post_id, '_simple_lms_redirect_url', esc_url_raw( wp_unslash( $_POST['simple_lms_redirect_url'] ) ) );
         }
+
+        // Certificate enabled (checkbox - if not set, it means unchecked = '0').
+        $certificate_enabled = isset( $_POST['simple_lms_certificate_enabled'] ) ? '1' : '0';
+        update_post_meta( $post_id, '_simple_lms_certificate_enabled', $certificate_enabled );
     }
 
     /**
@@ -776,6 +807,10 @@ class LMS_Admin {
 
 {{#IF_MATERIALS}}
 {{LMS_MATERIALS}}
-{{/IF_MATERIALS}}';
+{{/IF_MATERIALS}}
+
+{{#IF_CERTIFICATE}}
+{{LMS_CERTIFICATE}}
+{{/IF_CERTIFICATE}}';
     }
 }

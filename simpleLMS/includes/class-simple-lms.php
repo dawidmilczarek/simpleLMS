@@ -72,6 +72,13 @@ class Simple_LMS {
     public $public;
 
     /**
+     * Certificates class instance.
+     *
+     * @var LMS_Certificates
+     */
+    public $certificates;
+
+    /**
      * Returns the single instance of the class.
      *
      * @return Simple_LMS
@@ -101,6 +108,7 @@ class Simple_LMS {
         require_once SIMPLE_LMS_PLUGIN_DIR . 'includes/class-lms-access-control.php';
         require_once SIMPLE_LMS_PLUGIN_DIR . 'includes/class-lms-templates.php';
         require_once SIMPLE_LMS_PLUGIN_DIR . 'includes/class-lms-shortcodes.php';
+        require_once SIMPLE_LMS_PLUGIN_DIR . 'includes/class-lms-certificates.php';
 
         // Admin classes.
         if ( is_admin() ) {
@@ -139,6 +147,9 @@ class Simple_LMS {
 
         // Initialize shortcodes.
         $this->shortcodes = new LMS_Shortcodes();
+
+        // Initialize certificates.
+        $this->certificates = new LMS_Certificates();
 
         // Initialize admin.
         if ( is_admin() ) {

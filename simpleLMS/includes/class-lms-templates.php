@@ -134,7 +134,11 @@ class LMS_Templates {
 
 {{#IF_MATERIALS}}
 {{LMS_MATERIALS}}
-{{/IF_MATERIALS}}';
+{{/IF_MATERIALS}}
+
+{{#IF_CERTIFICATE}}
+{{LMS_CERTIFICATE}}
+{{/IF_CERTIFICATE}}';
     }
 
     /**
@@ -221,8 +225,9 @@ class LMS_Templates {
             'category'   => ! empty( $categories ) && ! is_wp_error( $categories ) ? $categories[0]->name : '',
             'tags'       => ! empty( $tags ) && ! is_wp_error( $tags ) ? implode( ', ', wp_list_pluck( $tags, 'name' ) ) : '',
             'status'     => ! empty( $statuses ) && ! is_wp_error( $statuses ) ? $statuses[0]->name : '',
-            'content'    => apply_filters( 'the_content', $post->post_content ),
-            'raw_content' => $post->post_content,
+            'content'               => apply_filters( 'the_content', $post->post_content ),
+            'raw_content'           => $post->post_content,
+            'certificate_available' => $this->is_certificate_available( $post_id ),
         );
     }
 
@@ -242,9 +247,10 @@ class LMS_Templates {
             '{{LMS_VIDEOS}}'    => $this->render_videos( $data['videos'] ),
             '{{LMS_MATERIALS}}' => $this->render_materials( $data['materials'] ),
             '{{LMS_CATEGORY}}'  => esc_html( $data['category'] ),
-            '{{LMS_TAGS}}'      => esc_html( $data['tags'] ),
-            '{{LMS_STATUS}}'    => esc_html( $data['status'] ),
-            '{{LMS_CONTENT}}'   => $data['content'],
+            '{{LMS_TAGS}}'        => esc_html( $data['tags'] ),
+            '{{LMS_STATUS}}'      => esc_html( $data['status'] ),
+            '{{LMS_CONTENT}}'     => $data['content'],
+            '{{LMS_CERTIFICATE}}' => $this->render_certificate_button(),
         );
     }
 
@@ -265,8 +271,9 @@ class LMS_Templates {
             'MATERIALS' => ! empty( $data['materials'] ),
             'CATEGORY'  => ! empty( $data['category'] ),
             'TAGS'      => ! empty( $data['tags'] ),
-            'STATUS'    => ! empty( $data['status'] ),
-            'CONTENT'   => ! empty( trim( $data['raw_content'] ) ),
+            'STATUS'      => ! empty( $data['status'] ),
+            'CONTENT'     => ! empty( trim( $data['raw_content'] ) ),
+            'CERTIFICATE' => ! empty( $data['certificate_available'] ),
         );
 
         foreach ( $conditions as $key => $is_true ) {
@@ -373,5 +380,56 @@ class LMS_Templates {
          * @param array  $materials Materials data.
          */
         return apply_filters( 'lms_materials_html', $output, $materials );
+    }
+
+    /**
+     * Check if certificate is available for current course.
+     *
+     * @param int $post_id Course post ID.
+     * @return bool
+     */
+    private function is_certificate_available( $post_id ) {
+        // Check if user is logged in.
+        if ( ! is_user_logged_in() ) {
+            return false;
+        }
+
+        // Check if certificate is enabled for this course.
+        $certificate_enabled = get_post_meta( $post_id, '_simple_lms_certificate_enabled', true );
+        if ( '0' === $certificate_enabled ) {
+            return false;
+        }
+
+        // Check user access.
+        if ( current_user_can( 'manage_options' ) ) {
+            return true;
+        }
+
+        if ( class_exists( 'LMS_Access_Control' ) ) {
+            return LMS_Access_Control::user_has_access( $post_id, get_current_user_id() );
+        }
+
+        return true;
+    }
+
+    /**
+     * Render certificate button HTML.
+     *
+     * @return string
+     */
+    private function render_certificate_button() {
+        $post_id = get_the_ID();
+
+        if ( ! $this->is_certificate_available( $post_id ) ) {
+            return '';
+        }
+
+        // Use LMS_Certificates class to render.
+        $lms = Simple_LMS::instance();
+        if ( isset( $lms->certificates ) ) {
+            return $lms->certificates->render_certificate_button( $post_id );
+        }
+
+        return '';
     }
 }

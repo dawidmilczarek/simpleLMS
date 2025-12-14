@@ -73,3 +73,46 @@
         grid-template-columns: 1fr;
     }
 }
+
+/* Certificate Form - inline layout */
+.lms-certificate-form {
+    margin: 1em 0;
+}
+
+.lms-cert-inline-form {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+    flex-wrap: wrap;
+}
+
+.lms-cert-inline-form input[type="date"] {
+    padding: 0.4em 0.6em;
+}
+
+.lms-certificate-button {
+    padding: 0.4em 1em;
+    cursor: pointer;
+}
+
+/* Certificates Table (Shortcode) */
+.lms-certificates-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.lms-certificates-table th,
+.lms-certificates-table td {
+    padding: 0.75em;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+.lms-certificates-table th {
+    font-weight: 600;
+}
+
+/* Certificate Section */
+.lms-certificate-section {
+    margin: 2em 0;
+}
