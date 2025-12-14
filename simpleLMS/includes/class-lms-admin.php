@@ -786,15 +786,45 @@ class LMS_Admin {
     }
 
     /**
+     * Get default template labels.
+     *
+     * @return array
+     */
+    public static function get_default_template_labels() {
+        return array(
+            'date'     => __( 'Date:', 'simple-lms' ),
+            'time'     => __( 'Time:', 'simple-lms' ),
+            'lecturer' => __( 'Lecturer:', 'simple-lms' ),
+        );
+    }
+
+    /**
+     * Get a template label by key.
+     *
+     * @param string $key Label key.
+     * @return string
+     */
+    public static function get_template_label( $key ) {
+        $labels   = get_option( 'simple_lms_template_labels', array() );
+        $defaults = self::get_default_template_labels();
+        $merged   = wp_parse_args( $labels, $defaults );
+        return isset( $merged[ $key ] ) ? $merged[ $key ] : '';
+    }
+
+    /**
      * Get the built-in default template.
      *
      * @return string
      */
     public static function get_builtin_default_template() {
+        $date_label     = self::get_template_label( 'date' );
+        $time_label     = self::get_template_label( 'time' );
+        $lecturer_label = self::get_template_label( 'lecturer' );
+
         return '<ul>
-{{#IF_DATE}}<li>Date: {{LMS_DATE}}</li>{{/IF_DATE}}
-{{#IF_TIME}}<li>Time: {{LMS_TIME}}</li>{{/IF_TIME}}
-{{#IF_LECTURER}}<li>Lecturer: {{LMS_LECTURER}}</li>{{/IF_LECTURER}}
+{{#IF_DATE}}<li>' . esc_html( $date_label ) . ' {{LMS_DATE}}</li>{{/IF_DATE}}
+{{#IF_TIME}}<li>' . esc_html( $time_label ) . ' {{LMS_TIME}}</li>{{/IF_TIME}}
+{{#IF_LECTURER}}<li>' . esc_html( $lecturer_label ) . ' {{LMS_LECTURER}}</li>{{/IF_LECTURER}}
 </ul>
 
 {{#IF_VIDEOS}}
@@ -809,8 +839,8 @@ class LMS_Admin {
 {{LMS_MATERIALS}}
 {{/IF_MATERIALS}}
 
-{{#IF_CERTIFICATE}}
+{{#IF_DATE}}
 {{LMS_CERTIFICATE}}
-{{/IF_CERTIFICATE}}';
+{{/IF_DATE}}';
     }
 }

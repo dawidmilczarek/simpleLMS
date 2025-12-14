@@ -10,6 +10,22 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
+// Handle template labels save.
+if ( isset( $_POST['simple_lms_save_template_labels'] ) ) {
+    if ( ! isset( $_POST['_wpnonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['_wpnonce'] ) ), 'simple_lms_template_labels' ) ) {
+        wp_die( esc_html__( 'Security check failed.', 'simple-lms' ) );
+    }
+
+    if ( isset( $_POST['template_labels'] ) && is_array( $_POST['template_labels'] ) ) {
+        $labels_to_save = array();
+        foreach ( $_POST['template_labels'] as $key => $value ) {
+            $labels_to_save[ sanitize_key( $key ) ] = sanitize_text_field( wp_unslash( $value ) );
+        }
+        update_option( 'simple_lms_template_labels', $labels_to_save );
+        echo '<div class="notice notice-success"><p>' . esc_html__( 'Template labels saved.', 'simple-lms' ) . '</p></div>';
+    }
+}
+
 $default_template  = get_option( 'simple_lms_default_template', '' );
 $status_templates  = get_option( 'simple_lms_status_templates', array() );
 $statuses          = get_terms(
@@ -18,6 +34,11 @@ $statuses          = get_terms(
         'hide_empty' => false,
     )
 );
+
+// Get template labels with defaults.
+$template_labels = get_option( 'simple_lms_template_labels', array() );
+$default_labels  = LMS_Admin::get_default_template_labels();
+$labels          = wp_parse_args( $template_labels, $default_labels );
 
 $placeholders = array(
     '{{LMS_TITLE}}'    => __( 'Course title', 'simple-lms' ),
@@ -46,6 +67,35 @@ $conditionals = array(
     '{{#IF_CONTENT}}...{{/IF_CONTENT}}'   => __( 'Shows if content exists', 'simple-lms' ),
 );
 ?>
+
+<h2><?php esc_html_e( 'Default Template Labels', 'simple-lms' ); ?></h2>
+<p class="description"><?php esc_html_e( 'These labels are used in the built-in default template. Changing these will affect the template when reset to default.', 'simple-lms' ); ?></p>
+
+<form method="post" action="">
+    <?php wp_nonce_field( 'simple_lms_template_labels' ); ?>
+    <table class="form-table">
+        <tr>
+            <th scope="row"><label for="label_date"><?php esc_html_e( 'Date label', 'simple-lms' ); ?></label></th>
+            <td><input type="text" id="label_date" name="template_labels[date]" value="<?php echo esc_attr( $labels['date'] ); ?>" class="regular-text"></td>
+        </tr>
+        <tr>
+            <th scope="row"><label for="label_time"><?php esc_html_e( 'Time label', 'simple-lms' ); ?></label></th>
+            <td><input type="text" id="label_time" name="template_labels[time]" value="<?php echo esc_attr( $labels['time'] ); ?>" class="regular-text"></td>
+        </tr>
+        <tr>
+            <th scope="row"><label for="label_lecturer"><?php esc_html_e( 'Lecturer label', 'simple-lms' ); ?></label></th>
+            <td><input type="text" id="label_lecturer" name="template_labels[lecturer]" value="<?php echo esc_attr( $labels['lecturer'] ); ?>" class="regular-text"></td>
+        </tr>
+    </table>
+    <p class="submit">
+        <button type="submit" name="simple_lms_save_template_labels" class="button button-primary">
+            <?php esc_html_e( 'Save Labels', 'simple-lms' ); ?>
+        </button>
+    </p>
+</form>
+
+<hr>
+
 <form method="post" action="options.php">
     <?php settings_fields( 'simple_lms_templates_group' ); ?>
 

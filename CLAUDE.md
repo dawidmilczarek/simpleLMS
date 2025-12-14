@@ -81,6 +81,8 @@ Uses `wp_options` table for plugin data (no custom tables). This is the WordPres
 | `simple_lms_default_template` | string | Default template HTML |
 | `simple_lms_status_templates` | array | Status-specific templates (status_id => template HTML) |
 | `simple_lms_shortcode_presets` | array | Shortcode presets (preset_name => settings) |
+| `simple_lms_template_labels` | array | Customizable labels for default template (date, time, lecturer) |
+| `simple_lms_certificate_labels` | array | Customizable labels for certificate frontend elements |
 
 ### WordPress Native Tables (used as normal)
 - `wp_posts` - courses (post_type = 'simple_lms_course')
@@ -117,16 +119,16 @@ Uses `wp_options` table for plugin data (no custom tables). This is the WordPres
 ### Video Structure (`_simple_lms_videos`)
 ```php
 [
-    ['title' => 'Część 1 - Wprowadzenie', 'vimeo_url' => 'https://vimeo.com/123456'],
-    ['title' => 'Część 2 - Praktyka', 'vimeo_url' => 'https://vimeo.com/789012'],
+    ['title' => 'Part 1 - Introduction', 'vimeo_url' => 'https://vimeo.com/123456'],
+    ['title' => 'Part 2 - Practice', 'vimeo_url' => 'https://vimeo.com/789012'],
 ]
 ```
 
 ### Materials Structure (`_simple_lms_materials`)
 ```php
 [
-    ['label' => 'Pobierz prezentację', 'url' => 'https://example.com/file1.pdf'],
-    ['label' => 'Pobierz ćwiczenia', 'url' => 'https://example.com/file2.pdf'],
+    ['label' => 'Download presentation', 'url' => 'https://example.com/file1.pdf'],
+    ['label' => 'Download exercises', 'url' => 'https://example.com/file2.pdf'],
 ]
 ```
 
@@ -145,7 +147,7 @@ Uses `wp_options` table for plugin data (no custom tables). This is the WordPres
 ### 3. Course Status (`simple_lms_status`)
 - Non-hierarchical
 - Admin can create unlimited statuses
-- Examples: "Nagranie", "Zoom", "Zaplanowane"
+- Examples: "Recording", "Live", "Scheduled"
 - **Used for template assignment** (each status can have its own template)
 - Used for shortcode filtering
 
@@ -199,6 +201,17 @@ wcs_user_has_subscription($user_id, $product_id, 'active')
 Templates stored in `wp_options` table:
 - `simple_lms_default_template` - default template
 - `simple_lms_status_templates` - array of status_id => template
+- `simple_lms_template_labels` - customizable labels for default template
+
+### Template Labels (`simple_lms_template_labels`)
+
+These labels are used in the built-in default template (displayed when resetting to default):
+
+| Key | Default | Description |
+|-----|---------|-------------|
+| `date` | "Date:" | Label before date value |
+| `time` | "Time:" | Label before time value |
+| `lecturer` | "Lecturer:" | Label before lecturer value |
 
 ### Template Hierarchy
 1. Status-specific template (if course has status with assigned template)
@@ -223,6 +236,7 @@ The `{{LMS_CONTENT}}` placeholder uses `apply_filters('the_content', ...)` inter
 | `{{LMS_TAGS}}` | Course tags (comma-separated) |
 | `{{LMS_STATUS}}` | Course status |
 | `{{LMS_CONTENT}}` | Post editor content (WYSIWYG) |
+| `{{LMS_CERTIFICATE}}` | Certificate generation form |
 
 ### Conditional Blocks
 
@@ -240,23 +254,24 @@ All placeholders have corresponding conditional blocks. Block only renders if da
 | `{{#IF_TAGS}}...{{/IF_TAGS}}` | Course has at least one tag |
 | `{{#IF_STATUS}}...{{/IF_STATUS}}` | Course has a status |
 | `{{#IF_CONTENT}}...{{/IF_CONTENT}}` | Post editor has content |
+| `{{#IF_CERTIFICATE}}...{{/IF_CERTIFICATE}}` | Certificate is available for course and user |
 
 **Example usage:**
 ```html
 {{#IF_LECTURER}}
-<p><strong>Wykładowca:</strong> {{LMS_LECTURER}}</p>
+<p><strong>Lecturer:</strong> {{LMS_LECTURER}}</p>
 {{/IF_LECTURER}}
 
 {{#IF_VIDEOS}}
 <div class="video-section">
-  <h2>Nagrania</h2>
+  <h2>Recordings</h2>
   {{LMS_VIDEOS}}
 </div>
 {{/IF_VIDEOS}}
 
 {{#IF_MATERIALS}}
 <div class="materials-section">
-  <h2>Materiały szkoleniowe</h2>
+  <h2>Course Materials</h2>
   {{LMS_MATERIALS}}
 </div>
 {{/IF_MATERIALS}}
@@ -267,13 +282,13 @@ All placeholders have corresponding conditional blocks. Block only renders if da
 **{{LMS_VIDEOS}}** renders as:
 ```html
 <div class="lms-video-item">
-  <h3>Część 1 - Wprowadzenie</h3>
+  <h3>Part 1 - Introduction</h3>
   <div class="lms-video-embed">
     <iframe src="https://player.vimeo.com/video/123456" ...></iframe>
   </div>
 </div>
 <div class="lms-video-item">
-  <h3>Część 2 - Praktyka</h3>
+  <h3>Part 2 - Practice</h3>
   <div class="lms-video-embed">
     <iframe src="https://player.vimeo.com/video/789012" ...></iframe>
   </div>
@@ -283,8 +298,8 @@ All placeholders have corresponding conditional blocks. Block only renders if da
 **{{LMS_MATERIALS}}** renders as:
 ```html
 <ul class="lms-materials-list">
-  <li><a href="https://example.com/file1.pdf" target="_blank">Pobierz prezentację</a></li>
-  <li><a href="https://example.com/file2.pdf" target="_blank">Pobierz ćwiczenia</a></li>
+  <li><a href="https://example.com/file1.pdf" target="_blank">Download presentation</a></li>
+  <li><a href="https://example.com/file2.pdf" target="_blank">Download exercises</a></li>
 </ul>
 ```
 
@@ -352,7 +367,7 @@ Admin UI shows a drag-drop list where you can:
 <div class="lms-courses-grid lms-columns-3" data-preset="featured">
   <article class="lms-course-card">
     <h3 class="lms-course-title"><a href="...">Course Title</a></h3>
-    <span class="lms-course-status">Nagranie</span>
+    <span class="lms-course-status">Recording</span>
     <div class="lms-course-meta">
       <span class="lms-meta-date">15.01.2025</span>
       <span class="lms-meta-time">10:00 - 16:00</span>
@@ -429,12 +444,12 @@ Configurable default values for new courses. All fields are simple text inputs (
 
 | Setting | Example | Description |
 |---------|---------|-------------|
-| Default Material Label | `Pobierz` | Pre-filled label when adding new material |
-| Default Video Title | `Nagranie` | Pre-filled title when adding new video |
+| Default Material Label | `Download` | Pre-filled label when adding new material |
+| Default Video Title | `Recording` | Pre-filled title when adding new video |
 | Default Lecturer | `Dawid Milczarek` | Pre-filled lecturer field |
 | Default Time Range | `10:00 - 15:00` | Pre-filled time range (uses time picker) |
 | Default Duration | `5h` | Pre-filled duration (auto-calculated from time range, but editable) |
-| Default Status | `Nagranie` | Pre-selected status for new courses |
+| Default Status | `Recording` | Pre-selected status for new courses |
 
 ---
 
@@ -627,6 +642,10 @@ The built-in default template includes a metadata list at the top and structural
 {{#IF_MATERIALS}}
 {{LMS_MATERIALS}}
 {{/IF_MATERIALS}}
+
+{{#IF_DATE}}
+{{LMS_CERTIFICATE}}
+{{/IF_DATE}}
 ```
 
 Users can customize this template in Settings → Templates to add headers, styling, and additional placeholders as needed.
@@ -653,9 +672,9 @@ The plugin uses a dedicated custom form for adding and editing courses (not the 
 │ │ Lecturer:  [____________________]                  │ │                     │
 │ └────────────────────────────────────────────────────┘ │ ┌─────────────────┐ │
 │                                                        │ │ Course Status   │ │
-│ ┌────────────────────────────────────────────────────┐ │ │ ☐ Nagranie      │ │
-│ │ Videos                               [+ Add Video] │ │ │ ☐ Zoom          │ │
-│ │ ┌────────────────────────────────────────────────┐ │ │ │ ☐ Zaplanowane   │ │
+│ ┌────────────────────────────────────────────────────┐ │ │ ☐ Recording     │ │
+│ │ Videos                               [+ Add Video] │ │ │ ☐ Live          │ │
+│ │ ┌────────────────────────────────────────────────┐ │ │ │ ☐ Scheduled     │ │
 │ │ │ Title: [___________]  Vimeo: [___________]     │ │ │ └─────────────────┘ │
 │ │ └────────────────────────────────────────────────┘ │ │                     │
 │ └────────────────────────────────────────────────────┘ │ ┌─────────────────┐ │
@@ -735,6 +754,24 @@ Plugin includes optional certificate generation for courses using TCPDF library.
 | `simple_lms_certificate_issuer_company` | string | Issuer company name |
 | `simple_lms_certificate_issuer_name` | string | Issuer person name |
 | `simple_lms_certificate_issuer_title` | string | Issuer person title |
+| `simple_lms_certificate_labels` | array | Customizable frontend labels (see below) |
+
+### Certificate Frontend Labels (`simple_lms_certificate_labels`)
+
+| Key | Default | Description |
+|-----|---------|-------------|
+| `table_course` | "Course" | Shortcode table header - course column |
+| `table_lecturer` | "Lecturer" | Shortcode table header - lecturer column |
+| `table_date` | "Date" | Shortcode table header - date column |
+| `table_certificate` | "Certificate" | Shortcode table header - certificate column |
+| `btn_download` | "Download" | Download button text in shortcode table |
+| `btn_download_certificate` | "Download certificate" | Download button text on course page |
+| `msg_login_required` | "Please log in to view certificates." | Message for non-logged-in users |
+| `msg_no_certificates` | "No certificates available." | Message when no courses found |
+| `msg_available_after` | "Available after course" | Short message in table |
+| `msg_available_after_long` | "Certificate will be available after the course." | Long message on course page |
+| `pdf_filename` | "certificate" | PDF filename (without .pdf extension) |
+| `pdf_title_prefix` | "Certificate - " | Prefix for PDF title metadata |
 
 ### Course Meta
 
@@ -773,8 +810,8 @@ Plugin includes optional certificate generation for courses using TCPDF library.
 
 ### Admin Menu
 
-- **simpleLMS > Generuj certyfikat** - Manual certificate generation page
-- **simpleLMS > Settings > Certyfikaty** - Certificate settings tab
+- **simpleLMS > Generate Certificate** - Manual certificate generation page
+- **simpleLMS > Settings > Certificates** - Certificate settings tab
 
 ### Access Control
 

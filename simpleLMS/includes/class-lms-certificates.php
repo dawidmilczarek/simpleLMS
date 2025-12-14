@@ -43,6 +43,41 @@ class LMS_Certificates {
     }
 
     /**
+     * Get default frontend labels.
+     *
+     * @return array
+     */
+    public static function get_default_labels() {
+        return array(
+            'table_course'            => __( 'Course', 'simple-lms' ),
+            'table_lecturer'          => __( 'Lecturer', 'simple-lms' ),
+            'table_date'              => __( 'Date', 'simple-lms' ),
+            'table_certificate'       => __( 'Certificate', 'simple-lms' ),
+            'btn_download'            => __( 'Download', 'simple-lms' ),
+            'btn_download_certificate' => __( 'Download certificate', 'simple-lms' ),
+            'msg_login_required'      => __( 'Please log in to view certificates.', 'simple-lms' ),
+            'msg_no_certificates'     => __( 'No certificates available.', 'simple-lms' ),
+            'msg_available_after'     => __( 'Available after course', 'simple-lms' ),
+            'msg_available_after_long' => __( 'Certificate will be available after the course.', 'simple-lms' ),
+            'pdf_filename'            => __( 'certificate', 'simple-lms' ),
+            'pdf_title_prefix'        => __( 'Certificate - ', 'simple-lms' ),
+        );
+    }
+
+    /**
+     * Get a frontend label by key.
+     *
+     * @param string $key Label key.
+     * @return string
+     */
+    public static function get_label( $key ) {
+        $labels   = get_option( 'simple_lms_certificate_labels', array() );
+        $defaults = self::get_default_labels();
+        $merged   = wp_parse_args( $labels, $defaults );
+        return isset( $merged[ $key ] ) ? $merged[ $key ] : '';
+    }
+
+    /**
      * Handle frontend certificate generation.
      */
     public function handle_frontend_certificate_generation() {
@@ -210,11 +245,15 @@ class LMS_Certificates {
             'issuer_title'   => $issuer_title,
         ) ) );
 
+        // Get PDF filename and title from settings.
+        $pdf_filename     = self::get_label( 'pdf_filename' );
+        $pdf_title_prefix = self::get_label( 'pdf_title_prefix' );
+
         // Create PDF.
         $pdf = new TCPDF();
         $pdf->SetCreator( PDF_CREATOR );
         $pdf->SetAuthor( $data['lecturer'] );
-        $pdf->SetTitle( 'Certificate - ' . $data['course_title'] );
+        $pdf->SetTitle( $pdf_title_prefix . $data['course_title'] );
         $pdf->setPrintHeader( false );
         $pdf->setPrintFooter( false );
         $pdf->SetMargins( 15, 15, 15 );
@@ -223,7 +262,7 @@ class LMS_Certificates {
         $pdf->writeHTML( $html, true, false, true, false, '' );
 
         // Output PDF inline.
-        $pdf->Output( 'certificate.pdf', 'I' );
+        $pdf->Output( $pdf_filename . '.pdf', 'I' );
         exit;
     }
 
@@ -280,7 +319,7 @@ class LMS_Certificates {
     public function render_certificate_shortcode( $atts ) {
         // Check if user is logged in.
         if ( ! is_user_logged_in() ) {
-            return '<p class="lms-certificate-message">' . esc_html__( 'Please log in to view certificates.', 'simple-lms' ) . '</p>';
+            return '<p class="lms-certificate-message">' . esc_html( self::get_label( 'msg_login_required' ) ) . '</p>';
         }
 
         $user_id = get_current_user_id();
@@ -315,17 +354,17 @@ class LMS_Certificates {
         }
 
         if ( empty( $accessible_courses ) ) {
-            return '<p class="lms-certificate-message">' . esc_html__( 'No certificates available.', 'simple-lms' ) . '</p>';
+            return '<p class="lms-certificate-message">' . esc_html( self::get_label( 'msg_no_certificates' ) ) . '</p>';
         }
 
         // Build output.
         $output = '<div class="lms-certificates-list">';
         $output .= '<table class="lms-certificates-table">';
         $output .= '<thead><tr>';
-        $output .= '<th>' . esc_html__( 'Course', 'simple-lms' ) . '</th>';
-        $output .= '<th>' . esc_html__( 'Lecturer', 'simple-lms' ) . '</th>';
-        $output .= '<th>' . esc_html__( 'Date', 'simple-lms' ) . '</th>';
-        $output .= '<th>' . esc_html__( 'Certificate', 'simple-lms' ) . '</th>';
+        $output .= '<th>' . esc_html( self::get_label( 'table_course' ) ) . '</th>';
+        $output .= '<th>' . esc_html( self::get_label( 'table_lecturer' ) ) . '</th>';
+        $output .= '<th>' . esc_html( self::get_label( 'table_date' ) ) . '</th>';
+        $output .= '<th>' . esc_html( self::get_label( 'table_certificate' ) ) . '</th>';
         $output .= '</tr></thead>';
         $output .= '<tbody>';
 
@@ -370,10 +409,10 @@ class LMS_Certificates {
                     $output .= ' min="' . esc_attr( $min_date ) . '"';
                 }
                 $output .= ' max="' . esc_attr( $today ) . '" required>';
-                $output .= '<button type="submit" class="lms-certificate-button">' . esc_html__( 'Download', 'simple-lms' ) . '</button>';
+                $output .= '<button type="submit" class="lms-certificate-button">' . esc_html( self::get_label( 'btn_download' ) ) . '</button>';
                 $output .= '</form>';
             } else {
-                $output .= '<span class="lms-certificate-unavailable">' . esc_html__( 'Available after course', 'simple-lms' ) . '</span>';
+                $output .= '<span class="lms-certificate-unavailable">' . esc_html( self::get_label( 'msg_available_after' ) ) . '</span>';
             }
 
             $output .= '</td>';
@@ -413,7 +452,7 @@ class LMS_Certificates {
 
         // Don't show certificate button if course date is in the future.
         if ( ! empty( $course_date ) && $course_date > $today ) {
-            return '<p class="lms-certificate-unavailable">' . esc_html__( 'Certificate will be available after the course.', 'simple-lms' ) . '</p>';
+            return '<p class="lms-certificate-unavailable">' . esc_html( self::get_label( 'msg_available_after_long' ) ) . '</p>';
         }
 
         $nonce    = wp_create_nonce( 'lms_generate_certificate' );
@@ -428,7 +467,7 @@ class LMS_Certificates {
             $output .= ' min="' . esc_attr( $min_date ) . '"';
         }
         $output .= ' max="' . esc_attr( $today ) . '" required>';
-        $output .= '<button type="submit" class="lms-certificate-button">' . esc_html__( 'Download certificate', 'simple-lms' ) . '</button>';
+        $output .= '<button type="submit" class="lms-certificate-button">' . esc_html( self::get_label( 'btn_download_certificate' ) ) . '</button>';
         $output .= '</form>';
 
         return $output;

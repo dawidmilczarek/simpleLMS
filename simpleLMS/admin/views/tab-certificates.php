@@ -37,6 +37,15 @@ if ( isset( $_POST['simple_lms_save_certificate_settings'] ) ) {
         update_option( 'simple_lms_certificate_template', wp_kses_post( wp_unslash( $_POST['certificate_template'] ) ) );
     }
 
+    // Save frontend labels.
+    if ( isset( $_POST['certificate_labels'] ) && is_array( $_POST['certificate_labels'] ) ) {
+        $labels_to_save = array();
+        foreach ( $_POST['certificate_labels'] as $key => $value ) {
+            $labels_to_save[ sanitize_key( $key ) ] = sanitize_text_field( wp_unslash( $value ) );
+        }
+        update_option( 'simple_lms_certificate_labels', $labels_to_save );
+    }
+
     echo '<div class="notice notice-success"><p>' . esc_html__( 'Settings saved.', 'simple-lms' ) . '</p></div>';
 }
 
@@ -55,6 +64,11 @@ $issuer_company = get_option( 'simple_lms_certificate_issuer_company', '' );
 $issuer_name    = get_option( 'simple_lms_certificate_issuer_name', '' );
 $issuer_title   = get_option( 'simple_lms_certificate_issuer_title', '' );
 $template       = get_option( 'simple_lms_certificate_template', LMS_Certificates::get_default_certificate_template() );
+
+// Get frontend labels with defaults.
+$frontend_labels = get_option( 'simple_lms_certificate_labels', array() );
+$default_labels  = LMS_Certificates::get_default_labels();
+$labels          = wp_parse_args( $frontend_labels, $default_labels );
 ?>
 
 <form method="post" action="">
@@ -154,6 +168,79 @@ $template       = get_option( 'simple_lms_certificate_template', LMS_Certificate
             <tr><td><code>{{CERT_ISSUER_NAME}}</code></td><td><?php esc_html_e( 'Signatory', 'simple-lms' ); ?></td></tr>
             <tr><td><code>{{CERT_ISSUER_TITLE}}</code></td><td><?php esc_html_e( 'Signatory title', 'simple-lms' ); ?></td></tr>
         </tbody>
+    </table>
+
+    <h2><?php esc_html_e( 'Frontend Labels', 'simple-lms' ); ?></h2>
+    <p class="description"><?php esc_html_e( 'Customize the labels displayed on the frontend for certificate-related elements.', 'simple-lms' ); ?></p>
+
+    <h3><?php esc_html_e( 'Shortcode Table Headers', 'simple-lms' ); ?></h3>
+    <table class="form-table">
+        <tr>
+            <th scope="row"><label for="label_table_course"><?php esc_html_e( 'Course column', 'simple-lms' ); ?></label></th>
+            <td><input type="text" id="label_table_course" name="certificate_labels[table_course]" value="<?php echo esc_attr( $labels['table_course'] ); ?>" class="regular-text"></td>
+        </tr>
+        <tr>
+            <th scope="row"><label for="label_table_lecturer"><?php esc_html_e( 'Lecturer column', 'simple-lms' ); ?></label></th>
+            <td><input type="text" id="label_table_lecturer" name="certificate_labels[table_lecturer]" value="<?php echo esc_attr( $labels['table_lecturer'] ); ?>" class="regular-text"></td>
+        </tr>
+        <tr>
+            <th scope="row"><label for="label_table_date"><?php esc_html_e( 'Date column', 'simple-lms' ); ?></label></th>
+            <td><input type="text" id="label_table_date" name="certificate_labels[table_date]" value="<?php echo esc_attr( $labels['table_date'] ); ?>" class="regular-text"></td>
+        </tr>
+        <tr>
+            <th scope="row"><label for="label_table_certificate"><?php esc_html_e( 'Certificate column', 'simple-lms' ); ?></label></th>
+            <td><input type="text" id="label_table_certificate" name="certificate_labels[table_certificate]" value="<?php echo esc_attr( $labels['table_certificate'] ); ?>" class="regular-text"></td>
+        </tr>
+    </table>
+
+    <h3><?php esc_html_e( 'Buttons', 'simple-lms' ); ?></h3>
+    <table class="form-table">
+        <tr>
+            <th scope="row"><label for="label_btn_download"><?php esc_html_e( 'Download button (table)', 'simple-lms' ); ?></label></th>
+            <td><input type="text" id="label_btn_download" name="certificate_labels[btn_download]" value="<?php echo esc_attr( $labels['btn_download'] ); ?>" class="regular-text"></td>
+        </tr>
+        <tr>
+            <th scope="row"><label for="label_btn_download_cert"><?php esc_html_e( 'Download button (course page)', 'simple-lms' ); ?></label></th>
+            <td><input type="text" id="label_btn_download_cert" name="certificate_labels[btn_download_certificate]" value="<?php echo esc_attr( $labels['btn_download_certificate'] ); ?>" class="regular-text"></td>
+        </tr>
+    </table>
+
+    <h3><?php esc_html_e( 'Messages', 'simple-lms' ); ?></h3>
+    <table class="form-table">
+        <tr>
+            <th scope="row"><label for="label_msg_login"><?php esc_html_e( 'Login required', 'simple-lms' ); ?></label></th>
+            <td><input type="text" id="label_msg_login" name="certificate_labels[msg_login_required]" value="<?php echo esc_attr( $labels['msg_login_required'] ); ?>" class="regular-text"></td>
+        </tr>
+        <tr>
+            <th scope="row"><label for="label_msg_none"><?php esc_html_e( 'No certificates', 'simple-lms' ); ?></label></th>
+            <td><input type="text" id="label_msg_none" name="certificate_labels[msg_no_certificates]" value="<?php echo esc_attr( $labels['msg_no_certificates'] ); ?>" class="regular-text"></td>
+        </tr>
+        <tr>
+            <th scope="row"><label for="label_msg_after"><?php esc_html_e( 'Available after course (table)', 'simple-lms' ); ?></label></th>
+            <td><input type="text" id="label_msg_after" name="certificate_labels[msg_available_after]" value="<?php echo esc_attr( $labels['msg_available_after'] ); ?>" class="regular-text"></td>
+        </tr>
+        <tr>
+            <th scope="row"><label for="label_msg_after_long"><?php esc_html_e( 'Available after course (course page)', 'simple-lms' ); ?></label></th>
+            <td><input type="text" id="label_msg_after_long" name="certificate_labels[msg_available_after_long]" value="<?php echo esc_attr( $labels['msg_available_after_long'] ); ?>" class="regular-text"></td>
+        </tr>
+    </table>
+
+    <h3><?php esc_html_e( 'PDF Settings', 'simple-lms' ); ?></h3>
+    <table class="form-table">
+        <tr>
+            <th scope="row"><label for="label_pdf_filename"><?php esc_html_e( 'PDF filename', 'simple-lms' ); ?></label></th>
+            <td>
+                <input type="text" id="label_pdf_filename" name="certificate_labels[pdf_filename]" value="<?php echo esc_attr( $labels['pdf_filename'] ); ?>" class="regular-text">
+                <p class="description"><?php esc_html_e( 'Without .pdf extension', 'simple-lms' ); ?></p>
+            </td>
+        </tr>
+        <tr>
+            <th scope="row"><label for="label_pdf_title_prefix"><?php esc_html_e( 'PDF title prefix', 'simple-lms' ); ?></label></th>
+            <td>
+                <input type="text" id="label_pdf_title_prefix" name="certificate_labels[pdf_title_prefix]" value="<?php echo esc_attr( $labels['pdf_title_prefix'] ); ?>" class="regular-text">
+                <p class="description"><?php esc_html_e( 'Prefix before course title in PDF metadata', 'simple-lms' ); ?></p>
+            </td>
+        </tr>
     </table>
 
     <p class="submit">
