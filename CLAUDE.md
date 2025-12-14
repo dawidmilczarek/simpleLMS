@@ -215,7 +215,7 @@ The `{{LMS_CONTENT}}` placeholder uses `apply_filters('the_content', ...)` inter
 | `{{LMS_TITLE}}` | Course title |
 | `{{LMS_DATE}}` | Formatted course date |
 | `{{LMS_TIME}}` | Time range (e.g., "10:00 - 16:00") - combined from start/end |
-| `{{LMS_DURATION}}` | Duration (e.g., "5 godzin") |
+| `{{LMS_DURATION}}` | Duration (e.g., "5 hours") |
 | `{{LMS_LECTURER}}` | Lecturer name |
 | `{{LMS_VIDEOS}}` | All videos rendered (titles + embedded players) |
 | `{{LMS_MATERIALS}}` | All materials rendered (clickable links) |
@@ -356,7 +356,7 @@ Admin UI shows a drag-drop list where you can:
     <div class="lms-course-meta">
       <span class="lms-meta-date">15.01.2025</span>
       <span class="lms-meta-time">10:00 - 16:00</span>
-      <span class="lms-meta-duration">5 godzin</span>
+      <span class="lms-meta-duration">5 hours</span>
       <span class="lms-meta-lecturer">Jan Kowalski</span>
     </div>
   </article>
@@ -505,6 +505,27 @@ The `templates/single-simple_lms_course.php` provides basic structure:
 Plugin uses UTF-8 encoding throughout for full Polish character support (ą, ć, ę, ł, ń, ó, ś, ź, ż).
 
 Database tables use `utf8mb4` character set.
+
+---
+
+## Internationalization (i18n)
+
+### Language Policy
+
+**All hardcoded strings in the codebase MUST be in English.**
+
+- Use `__()` or `esc_html__()` for translatable strings
+- Text domain: `simple-lms`
+- Polish translations should be provided via `.po`/`.mo` files (not hardcoded)
+
+**Example:**
+```php
+// CORRECT - English source string
+esc_html__( 'Download certificate', 'simple-lms' )
+
+// WRONG - Polish hardcoded
+esc_html__( 'Pobierz certyfikat', 'simple-lms' )
+```
 
 ---
 
@@ -761,7 +782,18 @@ Certificate generation requires:
 1. User must be logged in
 2. Certificate must be enabled for the course
 3. User must have access to the course (via membership/subscription or admin)
-4. Completion date must not be in the future
+
+### Date Validation
+
+**Frontend certificate generation** (shortcode, template placeholder):
+- Completion date cannot be in the future
+- Completion date cannot be earlier than the course date
+- If course date is in the future, certificate form is hidden (shows "Available after course" message)
+- Date input has `min` attribute set to course date and `max` set to today
+
+**Admin panel (manual generation)**:
+- Completion date cannot be in the future
+- **No restriction** on dates earlier than course date (allows flexibility for admins)
 
 ---
 

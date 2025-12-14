@@ -82,8 +82,8 @@ class LMS_Admin {
         // Generate Certificate submenu.
         add_submenu_page(
             'simple-lms',
-            __( 'Generuj certyfikat', 'simple-lms' ),
-            __( 'Generuj certyfikat', 'simple-lms' ),
+            __( 'Generate Certificate', 'simple-lms' ),
+            __( 'Generate Certificate', 'simple-lms' ),
             'manage_options',
             'simple-lms-certificates',
             array( $this, 'render_certificates_page' )

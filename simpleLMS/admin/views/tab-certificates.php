@@ -37,14 +37,14 @@ if ( isset( $_POST['simple_lms_save_certificate_settings'] ) ) {
         update_option( 'simple_lms_certificate_template', wp_kses_post( wp_unslash( $_POST['certificate_template'] ) ) );
     }
 
-    echo '<div class="notice notice-success"><p>' . esc_html__( 'Ustawienia zapisane.', 'simple-lms' ) . '</p></div>';
+    echo '<div class="notice notice-success"><p>' . esc_html__( 'Settings saved.', 'simple-lms' ) . '</p></div>';
 }
 
 // Handle reset template.
 if ( isset( $_POST['simple_lms_reset_certificate_template'] ) ) {
     if ( isset( $_POST['_wpnonce'] ) && wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['_wpnonce'] ) ), 'simple_lms_certificate_settings' ) ) {
         update_option( 'simple_lms_certificate_template', LMS_Certificates::get_default_certificate_template() );
-        echo '<div class="notice notice-success"><p>' . esc_html__( 'Szablon zresetowany do domyslnego.', 'simple-lms' ) . '</p></div>';
+        echo '<div class="notice notice-success"><p>' . esc_html__( 'Template reset to default.', 'simple-lms' ) . '</p></div>';
     }
 }
 

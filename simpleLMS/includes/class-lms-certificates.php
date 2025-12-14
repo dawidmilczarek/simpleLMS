@@ -52,42 +52,51 @@ class LMS_Certificates {
 
         // Verify user is logged in.
         if ( ! is_user_logged_in() ) {
-            wp_die( esc_html__( 'Musisz byc zalogowany, aby wygenerowac certyfikat.', 'simple-lms' ) );
+            wp_die( esc_html__( 'You must be logged in to generate a certificate.', 'simple-lms' ) );
         }
 
         // Verify nonce.
         if ( ! isset( $_GET['_wpnonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_GET['_wpnonce'] ) ), 'lms_generate_certificate' ) ) {
-            wp_die( esc_html__( 'Nieprawidlowy token bezpieczenstwa.', 'simple-lms' ) );
+            wp_die( esc_html__( 'Invalid security token.', 'simple-lms' ) );
         }
 
         // Validate course ID.
         $course_id = isset( $_GET['course_id'] ) ? intval( $_GET['course_id'] ) : 0;
         if ( ! $course_id || 'simple_lms_course' !== get_post_type( $course_id ) ) {
-            wp_die( esc_html__( 'Nieprawidlowy kurs.', 'simple-lms' ) );
+            wp_die( esc_html__( 'Invalid course.', 'simple-lms' ) );
         }
 
         // Check if certificate is enabled for this course.
         $certificate_enabled = get_post_meta( $course_id, '_simple_lms_certificate_enabled', true );
         if ( '0' === $certificate_enabled ) {
-            wp_die( esc_html__( 'Certyfikat nie jest dostepny dla tego kursu.', 'simple-lms' ) );
+            wp_die( esc_html__( 'Certificate is not available for this course.', 'simple-lms' ) );
         }
 
         // Check user access.
         if ( ! $this->user_has_access( $course_id ) ) {
-            wp_die( esc_html__( 'Nie masz dostepu do tego kursu.', 'simple-lms' ) );
+            wp_die( esc_html__( 'You do not have access to this course.', 'simple-lms' ) );
         }
 
         // Validate completion date.
         $completion_date = isset( $_GET['completion_date'] ) ? sanitize_text_field( wp_unslash( $_GET['completion_date'] ) ) : '';
         if ( empty( $completion_date ) ) {
-            wp_die( esc_html__( 'Data ukonczenia jest wymagana.', 'simple-lms' ) );
+            wp_die( esc_html__( 'Completion date is required.', 'simple-lms' ) );
         }
 
         // Check date is not in future.
         $completion_timestamp = strtotime( $completion_date );
         $today_timestamp      = strtotime( 'today' );
         if ( $completion_timestamp > $today_timestamp ) {
-            wp_die( esc_html__( 'Data ukonczenia nie moze byc pozniejsza niz dzisiaj.', 'simple-lms' ) );
+            wp_die( esc_html__( 'Completion date cannot be later than today.', 'simple-lms' ) );
+        }
+
+        // Check date is not earlier than course date.
+        $course_date = get_post_meta( $course_id, '_simple_lms_date', true );
+        if ( ! empty( $course_date ) ) {
+            $course_timestamp = strtotime( $course_date );
+            if ( $completion_timestamp < $course_timestamp ) {
+                wp_die( esc_html__( 'Completion date cannot be earlier than the course date.', 'simple-lms' ) );
+            }
         }
 
         // Get certificate data.
@@ -103,19 +112,19 @@ class LMS_Certificates {
     public function handle_admin_certificate_generation() {
         // Check permissions.
         if ( ! current_user_can( 'manage_options' ) ) {
-            wp_die( esc_html__( 'Nie masz uprawnien do tej operacji.', 'simple-lms' ) );
+            wp_die( esc_html__( 'You do not have permission for this operation.', 'simple-lms' ) );
         }
 
         // Verify nonce.
         if ( ! isset( $_POST['_wpnonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['_wpnonce'] ) ), 'simple_lms_generate_certificate' ) ) {
-            wp_die( esc_html__( 'Nieprawidlowy token bezpieczenstwa.', 'simple-lms' ) );
+            wp_die( esc_html__( 'Invalid security token.', 'simple-lms' ) );
         }
 
         // Validate required fields.
         $required_fields = array( 'user_name', 'course_title', 'trainer_name', 'course_duration', 'completion_date' );
         foreach ( $required_fields as $field ) {
             if ( empty( $_POST[ $field ] ) ) {
-                wp_die( esc_html__( 'Wszystkie pola sa wymagane.', 'simple-lms' ) );
+                wp_die( esc_html__( 'All fields are required.', 'simple-lms' ) );
             }
         }
 
@@ -124,7 +133,7 @@ class LMS_Certificates {
         $completion_timestamp = strtotime( $completion_date );
         $today_timestamp      = strtotime( 'today' );
         if ( $completion_timestamp > $today_timestamp ) {
-            wp_die( esc_html__( 'Data ukonczenia nie moze byc pozniejsza niz dzisiaj.', 'simple-lms' ) );
+            wp_die( esc_html__( 'Completion date cannot be later than today.', 'simple-lms' ) );
         }
 
         // Build data array.
@@ -271,7 +280,7 @@ class LMS_Certificates {
     public function render_certificate_shortcode( $atts ) {
         // Check if user is logged in.
         if ( ! is_user_logged_in() ) {
-            return '<p class="lms-certificate-message">' . esc_html__( 'Zaloguj sie, aby zobaczyc certyfikaty.', 'simple-lms' ) . '</p>';
+            return '<p class="lms-certificate-message">' . esc_html__( 'Please log in to view certificates.', 'simple-lms' ) . '</p>';
         }
 
         $user_id = get_current_user_id();
@@ -306,17 +315,17 @@ class LMS_Certificates {
         }
 
         if ( empty( $accessible_courses ) ) {
-            return '<p class="lms-certificate-message">' . esc_html__( 'Brak dostepnych certyfikatow.', 'simple-lms' ) . '</p>';
+            return '<p class="lms-certificate-message">' . esc_html__( 'No certificates available.', 'simple-lms' ) . '</p>';
         }
 
         // Build output.
         $output = '<div class="lms-certificates-list">';
         $output .= '<table class="lms-certificates-table">';
         $output .= '<thead><tr>';
-        $output .= '<th>' . esc_html__( 'Szkolenie', 'simple-lms' ) . '</th>';
-        $output .= '<th>' . esc_html__( 'Wykladowca', 'simple-lms' ) . '</th>';
-        $output .= '<th>' . esc_html__( 'Data', 'simple-lms' ) . '</th>';
-        $output .= '<th>' . esc_html__( 'Certyfikat', 'simple-lms' ) . '</th>';
+        $output .= '<th>' . esc_html__( 'Course', 'simple-lms' ) . '</th>';
+        $output .= '<th>' . esc_html__( 'Lecturer', 'simple-lms' ) . '</th>';
+        $output .= '<th>' . esc_html__( 'Date', 'simple-lms' ) . '</th>';
+        $output .= '<th>' . esc_html__( 'Certificate', 'simple-lms' ) . '</th>';
         $output .= '</tr></thead>';
         $output .= '<tbody>';
 
@@ -336,18 +345,37 @@ class LMS_Certificates {
 
             $nonce = wp_create_nonce( 'lms_generate_certificate' );
 
+            // Determine min date (course date) and default value.
+            $min_date     = ! empty( $course_date ) ? $course_date : '';
+            $default_date = $today;
+            // If course date is in the future, don't allow certificate generation yet.
+            if ( ! empty( $course_date ) && $course_date > $today ) {
+                $default_date = $course_date;
+            }
+
             $output .= '<tr>';
             $output .= '<td><a href="' . esc_url( get_permalink( $course->ID ) ) . '">' . esc_html( $course->post_title ) . '</a></td>';
             $output .= '<td>' . esc_html( $lecturer ) . '</td>';
             $output .= '<td>' . esc_html( $formatted_date ) . '</td>';
             $output .= '<td>';
-            $output .= '<form method="get" action="" target="_blank" class="lms-cert-inline-form">';
-            $output .= '<input type="hidden" name="lms_generate_certificate" value="1">';
-            $output .= '<input type="hidden" name="course_id" value="' . esc_attr( $course->ID ) . '">';
-            $output .= '<input type="hidden" name="_wpnonce" value="' . esc_attr( $nonce ) . '">';
-            $output .= '<input type="date" name="completion_date" value="' . esc_attr( $today ) . '" max="' . esc_attr( $today ) . '" required>';
-            $output .= '<button type="submit" class="lms-certificate-button">' . esc_html__( 'Pobierz', 'simple-lms' ) . '</button>';
-            $output .= '</form>';
+
+            // Only show form if course date is not in the future.
+            if ( empty( $course_date ) || $course_date <= $today ) {
+                $output .= '<form method="get" action="" target="_blank" class="lms-cert-inline-form">';
+                $output .= '<input type="hidden" name="lms_generate_certificate" value="1">';
+                $output .= '<input type="hidden" name="course_id" value="' . esc_attr( $course->ID ) . '">';
+                $output .= '<input type="hidden" name="_wpnonce" value="' . esc_attr( $nonce ) . '">';
+                $output .= '<input type="date" name="completion_date" value="' . esc_attr( $default_date ) . '"';
+                if ( ! empty( $min_date ) ) {
+                    $output .= ' min="' . esc_attr( $min_date ) . '"';
+                }
+                $output .= ' max="' . esc_attr( $today ) . '" required>';
+                $output .= '<button type="submit" class="lms-certificate-button">' . esc_html__( 'Download', 'simple-lms' ) . '</button>';
+                $output .= '</form>';
+            } else {
+                $output .= '<span class="lms-certificate-unavailable">' . esc_html__( 'Available after course', 'simple-lms' ) . '</span>';
+            }
+
             $output .= '</td>';
             $output .= '</tr>';
         }
@@ -380,15 +408,27 @@ class LMS_Certificates {
             return '';
         }
 
-        $today = date( 'Y-m-d' );
-        $nonce = wp_create_nonce( 'lms_generate_certificate' );
+        $today       = date( 'Y-m-d' );
+        $course_date = get_post_meta( $course_id, '_simple_lms_date', true );
+
+        // Don't show certificate button if course date is in the future.
+        if ( ! empty( $course_date ) && $course_date > $today ) {
+            return '<p class="lms-certificate-unavailable">' . esc_html__( 'Certificate will be available after the course.', 'simple-lms' ) . '</p>';
+        }
+
+        $nonce    = wp_create_nonce( 'lms_generate_certificate' );
+        $min_date = ! empty( $course_date ) ? $course_date : '';
 
         $output = '<form method="get" action="" target="_blank" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">';
         $output .= '<input type="hidden" name="lms_generate_certificate" value="1">';
         $output .= '<input type="hidden" name="course_id" value="' . esc_attr( $course_id ) . '">';
         $output .= '<input type="hidden" name="_wpnonce" value="' . esc_attr( $nonce ) . '">';
-        $output .= '<input type="date" name="completion_date" value="' . esc_attr( $today ) . '" max="' . esc_attr( $today ) . '" required>';
-        $output .= '<button type="submit" class="lms-certificate-button">' . esc_html__( 'Pobierz certyfikat', 'simple-lms' ) . '</button>';
+        $output .= '<input type="date" name="completion_date" value="' . esc_attr( $today ) . '"';
+        if ( ! empty( $min_date ) ) {
+            $output .= ' min="' . esc_attr( $min_date ) . '"';
+        }
+        $output .= ' max="' . esc_attr( $today ) . '" required>';
+        $output .= '<button type="submit" class="lms-certificate-button">' . esc_html__( 'Download certificate', 'simple-lms' ) . '</button>';
         $output .= '</form>';
 
         return $output;
