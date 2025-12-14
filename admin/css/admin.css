@@ -1,0 +1,278 @@
+/**
+ * Simple LMS Admin Styles
+ */
+
+/* General */
+.simple-lms-settings {
+    max-width: 1200px;
+}
+
+.simple-lms-meta-table th {
+    width: 150px;
+    padding: 15px 10px 15px 0;
+}
+
+.simple-lms-checkbox {
+    display: inline-block;
+    margin-right: 15px;
+}
+
+/* Repeater Fields */
+.simple-lms-repeater {
+    margin-top: 10px;
+}
+
+.repeater-items {
+    margin-bottom: 15px;
+}
+
+.repeater-item {
+    background: #f9f9f9;
+    border: 1px solid #ddd;
+    margin-bottom: 10px;
+    border-radius: 3px;
+}
+
+.repeater-item-header {
+    display: flex;
+    align-items: center;
+    padding: 10px 15px;
+    background: #f1f1f1;
+    border-bottom: 1px solid #ddd;
+    cursor: pointer;
+}
+
+.repeater-item-header .handle {
+    cursor: move;
+    color: #999;
+    margin-right: 10px;
+}
+
+.repeater-item-header .item-title {
+    flex: 1;
+    font-weight: 500;
+}
+
+.repeater-item-header .remove-repeater-item {
+    color: #a00;
+    text-decoration: none;
+}
+
+.repeater-item-header .remove-repeater-item:hover {
+    color: #dc3232;
+}
+
+.repeater-item-content {
+    padding: 15px;
+}
+
+.repeater-item-content p {
+    margin: 0 0 10px;
+}
+
+.repeater-item-content p:last-child {
+    margin-bottom: 0;
+}
+
+.repeater-item-content label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 500;
+}
+
+.add-repeater-item {
+    margin-top: 10px;
+}
+
+/* Template Editor */
+.simple-lms-template-reference {
+    background: #f9f9f9;
+    border: 1px solid #ddd;
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: 3px;
+}
+
+.simple-lms-template-reference h3 {
+    margin-top: 0;
+}
+
+.placeholder-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+@media (max-width: 1024px) {
+    .placeholder-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.placeholder-column h4 {
+    margin-top: 0;
+}
+
+.placeholder-column table code {
+    background: #fff;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 12px;
+}
+
+.simple-lms-template-editor {
+    margin-bottom: 20px;
+}
+
+.simple-lms-template-editor textarea {
+    font-family: Consolas, Monaco, monospace;
+}
+
+/* Status Templates Accordion */
+.status-templates-accordion {
+    margin-top: 20px;
+}
+
+.status-template-item {
+    border: 1px solid #ddd;
+    margin-bottom: 10px;
+    border-radius: 3px;
+}
+
+.status-template-header {
+    display: flex;
+    align-items: center;
+    padding: 10px 15px;
+    margin: 0;
+    background: #f1f1f1;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.status-template-header .handlediv {
+    background: none;
+    border: none;
+    cursor: pointer;
+    margin-right: 10px;
+}
+
+.status-template-header .toggle-indicator::before {
+    content: "\f140";
+    font-family: dashicons;
+    display: inline-block;
+}
+
+.status-template-header[aria-expanded="true"] .toggle-indicator::before {
+    content: "\f142";
+}
+
+.template-active-badge {
+    background: #2271b1;
+    color: #fff;
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 3px;
+    margin-left: auto;
+}
+
+.status-template-content {
+    padding: 15px;
+    border-top: 1px solid #ddd;
+}
+
+/* Shortcodes Tab */
+.simple-lms-shortcodes .presets-list {
+    margin-bottom: 30px;
+}
+
+.preset-form-container {
+    background: #f9f9f9;
+    border: 1px solid #ddd;
+    padding: 20px;
+    border-radius: 3px;
+}
+
+.elements-sortable {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.elements-sortable li {
+    display: flex;
+    align-items: center;
+    padding: 8px 12px;
+    margin-bottom: 5px;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    cursor: default;
+}
+
+.elements-sortable li .handle {
+    cursor: move;
+    color: #999;
+    margin-right: 10px;
+}
+
+.elements-sortable li label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+.elements-sortable li input[type="checkbox"] {
+    margin-right: 8px;
+}
+
+.elements-sortable li.ui-sortable-helper {
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
+}
+
+.elements-sortable li.ui-sortable-placeholder {
+    visibility: visible !important;
+    background: #e5f5fa;
+    border: 1px dashed #2271b1;
+}
+
+/* Course edit screen */
+#simple_lms_course_details .inside,
+#simple_lms_course_videos .inside,
+#simple_lms_course_materials .inside,
+#simple_lms_access_control .inside {
+    padding: 0;
+    margin: 0;
+}
+
+#simple_lms_course_details .simple-lms-meta-table,
+#simple_lms_access_control .simple-lms-meta-table {
+    margin: 0;
+}
+
+/* Time inputs */
+input[type="time"] {
+    width: 120px;
+}
+
+/* Responsive */
+@media (max-width: 782px) {
+    .simple-lms-meta-table th {
+        width: 100%;
+        display: block;
+        padding-bottom: 5px;
+    }
+
+    .simple-lms-meta-table td {
+        display: block;
+        padding-left: 0;
+    }
+
+    .repeater-item-header {
+        flex-wrap: wrap;
+    }
+
+    .repeater-item-header .item-title {
+        width: 100%;
+        margin: 5px 0;
+    }
+}
