@@ -170,8 +170,8 @@ wcs_user_has_subscription($user_id, $product_id, 'active')
 
 ### Access Denied Behavior
 1. Check if user is logged in
-2. If not logged in → redirect to login, then back to course
-3. If logged in but no access → redirect to configured URL (default: `/sklep/`)
+2. If not logged in → redirect to Guest Redirect URL (default: `/`, configurable in Settings)
+3. If logged in but no access → redirect to configured URL (default: `/`)
 
 ---
 
@@ -360,7 +360,8 @@ simpleLMS
 ├── Add New Course   → Dedicated course form (admin.php?page=simple-lms-add)
 └── Settings         → Tabbed settings page (admin.php?page=simple-lms-settings)
     ├── Tab: General
-    │   ├── Default redirect URL
+    │   ├── Guest redirect URL (for non-logged-in users, default: '/')
+    │   ├── Default redirect URL (for logged-in users without access)
     │   ├── Date format
     │   └── Default values (see below)
     ├── Tab: Templates

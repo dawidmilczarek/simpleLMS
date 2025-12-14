@@ -48,7 +48,8 @@ class LMS_Access_Control {
 
         // Handle logged out users.
         if ( ! is_user_logged_in() ) {
-            $redirect_url = wp_login_url( get_permalink( $post_id ) );
+            $guest_redirect = Simple_LMS::get_setting( 'guest_redirect_url', '/' );
+            $redirect_url   = home_url( $guest_redirect );
         }
 
         /**
@@ -167,7 +168,7 @@ class LMS_Access_Control {
         }
 
         // Fall back to global setting.
-        $default_redirect = Simple_LMS::get_setting( 'redirect_url', '/sklep/' );
+        $default_redirect = Simple_LMS::get_setting( 'redirect_url', '/' );
 
         return home_url( $default_redirect );
     }

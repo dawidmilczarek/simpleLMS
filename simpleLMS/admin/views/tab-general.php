@@ -26,11 +26,20 @@ $statuses = get_terms(
     <table class="form-table">
         <tr>
             <th scope="row">
+                <label for="guest_redirect_url"><?php esc_html_e( 'Guest Redirect URL', 'simple-lms' ); ?></label>
+            </th>
+            <td>
+                <input type="text" id="guest_redirect_url" name="simple_lms_settings[guest_redirect_url]" value="<?php echo esc_attr( isset( $settings['guest_redirect_url'] ) ? $settings['guest_redirect_url'] : '/' ); ?>" class="regular-text">
+                <p class="description"><?php esc_html_e( 'Where to redirect non-logged-in users trying to access a course.', 'simple-lms' ); ?></p>
+            </td>
+        </tr>
+        <tr>
+            <th scope="row">
                 <label for="redirect_url"><?php esc_html_e( 'Default Redirect URL', 'simple-lms' ); ?></label>
             </th>
             <td>
-                <input type="text" id="redirect_url" name="simple_lms_settings[redirect_url]" value="<?php echo esc_attr( isset( $settings['redirect_url'] ) ? $settings['redirect_url'] : '/sklep/' ); ?>" class="regular-text">
-                <p class="description"><?php esc_html_e( 'Where to redirect users without access to a course.', 'simple-lms' ); ?></p>
+                <input type="text" id="redirect_url" name="simple_lms_settings[redirect_url]" value="<?php echo esc_attr( isset( $settings['redirect_url'] ) ? $settings['redirect_url'] : '/' ); ?>" class="regular-text">
+                <p class="description"><?php esc_html_e( 'Where to redirect logged-in users without access to a course.', 'simple-lms' ); ?></p>
             </td>
         </tr>
         <tr>
