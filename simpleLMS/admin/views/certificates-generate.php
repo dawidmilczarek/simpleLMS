@@ -61,7 +61,7 @@ $today_date = date( 'Y-m-d' );
                     <label for="completion_date"><?php esc_html_e( 'Completion date', 'simple-lms' ); ?> <span class="required">*</span></label>
                 </th>
                 <td>
-                    <input type="date" id="completion_date" name="completion_date" value="<?php echo esc_attr( $today_date ); ?>" max="<?php echo esc_attr( $today_date ); ?>" required>
+                    <input type="date" id="completion_date" name="completion_date" value="<?php echo esc_attr( $today_date ); ?>" required>
                 </td>
             </tr>
         </table>

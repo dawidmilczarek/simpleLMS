@@ -163,13 +163,7 @@ class LMS_Certificates {
             }
         }
 
-        // Check date is not in future.
-        $completion_date      = sanitize_text_field( wp_unslash( $_POST['completion_date'] ) );
-        $completion_timestamp = strtotime( $completion_date );
-        $today_timestamp      = strtotime( 'today' );
-        if ( $completion_timestamp > $today_timestamp ) {
-            wp_die( esc_html__( 'Completion date cannot be later than today.', 'simple-lms' ) );
-        }
+        $completion_date = sanitize_text_field( wp_unslash( $_POST['completion_date'] ) );
 
         // Build data array.
         $data = array(

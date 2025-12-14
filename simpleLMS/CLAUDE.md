@@ -309,9 +309,9 @@ All placeholders have corresponding conditional blocks. Block only renders if da
 
 ### Admin UI for Templates
 - Default template editor (always exists)
-- Status-specific template editor (one per status, optional)
+- **Reset to Default** button directly under the default template editor
+- Status-specific template editors (one per status, optional, collapsible)
 - Code editor (CodeMirror) with syntax highlighting
-- **Reset to Default** button to restore built-in template (form POST with page refresh, same UX as certificate reset)
 
 ---
 
@@ -881,8 +881,7 @@ Certificate generation requires:
 - Date input has `min` attribute set to course date and `max` set to today
 
 **Admin panel (manual generation)**:
-- Completion date cannot be in the future
-- **No restriction** on dates earlier than course date (allows flexibility for admins)
+- **No date restrictions** - any date allowed (past, present, or future) for flexibility
 
 ---
 
