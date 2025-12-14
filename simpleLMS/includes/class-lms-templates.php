@@ -124,7 +124,11 @@ class LMS_Templates {
      * @return string
      */
     private function get_fallback_template() {
-        return '{{#IF_VIDEOS}}
+        return '{{#IF_LIVE_LINK}}
+<p>{{LMS_LIVE_LINK}}</p>
+{{/IF_LIVE_LINK}}
+
+{{#IF_VIDEOS}}
 {{LMS_VIDEOS}}
 {{/IF_VIDEOS}}
 
@@ -185,14 +189,15 @@ class LMS_Templates {
      */
     private function get_placeholders( $data ) {
         return array(
-            '{{LMS_TITLE}}'     => esc_html( $data['title'] ),
-            '{{LMS_DATE}}'      => esc_html( $data['date'] ),
-            '{{LMS_TIME}}'      => esc_html( $data['time'] ),
-            '{{LMS_DURATION}}'  => esc_html( $data['duration'] ),
-            '{{LMS_LECTURER}}'  => esc_html( $data['lecturer'] ),
-            '{{LMS_VIDEOS}}'    => $this->render_videos( $data['videos'] ),
-            '{{LMS_MATERIALS}}' => $this->render_materials( $data['materials'] ),
-            '{{LMS_CATEGORY}}'  => esc_html( $data['category'] ),
+            '{{LMS_TITLE}}'       => esc_html( $data['title'] ),
+            '{{LMS_DATE}}'        => esc_html( $data['date'] ),
+            '{{LMS_TIME}}'        => esc_html( $data['time'] ),
+            '{{LMS_DURATION}}'    => esc_html( $data['duration'] ),
+            '{{LMS_LECTURER}}'    => esc_html( $data['lecturer'] ),
+            '{{LMS_LIVE_LINK}}'   => $this->render_live_link( $data['live_link'] ),
+            '{{LMS_VIDEOS}}'      => $this->render_videos( $data['videos'] ),
+            '{{LMS_MATERIALS}}'   => $this->render_materials( $data['materials'] ),
+            '{{LMS_CATEGORY}}'    => esc_html( $data['category'] ),
             '{{LMS_TAGS}}'        => esc_html( $data['tags'] ),
             '{{LMS_STATUS}}'      => esc_html( $data['status'] ),
             '{{LMS_CONTENT}}'     => $data['content'],
@@ -209,14 +214,15 @@ class LMS_Templates {
      */
     private function process_conditionals( $template, $data ) {
         $conditions = array(
-            'DATE'      => ! empty( $data['date'] ),
-            'TIME'      => ! empty( $data['time'] ),
-            'DURATION'  => ! empty( $data['duration'] ),
-            'LECTURER'  => ! empty( $data['lecturer'] ),
-            'VIDEOS'    => ! empty( $data['videos'] ),
-            'MATERIALS' => ! empty( $data['materials'] ),
-            'CATEGORY'  => ! empty( $data['category'] ),
-            'TAGS'      => ! empty( $data['tags'] ),
+            'DATE'        => ! empty( $data['date'] ),
+            'TIME'        => ! empty( $data['time'] ),
+            'DURATION'    => ! empty( $data['duration'] ),
+            'LECTURER'    => ! empty( $data['lecturer'] ),
+            'LIVE_LINK'   => ! empty( $data['live_link']['url'] ),
+            'VIDEOS'      => ! empty( $data['videos'] ),
+            'MATERIALS'   => ! empty( $data['materials'] ),
+            'CATEGORY'    => ! empty( $data['category'] ),
+            'TAGS'        => ! empty( $data['tags'] ),
             'STATUS'      => ! empty( $data['status'] ),
             'CONTENT'     => ! empty( trim( $data['raw_content'] ) ),
             'CERTIFICATE' => ! empty( $data['certificate_available'] ),
@@ -280,6 +286,29 @@ class LMS_Templates {
         }
 
         return $output;
+    }
+
+    /**
+     * Render live event link HTML.
+     *
+     * @param array $live_link Live link data.
+     * @return string
+     */
+    private function render_live_link( $live_link ) {
+        if ( empty( $live_link['url'] ) ) {
+            return '';
+        }
+
+        $label = ! empty( $live_link['label'] ) ? $live_link['label'] : $live_link['url'];
+        $output = '<a href="' . esc_url( $live_link['url'] ) . '" class="lms-live-link" target="_blank">' . esc_html( $label ) . '</a>';
+
+        /**
+         * Filter live link HTML.
+         *
+         * @param string $output    Live link HTML.
+         * @param array  $live_link Live link data.
+         */
+        return apply_filters( 'lms_live_link_html', $output, $live_link );
     }
 
     /**

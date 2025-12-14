@@ -53,7 +53,6 @@ function simple_lms_delete_options() {
     delete_option( 'simple_lms_default_template' );
     delete_option( 'simple_lms_status_templates' );
     delete_option( 'simple_lms_shortcode_presets' );
-    delete_option( 'simple_lms_template_labels' );
 
     // Certificate options.
     delete_option( 'simple_lms_certificate_template' );

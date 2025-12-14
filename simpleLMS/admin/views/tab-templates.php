@@ -19,22 +19,6 @@ foreach ( $notices as $notice ) {
     echo '<div class="notice notice-' . esc_attr( $notice['type'] ) . ' is-dismissible"><p>' . esc_html( $notice['message'] ) . '</p></div>';
 }
 
-// Handle template labels save.
-if ( isset( $_POST['simple_lms_save_template_labels'] ) ) {
-    if ( ! isset( $_POST['_wpnonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['_wpnonce'] ) ), 'simple_lms_template_labels' ) ) {
-        wp_die( esc_html__( 'Security check failed.', 'simple-lms' ) );
-    }
-
-    if ( isset( $_POST['template_labels'] ) && is_array( $_POST['template_labels'] ) ) {
-        $labels_to_save = array();
-        foreach ( $_POST['template_labels'] as $key => $value ) {
-            $labels_to_save[ sanitize_key( $key ) ] = sanitize_text_field( wp_unslash( $value ) );
-        }
-        update_option( 'simple_lms_template_labels', $labels_to_save );
-        echo '<div class="notice notice-success"><p>' . esc_html__( 'Template labels saved.', 'simple-lms' ) . '</p></div>';
-    }
-}
-
 $default_template  = get_option( 'simple_lms_default_template', '' );
 $status_templates  = get_option( 'simple_lms_status_templates', array() );
 $statuses          = get_terms(
@@ -43,11 +27,6 @@ $statuses          = get_terms(
         'hide_empty' => false,
     )
 );
-
-// Get template labels with defaults.
-$template_labels = get_option( 'simple_lms_template_labels', array() );
-$default_labels  = LMS_Admin::get_default_template_labels();
-$labels          = wp_parse_args( $template_labels, $default_labels );
 
 $placeholders = array(
     '{{LMS_TITLE}}'       => __( 'Course title', 'simple-lms' ),
@@ -78,34 +57,6 @@ $conditionals = array(
     '{{#IF_CERTIFICATE}}...{{/IF_CERTIFICATE}}' => __( 'Shows if certificate is available', 'simple-lms' ),
 );
 ?>
-
-<h2><?php esc_html_e( 'Default Template Labels', 'simple-lms' ); ?></h2>
-<p class="description"><?php esc_html_e( 'These labels are used in the built-in default template. Changing these will affect the template when reset to default.', 'simple-lms' ); ?></p>
-
-<form method="post" action="">
-    <?php wp_nonce_field( 'simple_lms_template_labels' ); ?>
-    <table class="form-table">
-        <tr>
-            <th scope="row"><label for="label_date"><?php esc_html_e( 'Date label', 'simple-lms' ); ?></label></th>
-            <td><input type="text" id="label_date" name="template_labels[date]" value="<?php echo esc_attr( $labels['date'] ); ?>" class="regular-text"></td>
-        </tr>
-        <tr>
-            <th scope="row"><label for="label_time"><?php esc_html_e( 'Time label', 'simple-lms' ); ?></label></th>
-            <td><input type="text" id="label_time" name="template_labels[time]" value="<?php echo esc_attr( $labels['time'] ); ?>" class="regular-text"></td>
-        </tr>
-        <tr>
-            <th scope="row"><label for="label_lecturer"><?php esc_html_e( 'Lecturer label', 'simple-lms' ); ?></label></th>
-            <td><input type="text" id="label_lecturer" name="template_labels[lecturer]" value="<?php echo esc_attr( $labels['lecturer'] ); ?>" class="regular-text"></td>
-        </tr>
-    </table>
-    <p class="submit">
-        <button type="submit" name="simple_lms_save_template_labels" class="button button-primary">
-            <?php esc_html_e( 'Save Labels', 'simple-lms' ); ?>
-        </button>
-    </p>
-</form>
-
-<hr>
 
 <form method="post" action="options.php">
     <?php settings_fields( 'simple_lms_templates_group' ); ?>
@@ -144,7 +95,20 @@ $conditionals = array(
     <div class="simple-lms-template-editor">
         <textarea id="simple_lms_default_template" name="simple_lms_default_template" rows="20" class="large-text code"><?php echo esc_textarea( $default_template ); ?></textarea>
     </div>
+</form>
 
+<form method="post" action="" class="simple-lms-reset-template-form">
+    <?php wp_nonce_field( 'simple_lms_reset_default_template' ); ?>
+    <p class="simple-lms-reset-template">
+        <button type="submit" name="simple_lms_reset_default_template" class="button button-secondary" onclick="return confirm('<?php esc_attr_e( 'Are you sure you want to reset the template to default?', 'simple-lms' ); ?>');">
+            <?php esc_html_e( 'Reset to Default', 'simple-lms' ); ?>
+        </button>
+        <span class="description"><?php esc_html_e( 'Restore the built-in default template.', 'simple-lms' ); ?></span>
+    </p>
+</form>
+
+<form method="post" action="options.php">
+    <?php settings_fields( 'simple_lms_templates_group' ); ?>
 
     <?php if ( ! empty( $statuses ) && ! is_wp_error( $statuses ) ) : ?>
     <h2><?php esc_html_e( 'Status-Specific Templates', 'simple-lms' ); ?></h2>
@@ -171,16 +135,6 @@ $conditionals = array(
     <?php endif; ?>
 
     <?php submit_button(); ?>
-</form>
-
-<form method="post" action="" class="simple-lms-reset-template-form">
-    <?php wp_nonce_field( 'simple_lms_reset_default_template' ); ?>
-    <p class="simple-lms-reset-template">
-        <button type="submit" name="simple_lms_reset_default_template" class="button button-secondary" onclick="return confirm('<?php esc_attr_e( 'Are you sure you want to reset the template to default?', 'simple-lms' ); ?>');">
-            <?php esc_html_e( 'Reset to Default', 'simple-lms' ); ?>
-        </button>
-        <span class="description"><?php esc_html_e( 'Restore the built-in default template.', 'simple-lms' ); ?></span>
-    </p>
 </form>
 
 <script>

@@ -32,7 +32,7 @@ $settings = get_option( 'simple_lms_settings', array() );
                 <label for="date_format"><?php esc_html_e( 'Date Format', 'simple-lms' ); ?></label>
             </th>
             <td>
-                <input type="text" id="date_format" name="simple_lms_settings[date_format]" value="<?php echo esc_attr( isset( $settings['date_format'] ) ? $settings['date_format'] : 'd.m.Y' ); ?>" class="regular-text">
+                <input type="text" id="date_format" name="simple_lms_settings[date_format]" value="<?php echo esc_attr( isset( $settings['date_format'] ) ? $settings['date_format'] : 'd.m.Y' ); ?>" class="regular-text" placeholder="<?php esc_attr_e( 'e.g., d.m.Y', 'simple-lms' ); ?>">
                 <p class="description">
                     <?php
                     printf(
@@ -86,7 +86,7 @@ $settings = get_option( 'simple_lms_settings', array() );
                 <label for="default_video_title"><?php esc_html_e( 'Default Video Title', 'simple-lms' ); ?></label>
             </th>
             <td>
-                <input type="text" id="default_video_title" name="simple_lms_settings[default_video_title]" value="<?php echo esc_attr( isset( $settings['default_video_title'] ) ? $settings['default_video_title'] : '' ); ?>" class="regular-text">
+                <input type="text" id="default_video_title" name="simple_lms_settings[default_video_title]" value="<?php echo esc_attr( isset( $settings['default_video_title'] ) ? $settings['default_video_title'] : '' ); ?>" class="regular-text" placeholder="<?php esc_attr_e( 'e.g., Recording', 'simple-lms' ); ?>">
                 <p class="description"><?php esc_html_e( 'Pre-filled title when adding a new video.', 'simple-lms' ); ?></p>
             </td>
         </tr>
@@ -95,8 +95,17 @@ $settings = get_option( 'simple_lms_settings', array() );
                 <label for="default_material_label"><?php esc_html_e( 'Default Material Label', 'simple-lms' ); ?></label>
             </th>
             <td>
-                <input type="text" id="default_material_label" name="simple_lms_settings[default_material_label]" value="<?php echo esc_attr( isset( $settings['default_material_label'] ) ? $settings['default_material_label'] : '' ); ?>" class="regular-text">
+                <input type="text" id="default_material_label" name="simple_lms_settings[default_material_label]" value="<?php echo esc_attr( isset( $settings['default_material_label'] ) ? $settings['default_material_label'] : '' ); ?>" class="regular-text" placeholder="<?php esc_attr_e( 'e.g., Download', 'simple-lms' ); ?>">
                 <p class="description"><?php esc_html_e( 'Pre-filled label when adding a new material.', 'simple-lms' ); ?></p>
+            </td>
+        </tr>
+        <tr>
+            <th scope="row">
+                <label for="default_live_link_label"><?php esc_html_e( 'Default Live Link Label', 'simple-lms' ); ?></label>
+            </th>
+            <td>
+                <input type="text" id="default_live_link_label" name="simple_lms_settings[default_live_link_label]" value="<?php echo esc_attr( isset( $settings['default_live_link_label'] ) ? $settings['default_live_link_label'] : '' ); ?>" class="regular-text" placeholder="<?php esc_attr_e( 'e.g., Join Zoom Meeting', 'simple-lms' ); ?>">
+                <p class="description"><?php esc_html_e( 'Pre-filled label for live event link (e.g., Zoom, Teams).', 'simple-lms' ); ?></p>
             </td>
         </tr>
     </table>

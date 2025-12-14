@@ -363,6 +363,8 @@ class LMS_Admin {
                         'saving'                 => __( 'Saving...', 'simple-lms' ),
                         'saved'                  => __( 'Saved!', 'simple-lms' ),
                         'error'                  => __( 'Error saving. Please try again.', 'simple-lms' ),
+                        'selectMemberships'      => __( 'Select membership plans...', 'simple-lms' ),
+                        'selectProducts'         => __( 'Select subscription products...', 'simple-lms' ),
                     ),
                 )
             );
@@ -502,6 +504,23 @@ class LMS_Admin {
         }
 
         // Lecturer is now saved as taxonomy in save_course_taxonomies().
+
+        // Live event link.
+        if ( isset( $_POST['simple_lms_live_link'] ) && is_array( $_POST['simple_lms_live_link'] ) ) {
+            // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+            $live_link_raw = wp_unslash( $_POST['simple_lms_live_link'] );
+            $live_link = array(
+                'label' => sanitize_text_field( $live_link_raw['label'] ?? '' ),
+                'url'   => esc_url_raw( $live_link_raw['url'] ?? '' ),
+            );
+            if ( ! empty( $live_link['url'] ) ) {
+                update_post_meta( $post_id, '_simple_lms_live_link', $live_link );
+            } else {
+                delete_post_meta( $post_id, '_simple_lms_live_link' );
+            }
+        } else {
+            delete_post_meta( $post_id, '_simple_lms_live_link' );
+        }
 
         // Videos.
         if ( isset( $_POST['simple_lms_videos'] ) && is_array( $_POST['simple_lms_videos'] ) ) {
@@ -673,6 +692,7 @@ class LMS_Admin {
             '_simple_lms_time_start',
             '_simple_lms_time_end',
             '_simple_lms_duration',
+            '_simple_lms_live_link',
             '_simple_lms_videos',
             '_simple_lms_materials',
             '_simple_lms_access_memberships',
@@ -1099,46 +1119,20 @@ class LMS_Admin {
     }
 
     /**
-     * Get default template labels.
-     *
-     * @return array
-     */
-    public static function get_default_template_labels() {
-        return array(
-            'date'     => __( 'Date:', 'simple-lms' ),
-            'time'     => __( 'Time:', 'simple-lms' ),
-            'lecturer' => __( 'Lecturer:', 'simple-lms' ),
-        );
-    }
-
-    /**
-     * Get a template label by key.
-     *
-     * @param string $key Label key.
-     * @return string
-     */
-    public static function get_template_label( $key ) {
-        $labels   = get_option( 'simple_lms_template_labels', array() );
-        $defaults = self::get_default_template_labels();
-        $merged   = wp_parse_args( $labels, $defaults );
-        return isset( $merged[ $key ] ) ? $merged[ $key ] : '';
-    }
-
-    /**
      * Get the built-in default template.
      *
      * @return string
      */
     public static function get_builtin_default_template() {
-        $date_label     = self::get_template_label( 'date' );
-        $time_label     = self::get_template_label( 'time' );
-        $lecturer_label = self::get_template_label( 'lecturer' );
-
         return '<ul>
-{{#IF_DATE}}<li>' . esc_html( $date_label ) . ' {{LMS_DATE}}</li>{{/IF_DATE}}
-{{#IF_TIME}}<li>' . esc_html( $time_label ) . ' {{LMS_TIME}}</li>{{/IF_TIME}}
-{{#IF_LECTURER}}<li>' . esc_html( $lecturer_label ) . ' {{LMS_LECTURER}}</li>{{/IF_LECTURER}}
+{{#IF_DATE}}<li>{{LMS_DATE}}</li>{{/IF_DATE}}
+{{#IF_TIME}}<li>{{LMS_TIME}}</li>{{/IF_TIME}}
+{{#IF_LECTURER}}<li>{{LMS_LECTURER}}</li>{{/IF_LECTURER}}
 </ul>
+
+{{#IF_LIVE_LINK}}
+<p>{{LMS_LIVE_LINK}}</p>
+{{/IF_LIVE_LINK}}
 
 {{#IF_VIDEOS}}
 {{LMS_VIDEOS}}
@@ -1152,8 +1146,8 @@ class LMS_Admin {
 {{LMS_MATERIALS}}
 {{/IF_MATERIALS}}
 
-{{#IF_DATE}}
+{{#IF_CERTIFICATE}}
 {{LMS_CERTIFICATE}}
-{{/IF_DATE}}';
+{{/IF_CERTIFICATE}}';
     }
 }

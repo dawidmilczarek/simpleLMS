@@ -251,35 +251,49 @@
          * Initialize product select with Select2.
          */
         initProductSelect: function() {
-            var $productSelect = $('.simple-lms-product-select');
-
-            if (!$productSelect.length || typeof $.fn.select2 === 'undefined') {
+            if (typeof $.fn.select2 === 'undefined') {
                 return;
             }
 
-            $productSelect.select2({
-                width: '100%',
-                minimumInputLength: 1,
-                ajax: {
-                    url: simpleLMS.ajaxUrl,
-                    dataType: 'json',
-                    delay: 250,
-                    data: function(params) {
-                        return {
-                            action: 'simple_lms_search_products',
-                            nonce: simpleLMS.nonce,
-                            search: params.term || ''
-                        };
-                    },
-                    processResults: function(response) {
-                        if (response.success) {
-                            return { results: response.data };
-                        }
-                        return { results: [] };
-                    },
-                    cache: true
-                }
-            });
+            // Membership plans select (no AJAX, options are pre-loaded).
+            var $membershipSelect = $('.simple-lms-membership-select');
+            if ($membershipSelect.length) {
+                $membershipSelect.select2({
+                    width: '100%',
+                    placeholder: simpleLMS.i18n.selectMemberships || '',
+                    allowClear: true
+                });
+            }
+
+            // Subscription products select (with AJAX).
+            var $productSelect = $('.simple-lms-product-select');
+            if ($productSelect.length) {
+                $productSelect.select2({
+                    width: '100%',
+                    placeholder: simpleLMS.i18n.selectProducts || '',
+                    allowClear: true,
+                    minimumInputLength: 0,
+                    ajax: {
+                        url: simpleLMS.ajaxUrl,
+                        dataType: 'json',
+                        delay: 250,
+                        data: function(params) {
+                            return {
+                                action: 'simple_lms_search_products',
+                                nonce: simpleLMS.nonce,
+                                search: params.term || ''
+                            };
+                        },
+                        processResults: function(response) {
+                            if (response.success) {
+                                return { results: response.data };
+                            }
+                            return { results: [] };
+                        },
+                        cache: true
+                    }
+                });
+            }
         },
 
         /**

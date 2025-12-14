@@ -81,7 +81,6 @@ Uses `wp_options` table for plugin data (no custom tables). This is the WordPres
 | `simple_lms_default_template` | string | Default template HTML |
 | `simple_lms_status_templates` | array | Status-specific templates (status_id => template HTML) |
 | `simple_lms_shortcode_presets` | array | Shortcode presets (preset_name => settings) |
-| `simple_lms_template_labels` | array | Customizable labels for default template (date, time, lecturer) |
 | `simple_lms_certificate_template` | string | Certificate HTML template |
 | `simple_lms_certificate_logo_url` | string | Logo image URL for certificates |
 | `simple_lms_certificate_signature_url` | string | Signature image URL for certificates |
@@ -111,6 +110,7 @@ Uses `wp_options` table for plugin data (no custom tables). This is the WordPres
 | `_simple_lms_time_start` | string | Start time (e.g., "10:00") |
 | `_simple_lms_time_end` | string | End time (e.g., "16:00") |
 | `_simple_lms_duration` | string | Duration (e.g., "6h") - auto-calculated but editable |
+| `_simple_lms_live_link` | array | Live event link (see below) |
 | `_simple_lms_videos` | array | Array of videos (see below) |
 | `_simple_lms_materials` | array | Array of materials (see below) |
 | `_simple_lms_access_memberships` | array | Allowed membership plan IDs |
@@ -118,6 +118,11 @@ Uses `wp_options` table for plugin data (no custom tables). This is the WordPres
 | `_simple_lms_redirect_url` | string | Custom redirect URL - relative path or full URL (default: global setting) |
 
 > **Note**: Lecturer is now stored as a taxonomy (`simple_lms_lecturer`), not as post meta.
+
+### Live Link Structure (`_simple_lms_live_link`)
+```php
+['label' => 'Join Zoom Meeting', 'url' => 'https://zoom.us/j/123456789']
+```
 
 ### Video Structure (`_simple_lms_videos`)
 ```php
@@ -204,17 +209,6 @@ wcs_user_has_subscription($user_id, $product_id, 'active')
 Templates stored in `wp_options` table:
 - `simple_lms_default_template` - default template
 - `simple_lms_status_templates` - array of status_id => template
-- `simple_lms_template_labels` - customizable labels for default template
-
-### Template Labels (`simple_lms_template_labels`)
-
-These labels are used in the built-in default template (displayed when resetting to default):
-
-| Key | Default | Description |
-|-----|---------|-------------|
-| `date` | "Date:" | Label before date value |
-| `time` | "Time:" | Label before time value |
-| `lecturer` | "Lecturer:" | Label before lecturer value |
 
 ### Template Hierarchy
 1. Status-specific template (if course has status with assigned template)
@@ -233,6 +227,7 @@ The `{{LMS_CONTENT}}` placeholder uses `apply_filters('the_content', ...)` inter
 | `{{LMS_TIME}}` | Time range (e.g., "10:00 - 16:00") - combined from start/end |
 | `{{LMS_DURATION}}` | Duration (e.g., "5 hours") |
 | `{{LMS_LECTURER}}` | Lecturer name |
+| `{{LMS_LIVE_LINK}}` | Live event link (e.g., Zoom, Teams) |
 | `{{LMS_VIDEOS}}` | All videos rendered (titles + embedded players) |
 | `{{LMS_MATERIALS}}` | All materials rendered (clickable links) |
 | `{{LMS_CATEGORY}}` | Primary category name |
@@ -251,6 +246,7 @@ All placeholders have corresponding conditional blocks. Block only renders if da
 | `{{#IF_TIME}}...{{/IF_TIME}}` | Time range is set |
 | `{{#IF_DURATION}}...{{/IF_DURATION}}` | Duration is set |
 | `{{#IF_LECTURER}}...{{/IF_LECTURER}}` | Lecturer field is not empty |
+| `{{#IF_LIVE_LINK}}...{{/IF_LIVE_LINK}}` | Live event link URL is set |
 | `{{#IF_VIDEOS}}...{{/IF_VIDEOS}}` | At least one video exists |
 | `{{#IF_MATERIALS}}...{{/IF_MATERIALS}}` | At least one material link exists |
 | `{{#IF_CATEGORY}}...{{/IF_CATEGORY}}` | Course has a category |
@@ -281,6 +277,11 @@ All placeholders have corresponding conditional blocks. Block only renders if da
 ```
 
 ### Rendered Output Examples
+
+**{{LMS_LIVE_LINK}}** renders as:
+```html
+<a href="https://zoom.us/j/123456789" class="lms-live-link" target="_blank">Join Zoom Meeting</a>
+```
 
 **{{LMS_VIDEOS}}** renders as:
 ```html
@@ -397,7 +398,7 @@ simpleLMS
     │   ├── Redirect URL (for users without access, default: '/')
     │   ├── Date format
     │   ├── Product status filter (published only or all including drafts/trash)
-    │   └── Default values (time range, duration, video title, material label)
+    │   └── Default values (time range, duration, video title, material label, live link label)
     ├── Tab: Templates
     │   ├── Default template editor
     │   └── Status-specific template editors
@@ -448,6 +449,7 @@ Configurable default values for new courses. All fields are simple text inputs (
 |---------|---------|-------------|
 | Default Material Label | `Download` | Pre-filled label when adding new material |
 | Default Video Title | `Recording` | Pre-filled title when adding new video |
+| Default Live Link Label | `Join Zoom Meeting` | Pre-filled label for live event link |
 | Default Lecturer | `Dawid Milczarek` | Pre-filled lecturer field |
 | Default Time Range | `10:00 - 15:00` | Pre-filled time range (uses time picker) |
 | Default Duration | `5h` | Pre-filled duration (auto-calculated from time range, but editable) |
@@ -611,6 +613,7 @@ Plugin will work without membership/subscription plugins but access control feat
 - `lms_course_query_args` - modify shortcode query
 - `lms_user_has_access` - override access check
 - `lms_redirect_url` - filter redirect URL
+- `lms_live_link_html` - filter live link output
 - `lms_video_embed_html` - filter video embed output
 - `lms_materials_html` - filter materials list output
 
@@ -623,14 +626,18 @@ Plugin will work without membership/subscription plugins but access control feat
 
 ## Sample Default Template
 
-The built-in default template includes a metadata list at the top and structural placeholders:
+The built-in default template provides a minimal starting point:
 
 ```html
 <ul>
-{{#IF_DATE}}<li>Date: {{LMS_DATE}}</li>{{/IF_DATE}}
-{{#IF_TIME}}<li>Time: {{LMS_TIME}}</li>{{/IF_TIME}}
-{{#IF_LECTURER}}<li>Lecturer: {{LMS_LECTURER}}</li>{{/IF_LECTURER}}
+{{#IF_DATE}}<li>{{LMS_DATE}}</li>{{/IF_DATE}}
+{{#IF_TIME}}<li>{{LMS_TIME}}</li>{{/IF_TIME}}
+{{#IF_LECTURER}}<li>{{LMS_LECTURER}}</li>{{/IF_LECTURER}}
 </ul>
+
+{{#IF_LIVE_LINK}}
+<p>{{LMS_LIVE_LINK}}</p>
+{{/IF_LIVE_LINK}}
 
 {{#IF_VIDEOS}}
 {{LMS_VIDEOS}}
@@ -644,12 +651,12 @@ The built-in default template includes a metadata list at the top and structural
 {{LMS_MATERIALS}}
 {{/IF_MATERIALS}}
 
-{{#IF_DATE}}
+{{#IF_CERTIFICATE}}
 {{LMS_CERTIFICATE}}
-{{/IF_DATE}}
+{{/IF_CERTIFICATE}}
 ```
 
-Users can customize this template in Settings → Templates to add headers, styling, and additional placeholders as needed.
+Users can customize this template in Settings → Templates to add labels, headers, styling, and additional placeholders as needed.
 
 ---
 
@@ -670,12 +677,17 @@ The plugin uses a dedicated custom form for adding and editing courses (not the 
 │ │ Date:      [📅 Date Picker]                        │ │ │ [Update Course] │ │
 │ │ Time:      [🕐 Start] - [🕐 End]                   │ │ │ [View Course]   │ │
 │ │ Duration:  [________]                              │ │ └─────────────────┘ │
-│ │ Lecturer:  [____________________]                  │ │                     │
-│ └────────────────────────────────────────────────────┘ │ ┌─────────────────┐ │
-│                                                        │ │ Course Status   │ │
-│ ┌────────────────────────────────────────────────────┐ │ │ ☐ Recording     │ │
-│ │ Videos                               [+ Add Video] │ │ │ ☐ Live          │ │
-│ │ ┌────────────────────────────────────────────────┐ │ │ │ ☐ Scheduled     │ │
+│ └────────────────────────────────────────────────────┘ │                     │
+│                                                        │ ┌─────────────────┐ │
+│ ┌────────────────────────────────────────────────────┐ │ │ Course Status   │ │
+│ │ Live Event Link                                    │ │ │ ☐ Recording     │ │
+│ │ Label:     [________________]                      │ │ │ ☐ Live          │ │
+│ │ URL:       [____________________________________]  │ │ │ ☐ Scheduled     │ │
+│ └────────────────────────────────────────────────────┘ │ └─────────────────┘ │
+│                                                        │                     │
+│ ┌────────────────────────────────────────────────────┐ │ ┌─────────────────┐ │
+│ │ Videos                               [+ Add Video] │ │ │ Lecturer        │ │
+│ │ ┌────────────────────────────────────────────────┐ │ │ │ [▼ Select...]   │ │
 │ │ │ Title: [___________]  Vimeo: [___________]     │ │ │ └─────────────────┘ │
 │ │ └────────────────────────────────────────────────┘ │ │                     │
 │ └────────────────────────────────────────────────────┘ │ ┌─────────────────┐ │
@@ -694,8 +706,8 @@ The plugin uses a dedicated custom form for adding and editing courses (not the 
 │                                                        │                     │
 │ ┌────────────────────────────────────────────────────┐ │                     │
 │ │ Access Control                                     │ │                     │
-│ │ Memberships: ☐ Gold  ☐ Silver  ☐ Platinum         │ │                     │
-│ │ Products:    ☐ Annual  ☐ Monthly                  │ │                     │
+│ │ Memberships: [▼ Select plans...          ]        │ │                     │
+│ │ Products:    [▼ Select products...       ]        │ │                     │
 │ │ Redirect:    [________________]                    │ │                     │
 │ └────────────────────────────────────────────────────┘ │                     │
 └────────────────────────────────────────────────────────┴─────────────────────┘
@@ -704,11 +716,12 @@ The plugin uses a dedicated custom form for adding and editing courses (not the 
 ### Form Sections
 1. **Title** - Large input field at top
 2. **Slug** - Editable URL slug with auto-generation from title
-3. **Course Details** - Date, time range, duration, lecturer
-4. **Videos** - Repeater field (drag to reorder, add/remove)
-5. **Materials** - Repeater field (drag to reorder, add/remove)
-6. **Additional Content** - WordPress WYSIWYG editor
-7. **Access Control** - Membership checkboxes, subscription products (searchable multi-select with AJAX), redirect URL
+3. **Course Details** - Date, time range, duration
+4. **Live Event Link** - Label and URL for Zoom/Teams/etc. meetings
+5. **Videos** - Repeater field (drag to reorder, add/remove)
+6. **Materials** - Repeater field (drag to reorder, add/remove)
+7. **Additional Content** - WordPress WYSIWYG editor
+8. **Access Control** - Membership plans (Select2 multi-select), subscription products (Select2 multi-select with AJAX), redirect URL
 
 ### Slug Field Behavior
 - Displayed as: `https://example.com/course/` **[slug]** `/`
@@ -764,7 +777,7 @@ Order: Title → Date → Status → Lecturer → Videos → Materials → Categ
 
 The Duplicate action creates a copy of an existing course with:
 - Title suffixed with " Copy" (e.g., "Course Name" → "Course Name Copy")
-- All meta fields copied (date, time, duration, videos, materials, access control settings)
+- All meta fields copied (date, time, duration, live link, videos, materials, access control settings)
 - All taxonomies copied (categories, tags, status, lecturer)
 - Post content copied
 - Status set to "draft" (for review before publishing)

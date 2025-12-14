@@ -32,6 +32,7 @@ class LMS_Course_Data {
 		$time_start = get_post_meta( $post_id, '_simple_lms_time_start', true );
 		$time_end   = get_post_meta( $post_id, '_simple_lms_time_end', true );
 		$duration   = get_post_meta( $post_id, '_simple_lms_duration', true );
+		$live_link  = get_post_meta( $post_id, '_simple_lms_live_link', true );
 		$videos     = get_post_meta( $post_id, '_simple_lms_videos', true );
 		$materials  = get_post_meta( $post_id, '_simple_lms_materials', true );
 
@@ -67,6 +68,7 @@ class LMS_Course_Data {
 			'time'      => $time_range,
 			'duration'  => $duration,
 			'lecturer'  => $lecturer,
+			'live_link' => is_array( $live_link ) ? $live_link : array(),
 			'videos'    => is_array( $videos ) ? $videos : array(),
 			'materials' => is_array( $materials ) ? $materials : array(),
 			'category'  => ! empty( $categories ) && ! is_wp_error( $categories ) ? $categories[0]->name : '',

@@ -32,6 +32,8 @@ $time_start     = $is_edit ? get_post_meta( $course_id, '_simple_lms_time_start'
 $time_end       = $is_edit ? get_post_meta( $course_id, '_simple_lms_time_end', true ) : ( $settings['default_time_end'] ?? '' );
 $duration       = $is_edit ? get_post_meta( $course_id, '_simple_lms_duration', true ) : ( $settings['default_duration'] ?? '' );
 // Lecturer is now a taxonomy, not post meta.
+$live_link      = $is_edit ? get_post_meta( $course_id, '_simple_lms_live_link', true ) : array();
+$live_link      = is_array( $live_link ) ? $live_link : array();
 $videos         = $is_edit ? get_post_meta( $course_id, '_simple_lms_videos', true ) : array();
 $materials      = $is_edit ? get_post_meta( $course_id, '_simple_lms_materials', true ) : array();
 $memberships    = $is_edit ? get_post_meta( $course_id, '_simple_lms_access_memberships', true ) : array();
@@ -85,8 +87,9 @@ $has_subscriptions = class_exists( 'WC_Subscriptions' );
 $membership_plans  = LMS_Admin::get_membership_plans();
 $subscription_products = LMS_Admin::get_subscription_products( '', $products );
 
-$default_video_title   = $settings['default_video_title'] ?? '';
+$default_video_title    = $settings['default_video_title'] ?? '';
 $default_material_label = $settings['default_material_label'] ?? '';
+$default_live_link_label = $settings['default_live_link_label'] ?? '';
 
 $page_title = $is_edit ? __( 'Edit Course', 'simple-lms' ) : __( 'Add New Course', 'simple-lms' );
 ?>
@@ -141,6 +144,25 @@ $page_title = $is_edit ? __( 'Edit Course', 'simple-lms' ) : __( 'Add New Course
                             <th><label for="simple_lms_duration"><?php esc_html_e( 'Duration', 'simple-lms' ); ?></label></th>
                             <td>
                                 <input type="text" id="simple_lms_duration" name="simple_lms_duration" value="<?php echo esc_attr( $duration ); ?>" placeholder="<?php esc_attr_e( 'e.g., 6h', 'simple-lms' ); ?>">
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+
+                <!-- Live Event Link -->
+                <div class="course-form-section course-form-box">
+                    <h2><?php esc_html_e( 'Live Event Link', 'simple-lms' ); ?></h2>
+                    <table class="form-table">
+                        <tr>
+                            <th><label for="simple_lms_live_link_label"><?php esc_html_e( 'Link Label', 'simple-lms' ); ?></label></th>
+                            <td>
+                                <input type="text" id="simple_lms_live_link_label" name="simple_lms_live_link[label]" value="<?php echo esc_attr( $live_link['label'] ?? $default_live_link_label ); ?>" class="regular-text" placeholder="<?php esc_attr_e( 'e.g., Join Zoom Meeting', 'simple-lms' ); ?>">
+                            </td>
+                        </tr>
+                        <tr>
+                            <th><label for="simple_lms_live_link_url"><?php esc_html_e( 'Link URL', 'simple-lms' ); ?></label></th>
+                            <td>
+                                <input type="url" id="simple_lms_live_link_url" name="simple_lms_live_link[url]" value="<?php echo esc_attr( $live_link['url'] ?? '' ); ?>" class="widefat" placeholder="<?php esc_attr_e( 'https://zoom.us/j/123456789', 'simple-lms' ); ?>">
                             </td>
                         </tr>
                     </table>
@@ -274,16 +296,17 @@ $page_title = $is_edit ? __( 'Edit Course', 'simple-lms' ) : __( 'Add New Course
                     <table class="form-table">
                         <?php if ( $has_memberships ) : ?>
                         <tr>
-                            <th><label><?php esc_html_e( 'Required Memberships', 'simple-lms' ); ?></label></th>
+                            <th><label for="simple_lms_access_memberships"><?php esc_html_e( 'Membership Plans', 'simple-lms' ); ?></label></th>
                             <td>
                                 <?php if ( ! empty( $membership_plans ) ) : ?>
+                                <select id="simple_lms_access_memberships" name="simple_lms_access_memberships[]" class="simple-lms-membership-select" multiple="multiple" style="width: 100%;">
                                     <?php foreach ( $membership_plans as $plan ) : ?>
-                                    <label class="simple-lms-checkbox">
-                                        <input type="checkbox" name="simple_lms_access_memberships[]" value="<?php echo esc_attr( $plan->ID ); ?>" <?php checked( in_array( $plan->ID, $memberships, true ) ); ?>>
+                                    <option value="<?php echo esc_attr( $plan->ID ); ?>" <?php selected( in_array( $plan->ID, $memberships, true ) ); ?>>
                                         <?php echo esc_html( $plan->post_title ); ?>
-                                    </label><br>
+                                    </option>
                                     <?php endforeach; ?>
-                                    <p class="description"><?php esc_html_e( 'User needs ANY of the selected memberships (OR logic).', 'simple-lms' ); ?></p>
+                                </select>
+                                <p class="description"><?php esc_html_e( 'User needs ANY of the selected memberships (OR logic).', 'simple-lms' ); ?></p>
                                 <?php else : ?>
                                     <p class="description"><?php esc_html_e( 'No membership plans found.', 'simple-lms' ); ?></p>
                                 <?php endif; ?>
@@ -298,7 +321,7 @@ $page_title = $is_edit ? __( 'Edit Course', 'simple-lms' ) : __( 'Add New Course
 
                         <?php if ( $has_subscriptions ) : ?>
                         <tr>
-                            <th><label for="simple_lms_access_products"><?php esc_html_e( 'Required Subscriptions', 'simple-lms' ); ?></label></th>
+                            <th><label for="simple_lms_access_products"><?php esc_html_e( 'Subscription Products', 'simple-lms' ); ?></label></th>
                             <td>
                                 <select id="simple_lms_access_products" name="simple_lms_access_products[]" class="simple-lms-product-select" multiple="multiple" style="width: 100%;">
                                     <?php
@@ -314,7 +337,7 @@ $page_title = $is_edit ? __( 'Edit Course', 'simple-lms' ) : __( 'Add New Course
                                     endforeach;
                                     ?>
                                 </select>
-                                <p class="description"><?php esc_html_e( 'Search and select products. User needs active subscription to ANY of the selected products (OR logic).', 'simple-lms' ); ?></p>
+                                <p class="description"><?php esc_html_e( 'User needs active subscription to ANY of the selected products (OR logic).', 'simple-lms' ); ?></p>
                             </td>
                         </tr>
                         <?php else : ?>
