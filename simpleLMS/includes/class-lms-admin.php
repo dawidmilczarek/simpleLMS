@@ -39,6 +39,7 @@ class LMS_Admin {
         add_action( 'admin_init', array( $this, 'handle_settings_forms' ) );
         add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
         add_action( 'wp_ajax_simple_lms_delete_course', array( $this, 'ajax_delete_course' ) );
+        add_action( 'wp_ajax_simple_lms_bulk_delete_courses', array( $this, 'ajax_bulk_delete_courses' ) );
         add_action( 'wp_ajax_simple_lms_search_products', array( $this, 'ajax_search_products' ) );
         add_filter( 'parent_file', array( $this, 'fix_parent_menu' ) );
         add_filter( 'submenu_file', array( $this, 'fix_submenu_file' ) );
@@ -303,6 +304,9 @@ class LMS_Admin {
                     'i18n'    => array(
                         'confirmDelete'       => __( 'Are you sure you want to delete this preset?', 'simple-lms' ),
                         'confirmDeleteCourse' => __( 'Are you sure you want to delete this course?', 'simple-lms' ),
+                        'confirmBulkDelete'   => __( 'Are you sure you want to delete {count} courses?', 'simple-lms' ),
+                        'noCoursesSelected'   => __( 'Please select at least one course.', 'simple-lms' ),
+                        'deleting'            => __( 'Deleting...', 'simple-lms' ),
                         'saving'              => __( 'Saving...', 'simple-lms' ),
                         'saved'               => __( 'Saved!', 'simple-lms' ),
                         'error'               => __( 'Error saving. Please try again.', 'simple-lms' ),
@@ -553,6 +557,40 @@ class LMS_Admin {
         } else {
             wp_send_json_error( array( 'message' => __( 'Failed to delete course.', 'simple-lms' ) ) );
         }
+    }
+
+    /**
+     * AJAX handler for bulk deleting courses.
+     */
+    public function ajax_bulk_delete_courses() {
+        check_ajax_referer( 'simple_lms_admin', 'nonce' );
+
+        if ( ! current_user_can( 'delete_posts' ) ) {
+            wp_send_json_error( array( 'message' => __( 'Permission denied.', 'simple-lms' ) ) );
+        }
+
+        $course_ids = isset( $_POST['course_ids'] ) ? array_map( 'absint', $_POST['course_ids'] ) : array();
+        if ( empty( $course_ids ) ) {
+            wp_send_json_error( array( 'message' => __( 'No courses selected.', 'simple-lms' ) ) );
+        }
+
+        $deleted = 0;
+        foreach ( $course_ids as $course_id ) {
+            if ( wp_delete_post( $course_id, true ) ) {
+                $deleted++;
+            }
+        }
+
+        wp_send_json_success(
+            array(
+                'message' => sprintf(
+                    /* translators: %d: number of deleted courses */
+                    _n( '%d course deleted.', '%d courses deleted.', $deleted, 'simple-lms' ),
+                    $deleted
+                ),
+                'deleted' => $deleted,
+            )
+        );
     }
 
     /**

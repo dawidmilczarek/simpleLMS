@@ -18,7 +18,7 @@ $category_filter  = isset( $_GET['category'] ) ? absint( $_GET['category'] ) : 0
 $tag_filter       = isset( $_GET['tag'] ) ? absint( $_GET['tag'] ) : 0;
 $lecturer_filter  = isset( $_GET['lecturer'] ) ? absint( $_GET['lecturer'] ) : 0;
 $published_filter = isset( $_GET['published'] ) ? sanitize_text_field( wp_unslash( $_GET['published'] ) ) : '';
-$orderby          = isset( $_GET['orderby'] ) ? sanitize_text_field( wp_unslash( $_GET['orderby'] ) ) : 'date';
+$orderby          = isset( $_GET['orderby'] ) ? sanitize_text_field( wp_unslash( $_GET['orderby'] ) ) : 'course_date';
 $order            = isset( $_GET['order'] ) ? strtoupper( sanitize_text_field( wp_unslash( $_GET['order'] ) ) ) : 'DESC';
 
 // Get per_page from screen options.
@@ -149,8 +149,32 @@ function simple_lms_sort_class( $column, $current_orderby, $current_order ) {
     </div>
     <?php endif; ?>
 
+    <?php if ( isset( $_GET['bulk_deleted'] ) ) : ?>
+    <div class="notice notice-success is-dismissible">
+        <p>
+            <?php
+            $bulk_count = absint( $_GET['bulk_deleted'] );
+            printf(
+                /* translators: %d: number of deleted courses */
+                esc_html( _n( '%d course deleted.', '%d courses deleted.', $bulk_count, 'simple-lms' ) ),
+                $bulk_count
+            );
+            ?>
+        </p>
+    </div>
+    <?php endif; ?>
+
     <div class="tablenav top">
-        <form method="get" action="" class="simple-lms-filters">
+        <div class="alignleft actions bulkactions">
+            <select id="bulk-action-selector">
+                <option value=""><?php esc_html_e( 'Bulk Actions', 'simple-lms' ); ?></option>
+                <option value="delete"><?php esc_html_e( 'Delete', 'simple-lms' ); ?></option>
+            </select>
+            <button type="button" id="do-bulk-action" class="button"><?php esc_html_e( 'Apply', 'simple-lms' ); ?></button>
+            <span id="bulk-status" style="margin-left: 10px;"></span>
+        </div>
+
+        <form method="get" action="" class="simple-lms-filters" style="display: inline-block; margin-left: 15px;">
             <input type="hidden" name="page" value="simple-lms">
 
             <div class="alignleft actions">
@@ -223,9 +247,12 @@ function simple_lms_sort_class( $column, $current_orderby, $current_order ) {
         </form>
     </div>
 
-    <table class="wp-list-table widefat fixed striped">
+    <table class="wp-list-table widefat fixed striped" id="courses-table">
         <thead>
             <tr>
+                <td class="manage-column column-cb check-column" style="width: 35px;">
+                    <input type="checkbox" id="cb-select-all">
+                </td>
                 <th scope="col" class="column-title column-primary <?php echo esc_attr( simple_lms_sort_class( 'title', $orderby, $order ) ); ?>">
                     <a href="<?php echo esc_url( simple_lms_sort_url( 'title', $orderby, $order ) ); ?>">
                         <span><?php esc_html_e( 'Title', 'simple-lms' ); ?></span>
@@ -271,6 +298,9 @@ function simple_lms_sort_class( $column, $current_orderby, $current_order ) {
                 }
                 ?>
                 <tr>
+                    <th scope="row" class="check-column">
+                        <input type="checkbox" class="course-checkbox" value="<?php echo esc_attr( $course_id ); ?>">
+                    </th>
                     <td class="column-title column-primary" data-colname="<?php esc_attr_e( 'Title', 'simple-lms' ); ?>">
                         <strong>
                             <a href="<?php echo esc_url( admin_url( 'admin.php?page=simple-lms-add&course_id=' . $course_id ) ); ?>" class="row-title">
@@ -322,7 +352,7 @@ function simple_lms_sort_class( $column, $current_orderby, $current_order ) {
                 <?php wp_reset_postdata(); ?>
             <?php else : ?>
                 <tr>
-                    <td colspan="7"><?php esc_html_e( 'No courses found.', 'simple-lms' ); ?></td>
+                    <td colspan="8"><?php esc_html_e( 'No courses found.', 'simple-lms' ); ?></td>
                 </tr>
             <?php endif; ?>
         </tbody>
