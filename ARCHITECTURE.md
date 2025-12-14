@@ -12,7 +12,7 @@ A lightweight LMS plugin for WordPress/WooCommerce that integrates with WooComme
 
 ## Core Features
 
-1. **Custom Post Type**: `lms_course` - standalone entry type for courses
+1. **Custom Post Type**: `simple_lms_course` - standalone entry type for courses
 2. **Access Control**: Integration with WooCommerce Memberships & Subscriptions (OR logic)
 3. **Template System**: Admin-editable templates with placeholders, assigned per status
 4. **Shortcode System**: Configurable presets for course listings
@@ -56,7 +56,7 @@ simpleLMS/
 │       └── public.js
 │
 └── templates/
-    └── single-lms_course.php         # Default single course template
+    └── single-simple_lms_course.php  # Default single course template
 ```
 
 ---
@@ -75,13 +75,13 @@ Uses `wp_options` table for plugin data (no custom tables). This is the WordPres
 | `simple_lms_shortcode_presets` | array | Shortcode presets (preset_name => settings) |
 
 ### WordPress Native Tables (used as normal)
-- `wp_posts` - courses (post_type = 'lms_course')
+- `wp_posts` - courses (post_type = 'simple_lms_course')
 - `wp_postmeta` - course meta fields
 - `wp_terms` / `wp_term_taxonomy` - categories, tags, statuses
 
 ---
 
-## Custom Post Type: `lms_course`
+## Custom Post Type: `simple_lms_course`
 
 ### Registration
 - **Rewrite Slug**: `/course/` (URLs: `/course/course-title/`)
@@ -93,18 +93,18 @@ Uses `wp_options` table for plugin data (no custom tables). This is the WordPres
 
 | Meta Key | Type | Description |
 |----------|------|-------------|
-| `_lms_date` | date | Course/training date |
-| `_lms_time_start` | string | Start time (e.g., "10:00") |
-| `_lms_time_end` | string | End time (e.g., "16:00") |
-| `_lms_duration` | string | Duration (e.g., "6h") - auto-calculated but editable |
-| `_lms_lecturer` | string | Lecturer/trainer name |
-| `_lms_videos` | array | Array of videos (see below) |
-| `_lms_materials` | array | Array of materials (see below) |
-| `_lms_access_memberships` | array | Allowed membership plan IDs |
-| `_lms_access_products` | array | Allowed subscription product IDs |
-| `_lms_redirect_url` | string | Custom redirect URL (default: global setting) |
+| `_simple_lms_date` | date | Course/training date |
+| `_simple_lms_time_start` | string | Start time (e.g., "10:00") |
+| `_simple_lms_time_end` | string | End time (e.g., "16:00") |
+| `_simple_lms_duration` | string | Duration (e.g., "6h") - auto-calculated but editable |
+| `_simple_lms_lecturer` | string | Lecturer/trainer name |
+| `_simple_lms_videos` | array | Array of videos (see below) |
+| `_simple_lms_materials` | array | Array of materials (see below) |
+| `_simple_lms_access_memberships` | array | Allowed membership plan IDs |
+| `_simple_lms_access_products` | array | Allowed subscription product IDs |
+| `_simple_lms_redirect_url` | string | Custom redirect URL (default: global setting) |
 
-### Video Structure (`_lms_videos`)
+### Video Structure (`_simple_lms_videos`)
 ```php
 [
     ['title' => 'Część 1 - Wprowadzenie', 'vimeo_url' => 'https://vimeo.com/123456'],
@@ -112,7 +112,7 @@ Uses `wp_options` table for plugin data (no custom tables). This is the WordPres
 ]
 ```
 
-### Materials Structure (`_lms_materials`)
+### Materials Structure (`_simple_lms_materials`)
 ```php
 [
     ['label' => 'Pobierz prezentację', 'url' => 'https://example.com/file1.pdf'],
@@ -124,15 +124,15 @@ Uses `wp_options` table for plugin data (no custom tables). This is the WordPres
 
 ## Taxonomies
 
-### 1. Course Categories (`lms_course_category`)
+### 1. Course Categories (`simple_lms_category`)
 - Hierarchical (like post categories)
 - Future uses TBD by user
 
-### 2. Course Tags (`lms_course_tag`)
+### 2. Course Tags (`simple_lms_tag`)
 - Non-hierarchical
 - Future uses TBD by user
 
-### 3. Course Status (`lms_course_status`)
+### 3. Course Status (`simple_lms_status`)
 - Non-hierarchical
 - Admin can create unlimited statuses
 - Examples: "Nagranie", "Zoom", "Zaplanowane"
@@ -362,9 +362,9 @@ Configurable default values for new courses. All fields are simple text inputs (
 | Default Status | `Nagranie` | Pre-selected status for new courses |
 
 ### Taxonomy Pages (under Courses submenu or separate)
-- Categories (lms_course_category)
-- Tags (lms_course_tag)
-- Statuses (lms_course_status)
+- Categories (simple_lms_category)
+- Tags (simple_lms_tag)
+- Statuses (simple_lms_status)
 
 ---
 
@@ -373,7 +373,7 @@ Configurable default values for new courses. All fields are simple text inputs (
 ### Phase 1: Foundation
 1. Create main plugin file with activation/deactivation hooks
 2. Set up wp_options defaults on activation
-3. Register Custom Post Type `lms_course` (URL: `/course/course-title/`)
+3. Register Custom Post Type `simple_lms_course` (URL: `/course/course-title/`)
 4. Register taxonomies (categories, tags, statuses)
 5. Create meta boxes for course fields (with repeater for videos/materials)
 6. Set up admin menu structure
