@@ -20,20 +20,11 @@ $settings = get_option( 'simple_lms_settings', array() );
     <table class="form-table">
         <tr>
             <th scope="row">
-                <label for="guest_redirect_url"><?php esc_html_e( 'Guest Redirect URL', 'simple-lms' ); ?></label>
+                <label for="redirect_url"><?php esc_html_e( 'Redirect URL', 'simple-lms' ); ?></label>
             </th>
             <td>
-                <input type="text" id="guest_redirect_url" name="simple_lms_settings[guest_redirect_url]" value="<?php echo esc_attr( isset( $settings['guest_redirect_url'] ) ? $settings['guest_redirect_url'] : '/' ); ?>" class="regular-text">
-                <p class="description"><?php esc_html_e( 'Where to redirect non-logged-in users trying to access a course.', 'simple-lms' ); ?></p>
-            </td>
-        </tr>
-        <tr>
-            <th scope="row">
-                <label for="redirect_url"><?php esc_html_e( 'Default Redirect URL', 'simple-lms' ); ?></label>
-            </th>
-            <td>
-                <input type="text" id="redirect_url" name="simple_lms_settings[redirect_url]" value="<?php echo esc_attr( isset( $settings['redirect_url'] ) ? $settings['redirect_url'] : '/' ); ?>" class="regular-text">
-                <p class="description"><?php esc_html_e( 'Where to redirect logged-in users without access to a course.', 'simple-lms' ); ?></p>
+                <input type="text" id="redirect_url" name="simple_lms_settings[redirect_url]" value="<?php echo esc_attr( isset( $settings['redirect_url'] ) ? $settings['redirect_url'] : '/' ); ?>" class="regular-text" placeholder="<?php esc_attr_e( '/ or https://example.com', 'simple-lms' ); ?>">
+                <p class="description"><?php esc_html_e( 'Where to redirect users without access. Use relative path (e.g., /) or full URL (e.g., https://example.com). Can be overridden per course.', 'simple-lms' ); ?></p>
             </td>
         </tr>
         <tr>
@@ -51,6 +42,19 @@ $settings = get_option( 'simple_lms_settings', array() );
                     );
                     ?>
                 </p>
+            </td>
+        </tr>
+        <tr>
+            <th scope="row">
+                <label for="product_status_filter"><?php esc_html_e( 'Product Status Filter', 'simple-lms' ); ?></label>
+            </th>
+            <td>
+                <?php $product_status = isset( $settings['product_status_filter'] ) ? $settings['product_status_filter'] : 'publish'; ?>
+                <select id="product_status_filter" name="simple_lms_settings[product_status_filter]">
+                    <option value="publish" <?php selected( $product_status, 'publish' ); ?>><?php esc_html_e( 'Published only', 'simple-lms' ); ?></option>
+                    <option value="any" <?php selected( $product_status, 'any' ); ?>><?php esc_html_e( 'All (including drafts and trash)', 'simple-lms' ); ?></option>
+                </select>
+                <p class="description"><?php esc_html_e( 'Which subscription products to show in the course access control.', 'simple-lms' ); ?></p>
             </td>
         </tr>
     </table>

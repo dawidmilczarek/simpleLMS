@@ -11,14 +11,15 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Get filter/sort/pagination parameters.
-$paged           = isset( $_GET['paged'] ) ? absint( $_GET['paged'] ) : 1;
-$search          = isset( $_GET['s'] ) ? sanitize_text_field( wp_unslash( $_GET['s'] ) ) : '';
-$status_filter   = isset( $_GET['status'] ) ? absint( $_GET['status'] ) : 0;
-$category_filter = isset( $_GET['category'] ) ? absint( $_GET['category'] ) : 0;
-$tag_filter      = isset( $_GET['tag'] ) ? absint( $_GET['tag'] ) : 0;
-$lecturer_filter = isset( $_GET['lecturer'] ) ? absint( $_GET['lecturer'] ) : 0;
-$orderby         = isset( $_GET['orderby'] ) ? sanitize_text_field( wp_unslash( $_GET['orderby'] ) ) : 'date';
-$order           = isset( $_GET['order'] ) ? strtoupper( sanitize_text_field( wp_unslash( $_GET['order'] ) ) ) : 'DESC';
+$paged            = isset( $_GET['paged'] ) ? absint( $_GET['paged'] ) : 1;
+$search           = isset( $_GET['s'] ) ? sanitize_text_field( wp_unslash( $_GET['s'] ) ) : '';
+$status_filter    = isset( $_GET['status'] ) ? absint( $_GET['status'] ) : 0;
+$category_filter  = isset( $_GET['category'] ) ? absint( $_GET['category'] ) : 0;
+$tag_filter       = isset( $_GET['tag'] ) ? absint( $_GET['tag'] ) : 0;
+$lecturer_filter  = isset( $_GET['lecturer'] ) ? absint( $_GET['lecturer'] ) : 0;
+$published_filter = isset( $_GET['published'] ) ? sanitize_text_field( wp_unslash( $_GET['published'] ) ) : '';
+$orderby          = isset( $_GET['orderby'] ) ? sanitize_text_field( wp_unslash( $_GET['orderby'] ) ) : 'date';
+$order            = isset( $_GET['order'] ) ? strtoupper( sanitize_text_field( wp_unslash( $_GET['order'] ) ) ) : 'DESC';
 
 // Get per_page from screen options.
 $user_id  = get_current_user_id();
@@ -38,11 +39,17 @@ $orderby_map = array(
 
 $wp_orderby = isset( $orderby_map[ $orderby ] ) ? $orderby_map[ $orderby ] : 'date';
 
+// Determine post_status based on filter.
+$post_status_query = array( 'publish', 'draft' );
+if ( $published_filter && in_array( $published_filter, array( 'publish', 'draft' ), true ) ) {
+    $post_status_query = $published_filter;
+}
+
 $args = array(
     'post_type'      => 'simple_lms_course',
     'posts_per_page' => $per_page,
     'paged'          => $paged,
-    'post_status'    => array( 'publish', 'draft' ),
+    'post_status'    => $post_status_query,
     'orderby'        => $wp_orderby,
     'order'          => $order,
 );
@@ -195,9 +202,16 @@ function simple_lms_sort_class( $column, $current_orderby, $current_order ) {
                     <?php endif; ?>
                 </select>
 
+                <!-- Published filter -->
+                <select name="published">
+                    <option value=""><?php esc_html_e( 'All', 'simple-lms' ); ?></option>
+                    <option value="publish" <?php selected( $published_filter, 'publish' ); ?>><?php esc_html_e( 'Published', 'simple-lms' ); ?></option>
+                    <option value="draft" <?php selected( $published_filter, 'draft' ); ?>><?php esc_html_e( 'Draft', 'simple-lms' ); ?></option>
+                </select>
+
                 <input type="submit" class="button" value="<?php esc_attr_e( 'Filter', 'simple-lms' ); ?>">
 
-                <?php if ( $category_filter || $tag_filter || $status_filter || $lecturer_filter || $search ) : ?>
+                <?php if ( $category_filter || $tag_filter || $status_filter || $lecturer_filter || $published_filter || $search ) : ?>
                 <a href="<?php echo esc_url( admin_url( 'admin.php?page=simple-lms' ) ); ?>" class="button"><?php esc_html_e( 'Reset', 'simple-lms' ); ?></a>
                 <?php endif; ?>
             </div>

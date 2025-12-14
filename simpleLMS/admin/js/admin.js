@@ -15,6 +15,7 @@
             this.initPresetForm();
             this.initElementsSortable();
             this.initCourseActions();
+            this.initProductSelect();
         },
 
         /**
@@ -395,6 +396,49 @@
                 }).fail(function() {
                     alert(simpleLMS.i18n.error);
                 });
+            });
+        },
+
+        /**
+         * Initialize product select with Select2.
+         */
+        initProductSelect: function() {
+            var $productSelect = $('.simple-lms-product-select');
+
+            if (!$productSelect.length || typeof $.fn.select2 === 'undefined') {
+                return;
+            }
+
+            $productSelect.select2({
+                placeholder: simpleLMS.i18n.searchProducts || 'Search products...',
+                allowClear: true,
+                minimumInputLength: 0,
+                ajax: {
+                    url: simpleLMS.ajaxUrl,
+                    dataType: 'json',
+                    delay: 250,
+                    data: function(params) {
+                        return {
+                            action: 'simple_lms_search_products',
+                            nonce: simpleLMS.nonce,
+                            search: params.term || ''
+                        };
+                    },
+                    processResults: function(response) {
+                        if (response.success) {
+                            return {
+                                results: response.data
+                            };
+                        }
+                        return { results: [] };
+                    },
+                    cache: true
+                },
+                language: {
+                    noResults: function() {
+                        return simpleLMS.i18n.noProductsFound || 'No products found';
+                    }
+                }
             });
         }
     };

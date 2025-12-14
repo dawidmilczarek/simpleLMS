@@ -104,7 +104,7 @@ Uses `wp_options` table for plugin data (no custom tables). This is the WordPres
 | `_simple_lms_materials` | array | Array of materials (see below) |
 | `_simple_lms_access_memberships` | array | Allowed membership plan IDs |
 | `_simple_lms_access_products` | array | Allowed subscription product IDs |
-| `_simple_lms_redirect_url` | string | Custom redirect URL (default: global setting) |
+| `_simple_lms_redirect_url` | string | Custom redirect URL - relative path or full URL (default: global setting) |
 
 > **Note**: Lecturer is now stored as a taxonomy (`simple_lms_lecturer`), not as post meta.
 
@@ -177,9 +177,13 @@ wcs_user_has_subscription($user_id, $product_id, 'active')
 ```
 
 ### Access Denied Behavior
-1. Check if user is logged in
-2. If not logged in → redirect to Guest Redirect URL (default: `/`, configurable in Settings)
-3. If logged in but no access → redirect to configured URL (default: `/`)
+1. Check if user has access (via membership or subscription)
+2. If no access → redirect to configured URL (default: `/`, configurable in Settings → General)
+3. Per-course override available in course edit form (Redirect URL field)
+
+**Redirect URL Format:**
+- Relative path (e.g., `/`, `/pricing/`) - will be prepended with site URL
+- Full external URL (e.g., `https://example.com`) - used as-is
 
 ---
 
@@ -368,9 +372,9 @@ simpleLMS
 ├── Add New Course   → Dedicated course form (admin.php?page=simple-lms-add)
 └── Settings         → Tabbed settings page (admin.php?page=simple-lms-settings)
     ├── Tab: General
-    │   ├── Guest redirect URL (for non-logged-in users, default: '/')
-    │   ├── Default redirect URL (for logged-in users without access)
+    │   ├── Redirect URL (for users without access, default: '/')
     │   ├── Date format
+    │   ├── Product status filter (published only or all including drafts/trash)
     │   └── Default values (time range, duration, video title, material label)
     ├── Tab: Templates
     │   ├── Default template editor
@@ -656,7 +660,7 @@ The plugin uses a dedicated custom form for adding and editing courses (not the 
 3. **Videos** - Repeater field (drag to reorder, add/remove)
 4. **Materials** - Repeater field (drag to reorder, add/remove)
 5. **Additional Content** - WordPress WYSIWYG editor
-6. **Access Control** - Membership/subscription checkboxes, redirect URL
+6. **Access Control** - Membership checkboxes, subscription products (searchable multi-select with AJAX), redirect URL
 
 ### Sidebar Sections
 1. **Publish** - Status selection (Published/Draft), Update/Create button, View link
@@ -672,7 +676,7 @@ Custom table view for managing courses.
 
 ### Features
 - **Search**: Search courses by title
-- **Filters**: Filter by category, tags, status, lecturer (combinable with AND logic)
+- **Filters**: Filter by category, tags, status, lecturer, published status (combinable with AND logic)
 - **Sorting**: Clickable column headers for Title, Course Date, Lecturer, Published
 - **Pagination**: Navigate through courses
 - **Screen Options**: Configurable items per page (WordPress standard Screen Options panel)

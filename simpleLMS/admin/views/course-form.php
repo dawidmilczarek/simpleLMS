@@ -78,7 +78,7 @@ if ( ! $is_edit && ! empty( $settings['default_lecturer'] ) ) {
 $has_memberships   = function_exists( 'wc_memberships' );
 $has_subscriptions = class_exists( 'WC_Subscriptions' );
 $membership_plans  = LMS_Admin::get_membership_plans();
-$subscription_products = LMS_Admin::get_subscription_products();
+$subscription_products = LMS_Admin::get_subscription_products( '', $products );
 
 $default_video_title   = $settings['default_video_title'] ?? '';
 $default_material_label = $settings['default_material_label'] ?? '';
@@ -284,19 +284,24 @@ $page_title = $is_edit ? __( 'Edit Course', 'simple-lms' ) : __( 'Add New Course
 
                         <?php if ( $has_subscriptions ) : ?>
                         <tr>
-                            <th><label><?php esc_html_e( 'Required Subscriptions', 'simple-lms' ); ?></label></th>
+                            <th><label for="simple_lms_access_products"><?php esc_html_e( 'Required Subscriptions', 'simple-lms' ); ?></label></th>
                             <td>
-                                <?php if ( ! empty( $subscription_products ) ) : ?>
+                                <select id="simple_lms_access_products" name="simple_lms_access_products[]" class="simple-lms-product-select" multiple="multiple" style="width: 100%;">
                                     <?php foreach ( $subscription_products as $product ) : ?>
-                                    <label class="simple-lms-checkbox">
-                                        <input type="checkbox" name="simple_lms_access_products[]" value="<?php echo esc_attr( $product->get_id() ); ?>" <?php checked( in_array( $product->get_id(), $products, true ) ); ?>>
-                                        <?php echo esc_html( $product->get_name() ); ?>
-                                    </label><br>
+                                        <?php
+                                        $status_label = '';
+                                        if ( 'draft' === $product->get_status() ) {
+                                            $status_label = ' (' . __( 'Draft', 'simple-lms' ) . ')';
+                                        } elseif ( 'trash' === $product->get_status() ) {
+                                            $status_label = ' (' . __( 'Trash', 'simple-lms' ) . ')';
+                                        }
+                                        ?>
+                                    <option value="<?php echo esc_attr( $product->get_id() ); ?>" <?php selected( in_array( $product->get_id(), $products, true ) ); ?>>
+                                        <?php echo esc_html( $product->get_name() . $status_label ); ?>
+                                    </option>
                                     <?php endforeach; ?>
-                                    <p class="description"><?php esc_html_e( 'User needs active subscription to ANY of the selected products (OR logic).', 'simple-lms' ); ?></p>
-                                <?php else : ?>
-                                    <p class="description"><?php esc_html_e( 'No subscription products found.', 'simple-lms' ); ?></p>
-                                <?php endif; ?>
+                                </select>
+                                <p class="description"><?php esc_html_e( 'Search and select products. User needs active subscription to ANY of the selected products (OR logic).', 'simple-lms' ); ?></p>
                             </td>
                         </tr>
                         <?php else : ?>
@@ -309,8 +314,8 @@ $page_title = $is_edit ? __( 'Edit Course', 'simple-lms' ) : __( 'Add New Course
                         <tr>
                             <th><label for="simple_lms_redirect_url"><?php esc_html_e( 'Redirect URL', 'simple-lms' ); ?></label></th>
                             <td>
-                                <input type="url" id="simple_lms_redirect_url" name="simple_lms_redirect_url" value="<?php echo esc_attr( $redirect_url ); ?>" class="regular-text" placeholder="<?php echo esc_attr( Simple_LMS::get_setting( 'redirect_url', '/sklep/' ) ); ?>">
-                                <p class="description"><?php esc_html_e( 'Where to redirect users without access. Leave empty to use default.', 'simple-lms' ); ?></p>
+                                <input type="text" id="simple_lms_redirect_url" name="simple_lms_redirect_url" value="<?php echo esc_attr( $redirect_url ); ?>" class="regular-text" placeholder="<?php esc_attr_e( '/ or https://example.com', 'simple-lms' ); ?>">
+                                <p class="description"><?php esc_html_e( 'Relative path or full URL. Leave empty to use global setting.', 'simple-lms' ); ?></p>
                             </td>
                         </tr>
                     </table>

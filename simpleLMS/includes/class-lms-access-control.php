@@ -43,14 +43,8 @@ class LMS_Access_Control {
          */
         do_action( 'lms_access_denied', $post_id );
 
-        // Get redirect URL.
+        // Get redirect URL (same for all users without access).
         $redirect_url = $this->get_redirect_url( $post_id );
-
-        // Handle logged out users.
-        if ( ! is_user_logged_in() ) {
-            $guest_redirect = Simple_LMS::get_setting( 'guest_redirect_url', '/' );
-            $redirect_url   = home_url( $guest_redirect );
-        }
 
         /**
          * Filter the redirect URL.
@@ -60,7 +54,12 @@ class LMS_Access_Control {
          */
         $redirect_url = apply_filters( 'lms_redirect_url', $redirect_url, $post_id );
 
-        wp_safe_redirect( $redirect_url );
+        // Use wp_redirect for external URLs (wp_safe_redirect blocks external domains).
+        if ( wp_http_validate_url( $redirect_url ) && ! $this->is_internal_url( $redirect_url ) ) {
+            wp_redirect( $redirect_url ); // phpcs:ignore WordPress.Security.SafeRedirect.wp_redirect_wp_redirect
+        } else {
+            wp_safe_redirect( $redirect_url );
+        }
         exit;
     }
 
@@ -164,13 +163,42 @@ class LMS_Access_Control {
         // Check course-specific redirect.
         $course_redirect = get_post_meta( $post_id, '_simple_lms_redirect_url', true );
         if ( ! empty( $course_redirect ) ) {
-            return $course_redirect;
+            return $this->normalize_redirect_url( $course_redirect );
         }
 
         // Fall back to global setting.
         $default_redirect = Simple_LMS::get_setting( 'redirect_url', '/' );
 
-        return home_url( $default_redirect );
+        return $this->normalize_redirect_url( $default_redirect );
+    }
+
+    /**
+     * Normalize redirect URL - return as-is if external, or prepend home_url if relative.
+     *
+     * @param string $url The URL to normalize.
+     * @return string
+     */
+    private function normalize_redirect_url( $url ) {
+        // If it's already a full URL, return as-is.
+        if ( preg_match( '#^https?://#i', $url ) ) {
+            return $url;
+        }
+
+        // Otherwise, treat as relative path.
+        return home_url( $url );
+    }
+
+    /**
+     * Check if URL is internal (same host as site).
+     *
+     * @param string $url The URL to check.
+     * @return bool
+     */
+    private function is_internal_url( $url ) {
+        $site_host = wp_parse_url( home_url(), PHP_URL_HOST );
+        $url_host  = wp_parse_url( $url, PHP_URL_HOST );
+
+        return $site_host === $url_host;
     }
 
     /**

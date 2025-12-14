@@ -35,6 +35,7 @@ class LMS_Admin {
         add_action( 'wp_ajax_simple_lms_delete_shortcode_preset', array( $this, 'ajax_delete_shortcode_preset' ) );
         add_action( 'wp_ajax_simple_lms_delete_course', array( $this, 'ajax_delete_course' ) );
         add_action( 'wp_ajax_simple_lms_reset_default_template', array( $this, 'ajax_reset_default_template' ) );
+        add_action( 'wp_ajax_simple_lms_search_products', array( $this, 'ajax_search_products' ) );
         add_filter( 'parent_file', array( $this, 'fix_parent_menu' ) );
         add_filter( 'submenu_file', array( $this, 'fix_submenu_file' ) );
         add_filter( 'set-screen-option', array( $this, 'set_screen_option' ), 10, 3 );
@@ -230,15 +231,20 @@ class LMS_Admin {
     public function sanitize_settings( $input ) {
         $sanitized = array();
 
-        $sanitized['redirect_url']           = isset( $input['redirect_url'] ) ? esc_url_raw( $input['redirect_url'] ) : '/sklep/';
+        // URL field - use sanitize_text_field to allow relative paths like "/".
+        $sanitized['redirect_url']           = isset( $input['redirect_url'] ) ? sanitize_text_field( $input['redirect_url'] ) : '/';
         $sanitized['date_format']            = isset( $input['date_format'] ) ? sanitize_text_field( $input['date_format'] ) : 'd.m.Y';
+        $sanitized['product_status_filter']  = isset( $input['product_status_filter'] ) && in_array( $input['product_status_filter'], array( 'publish', 'any' ), true ) ? $input['product_status_filter'] : 'publish';
         $sanitized['default_material_label'] = isset( $input['default_material_label'] ) ? sanitize_text_field( $input['default_material_label'] ) : '';
         $sanitized['default_video_title']    = isset( $input['default_video_title'] ) ? sanitize_text_field( $input['default_video_title'] ) : '';
-        $sanitized['default_lecturer']       = isset( $input['default_lecturer'] ) ? sanitize_text_field( $input['default_lecturer'] ) : '';
         $sanitized['default_time_start']     = isset( $input['default_time_start'] ) ? sanitize_text_field( $input['default_time_start'] ) : '';
         $sanitized['default_time_end']       = isset( $input['default_time_end'] ) ? sanitize_text_field( $input['default_time_end'] ) : '';
         $sanitized['default_duration']       = isset( $input['default_duration'] ) ? sanitize_text_field( $input['default_duration'] ) : '';
+
+        // Default taxonomy values (saved from taxonomy tabs).
         $sanitized['default_status']         = isset( $input['default_status'] ) ? sanitize_text_field( $input['default_status'] ) : '';
+        $sanitized['default_category']       = isset( $input['default_category'] ) ? sanitize_text_field( $input['default_category'] ) : '';
+        $sanitized['default_lecturer']       = isset( $input['default_lecturer'] ) ? sanitize_text_field( $input['default_lecturer'] ) : '';
 
         return $sanitized;
     }
@@ -312,6 +318,8 @@ class LMS_Admin {
                         'saved'                => __( 'Saved!', 'simple-lms' ),
                         'error'                => __( 'Error saving. Please try again.', 'simple-lms' ),
                         'templateReset'        => __( 'Template has been reset.', 'simple-lms' ),
+                        'searchProducts'       => __( 'Search products...', 'simple-lms' ),
+                        'noProductsFound'      => __( 'No products found', 'simple-lms' ),
                     ),
                 )
             );
@@ -320,6 +328,12 @@ class LMS_Admin {
             if ( 'simplelms_page_simple-lms-add' === $hook || ( isset( $_GET['page'] ) && 'simple-lms-add' === $_GET['page'] ) ) {
                 wp_enqueue_editor();
                 wp_enqueue_media();
+
+                // Enqueue Select2 for product search (use WooCommerce's if available).
+                if ( class_exists( 'WC_Subscriptions' ) ) {
+                    wp_enqueue_style( 'select2', WC()->plugin_url() . '/assets/css/select2.css', array(), '4.0.3' );
+                    wp_enqueue_script( 'select2', WC()->plugin_url() . '/assets/js/select2/select2.full.min.js', array( 'jquery' ), '4.0.3', true );
+                }
             }
         }
 
@@ -635,18 +649,47 @@ class LMS_Admin {
      *
      * @return array
      */
-    public static function get_subscription_products() {
+    public static function get_subscription_products( $search = '', $selected_ids = array() ) {
         if ( ! class_exists( 'WC_Subscriptions' ) ) {
             return array();
         }
 
-        $products = wc_get_products(
-            array(
-                'type'   => array( 'subscription', 'variable-subscription' ),
-                'limit'  => -1,
-                'status' => 'publish',
-            )
+        $status_filter = Simple_LMS::get_setting( 'product_status_filter', 'publish' );
+        $status = 'any' === $status_filter ? array( 'publish', 'draft', 'trash' ) : 'publish';
+
+        $args = array(
+            'type'   => array( 'subscription', 'variable-subscription' ),
+            'limit'  => 50, // Limit for performance.
+            'status' => $status,
         );
+
+        // If searching, add search parameter.
+        if ( ! empty( $search ) ) {
+            $args['s'] = $search;
+        }
+
+        // If we have selected IDs, we need to include them even if they don't match search.
+        $products = wc_get_products( $args );
+
+        // Also fetch selected products that might not be in the search results.
+        if ( ! empty( $selected_ids ) ) {
+            $selected_products = wc_get_products(
+                array(
+                    'type'    => array( 'subscription', 'variable-subscription' ),
+                    'include' => $selected_ids,
+                    'status'  => $status,
+                    'limit'   => -1,
+                )
+            );
+
+            // Merge and dedupe.
+            $product_ids = array_map( function( $p ) { return $p->get_id(); }, $products );
+            foreach ( $selected_products as $selected ) {
+                if ( ! in_array( $selected->get_id(), $product_ids, true ) ) {
+                    $products[] = $selected;
+                }
+            }
+        }
 
         return $products;
     }
@@ -670,6 +713,37 @@ class LMS_Admin {
                 'template' => $default_template,
             )
         );
+    }
+
+    /**
+     * AJAX handler for searching subscription products.
+     */
+    public function ajax_search_products() {
+        check_ajax_referer( 'simple_lms_admin', 'nonce' );
+
+        if ( ! current_user_can( 'edit_posts' ) ) {
+            wp_send_json_error( array( 'message' => __( 'Permission denied.', 'simple-lms' ) ) );
+        }
+
+        $search = isset( $_GET['search'] ) ? sanitize_text_field( wp_unslash( $_GET['search'] ) ) : '';
+        $products = self::get_subscription_products( $search );
+
+        $results = array();
+        foreach ( $products as $product ) {
+            $status_label = '';
+            if ( 'draft' === $product->get_status() ) {
+                $status_label = ' (' . __( 'Draft', 'simple-lms' ) . ')';
+            } elseif ( 'trash' === $product->get_status() ) {
+                $status_label = ' (' . __( 'Trash', 'simple-lms' ) . ')';
+            }
+
+            $results[] = array(
+                'id'   => $product->get_id(),
+                'text' => $product->get_name() . $status_label,
+            );
+        }
+
+        wp_send_json_success( $results );
     }
 
     /**
