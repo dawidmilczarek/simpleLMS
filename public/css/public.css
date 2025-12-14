@@ -1,44 +1,11 @@
 /**
  * simpleLMS Public Styles
+ * Minimal structural styles only
  */
 
-/* Single Course Template */
-.lms-course-single {
-    max-width: 100%;
-}
-
-.lms-course-header {
-    margin-bottom: 2em;
-    padding: 1.5em;
-    background: #f9f9f9;
-    border-radius: 5px;
-}
-
-.lms-course-header p {
-    margin: 0;
-    line-height: 1.8;
-}
-
-.lms-video-section,
-.lms-content-section,
-.lms-materials-section {
-    margin-bottom: 2em;
-}
-
-.lms-video-section h2,
-.lms-materials-section h2 {
-    margin-bottom: 1em;
-    font-size: 1.5em;
-}
-
-/* Video Items */
+/* Video Embed - responsive 16:9 container */
 .lms-video-item {
-    margin-bottom: 2em;
-}
-
-.lms-video-item h3 {
-    margin-bottom: 0.5em;
-    font-size: 1.2em;
+    margin-bottom: 1.5em;
 }
 
 .lms-video-embed {
@@ -46,7 +13,6 @@
     padding-bottom: 56.25%; /* 16:9 aspect ratio */
     height: 0;
     overflow: hidden;
-    max-width: 100%;
 }
 
 .lms-video-embed iframe {
@@ -57,34 +23,17 @@
     height: 100%;
 }
 
-/* Materials List */
+/* Materials List - reset list styles */
 .lms-materials-list {
     list-style: none;
     margin: 0;
     padding: 0;
 }
 
-.lms-materials-list li {
-    margin-bottom: 0.5em;
-    padding: 0.75em 1em;
-    background: #f5f5f5;
-    border-radius: 4px;
-}
-
-.lms-materials-list li a {
-    text-decoration: none;
-    font-weight: 500;
-}
-
-.lms-materials-list li a:hover {
-    text-decoration: underline;
-}
-
 /* Course Grid (Shortcode) */
 .lms-courses-grid {
     display: grid;
     gap: 1.5em;
-    margin: 1.5em 0;
 }
 
 .lms-columns-1 {
@@ -103,86 +52,7 @@
     grid-template-columns: repeat(4, 1fr);
 }
 
-/* Course Card */
-.lms-course-card {
-    padding: 1.5em;
-    background: #fff;
-    border: 1px solid #e0e0e0;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-    transition: box-shadow 0.2s ease, transform 0.2s ease;
-}
-
-.lms-course-card:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    transform: translateY(-2px);
-}
-
-.lms-course-title {
-    margin: 0 0 0.75em;
-    font-size: 1.25em;
-    line-height: 1.3;
-}
-
-.lms-course-title a {
-    text-decoration: none;
-    color: inherit;
-}
-
-.lms-course-title a:hover {
-    color: #0073aa;
-}
-
-.lms-course-status {
-    display: inline-block;
-    padding: 0.25em 0.75em;
-    margin-bottom: 0.75em;
-    font-size: 0.8em;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    background: #e0e0e0;
-    border-radius: 3px;
-    color: #555;
-}
-
-/* Meta Items */
-.lms-course-card [class^="lms-meta-"] {
-    display: block;
-    margin-bottom: 0.4em;
-    font-size: 0.9em;
-    color: #666;
-}
-
-.lms-course-card [class^="lms-meta-"]:last-child {
-    margin-bottom: 0;
-}
-
-.lms-meta-date::before {
-    content: "📅 ";
-}
-
-.lms-meta-time::before {
-    content: "🕐 ";
-}
-
-.lms-meta-duration::before {
-    content: "⏱️ ";
-}
-
-.lms-meta-lecturer::before {
-    content: "👤 ";
-}
-
-.lms-meta-category::before {
-    content: "📁 ";
-}
-
-.lms-meta-tags::before {
-    content: "🏷️ ";
-}
-
-/* Responsive */
+/* Responsive grid */
 @media (max-width: 992px) {
     .lms-columns-4 {
         grid-template-columns: repeat(3, 1fr);
@@ -201,9 +71,5 @@
     .lms-columns-3,
     .lms-columns-4 {
         grid-template-columns: 1fr;
-    }
-
-    .lms-course-card {
-        padding: 1em;
     }
 }
