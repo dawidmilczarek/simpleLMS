@@ -394,17 +394,23 @@
     background-color: #2271b1;
     border-color: #2271b1;
     color: #fff;
-    padding: 3px 8px;
+    padding: 3px 8px 3px 24px;
     margin: 4px;
+    position: relative;
 }
 
 .simple-lms-product-select + .select2-container .select2-selection--multiple .select2-selection__choice__remove {
     color: #fff;
-    margin-right: 5px;
+    position: absolute;
+    left: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 14px;
+    font-weight: bold;
 }
 
 .simple-lms-product-select + .select2-container .select2-selection--multiple .select2-selection__choice__remove:hover {
-    color: #fff;
+    color: #d63638;
     background: none;
 }
 

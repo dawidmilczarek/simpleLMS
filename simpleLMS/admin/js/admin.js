@@ -410,9 +410,8 @@
             }
 
             $productSelect.select2({
-                placeholder: simpleLMS.i18n.searchProducts || 'Search products...',
-                allowClear: true,
-                minimumInputLength: 0,
+                width: '100%',
+                minimumInputLength: 1,
                 ajax: {
                     url: simpleLMS.ajaxUrl,
                     dataType: 'json',
@@ -426,18 +425,11 @@
                     },
                     processResults: function(response) {
                         if (response.success) {
-                            return {
-                                results: response.data
-                            };
+                            return { results: response.data };
                         }
                         return { results: [] };
                     },
                     cache: true
-                },
-                language: {
-                    noResults: function() {
-                        return simpleLMS.i18n.noProductsFound || 'No products found';
-                    }
                 }
             });
         }

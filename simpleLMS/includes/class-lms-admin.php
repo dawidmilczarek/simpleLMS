@@ -296,10 +296,32 @@ class LMS_Admin {
                 SIMPLE_LMS_VERSION
             );
 
+            // Check if we need Select2 on course form page.
+            $is_course_form = 'simplelms_page_simple-lms-add' === $hook || ( isset( $_GET['page'] ) && 'simple-lms-add' === $_GET['page'] );
+            $has_select2    = false;
+
+            if ( $is_course_form ) {
+                wp_enqueue_editor();
+                wp_enqueue_media();
+
+                // Enqueue Select2 from WooCommerce.
+                if ( class_exists( 'WC_Subscriptions' ) && function_exists( 'WC' ) ) {
+                    wp_enqueue_style( 'select2', WC()->plugin_url() . '/assets/css/select2.css', array(), '4.0.3' );
+                    wp_enqueue_script( 'select2', WC()->plugin_url() . '/assets/js/select2/select2.full.min.js', array( 'jquery' ), '4.0.3', true );
+                    $has_select2 = true;
+                }
+            }
+
+            // Admin script - add select2 dependency if loaded.
+            $script_deps = array( 'jquery', 'jquery-ui-sortable' );
+            if ( $has_select2 ) {
+                $script_deps[] = 'select2';
+            }
+
             wp_enqueue_script(
                 'simple-lms-admin',
                 SIMPLE_LMS_PLUGIN_URL . 'admin/js/admin.js',
-                array( 'jquery', 'jquery-ui-sortable' ),
+                $script_deps,
                 SIMPLE_LMS_VERSION,
                 true
             );
@@ -318,23 +340,9 @@ class LMS_Admin {
                         'saved'                => __( 'Saved!', 'simple-lms' ),
                         'error'                => __( 'Error saving. Please try again.', 'simple-lms' ),
                         'templateReset'        => __( 'Template has been reset.', 'simple-lms' ),
-                        'searchProducts'       => __( 'Search products...', 'simple-lms' ),
-                        'noProductsFound'      => __( 'No products found', 'simple-lms' ),
                     ),
                 )
             );
-
-            // Enqueue WordPress editor for course content.
-            if ( 'simplelms_page_simple-lms-add' === $hook || ( isset( $_GET['page'] ) && 'simple-lms-add' === $_GET['page'] ) ) {
-                wp_enqueue_editor();
-                wp_enqueue_media();
-
-                // Enqueue Select2 for product search (use WooCommerce's if available).
-                if ( class_exists( 'WC_Subscriptions' ) ) {
-                    wp_enqueue_style( 'select2', WC()->plugin_url() . '/assets/css/select2.css', array(), '4.0.3' );
-                    wp_enqueue_script( 'select2', WC()->plugin_url() . '/assets/js/select2/select2.full.min.js', array( 'jquery' ), '4.0.3', true );
-                }
-            }
         }
 
         // Enqueue code editor for templates tab.

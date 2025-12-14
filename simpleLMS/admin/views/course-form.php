@@ -287,19 +287,18 @@ $page_title = $is_edit ? __( 'Edit Course', 'simple-lms' ) : __( 'Add New Course
                             <th><label for="simple_lms_access_products"><?php esc_html_e( 'Required Subscriptions', 'simple-lms' ); ?></label></th>
                             <td>
                                 <select id="simple_lms_access_products" name="simple_lms_access_products[]" class="simple-lms-product-select" multiple="multiple" style="width: 100%;">
-                                    <?php foreach ( $subscription_products as $product ) : ?>
-                                        <?php
-                                        $status_label = '';
-                                        if ( 'draft' === $product->get_status() ) {
-                                            $status_label = ' (' . __( 'Draft', 'simple-lms' ) . ')';
-                                        } elseif ( 'trash' === $product->get_status() ) {
-                                            $status_label = ' (' . __( 'Trash', 'simple-lms' ) . ')';
-                                        }
-                                        ?>
-                                    <option value="<?php echo esc_attr( $product->get_id() ); ?>" <?php selected( in_array( $product->get_id(), $products, true ) ); ?>>
-                                        <?php echo esc_html( $product->get_name() . $status_label ); ?>
+                                    <?php
+                                    // Only render selected products - AJAX handles search.
+                                    foreach ( $subscription_products as $product ) :
+                                        if ( in_array( $product->get_id(), $products, true ) ) :
+                                            ?>
+                                    <option value="<?php echo esc_attr( $product->get_id() ); ?>" selected>
+                                        <?php echo esc_html( $product->get_name() ); ?>
                                     </option>
-                                    <?php endforeach; ?>
+                                            <?php
+                                        endif;
+                                    endforeach;
+                                    ?>
                                 </select>
                                 <p class="description"><?php esc_html_e( 'Search and select products. User needs active subscription to ANY of the selected products (OR logic).', 'simple-lms' ); ?></p>
                             </td>
