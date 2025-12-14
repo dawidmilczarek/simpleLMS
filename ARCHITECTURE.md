@@ -87,7 +87,7 @@ Uses `wp_options` table for plugin data (no custom tables). This is the WordPres
 - **Rewrite Slug**: `/course/` (URLs: `/course/course-title/`)
 - **Public**: Yes
 - **Has Archive**: No
-- **Supports**: title, editor (WYSIWYG for additional content), thumbnail
+- **Supports**: title, editor (WYSIWYG for additional content)
 
 ### Meta Fields (stored as post meta)
 
@@ -197,26 +197,46 @@ Templates stored in `wp_options` table:
 | `{{LMS_VIDEOS}}` | All videos rendered (titles + embedded players) |
 | `{{LMS_MATERIALS}}` | All materials rendered (clickable links) |
 | `{{LMS_CATEGORY}}` | Primary category name |
+| `{{LMS_TAGS}}` | Course tags (comma-separated) |
 | `{{LMS_STATUS}}` | Course status |
 | `{{LMS_CONTENT}}` | Post editor content (WYSIWYG) |
 
 ### Conditional Blocks
 
+All placeholders have corresponding conditional blocks. Block only renders if data exists (not empty).
+
+| Conditional Block | Renders if... |
+|-------------------|---------------|
+| `{{#IF_DATE}}...{{/IF_DATE}}` | Date is set |
+| `{{#IF_TIME}}...{{/IF_TIME}}` | Time range is set |
+| `{{#IF_DURATION}}...{{/IF_DURATION}}` | Duration is set |
+| `{{#IF_LECTURER}}...{{/IF_LECTURER}}` | Lecturer field is not empty |
+| `{{#IF_VIDEOS}}...{{/IF_VIDEOS}}` | At least one video exists |
+| `{{#IF_MATERIALS}}...{{/IF_MATERIALS}}` | At least one material link exists |
+| `{{#IF_CATEGORY}}...{{/IF_CATEGORY}}` | Course has a category |
+| `{{#IF_TAGS}}...{{/IF_TAGS}}` | Course has at least one tag |
+| `{{#IF_STATUS}}...{{/IF_STATUS}}` | Course has a status |
+| `{{#IF_CONTENT}}...{{/IF_CONTENT}}` | Post editor has content |
+
+**Example usage:**
 ```html
-{{#IF_MATERIALS}}
-<h2>Materiały szkoleniowe</h2>
-{{LMS_MATERIALS}}
-{{/IF_MATERIALS}}
+{{#IF_LECTURER}}
+<p><strong>Wykładowca:</strong> {{LMS_LECTURER}}</p>
+{{/IF_LECTURER}}
 
 {{#IF_VIDEOS}}
 <div class="video-section">
-{{LMS_VIDEOS}}
+  <h2>Nagrania</h2>
+  {{LMS_VIDEOS}}
 </div>
 {{/IF_VIDEOS}}
 
-{{#IF_CONTENT}}
-<div class="course-content">{{LMS_CONTENT}}</div>
-{{/IF_CONTENT}}
+{{#IF_MATERIALS}}
+<div class="materials-section">
+  <h2>Materiały szkoleniowe</h2>
+  {{LMS_MATERIALS}}
+</div>
+{{/IF_MATERIALS}}
 ```
 
 ### Rendered Output Examples
@@ -273,10 +293,10 @@ Each preset defines:
 | `statuses` | array | all | Filter by course statuses |
 | `categories` | array | all | Filter by categories |
 | `tags` | array | all | Filter by course tags |
-| `order` | string | DESC | ASC or DESC |
-| `orderby` | string | date | date, title, menu_order |
-| `limit` | int | -1 | Number of courses (-1 = all) |
-| `columns` | int | 3 | Grid columns (1-4) |
+| `order` | string | DESC | ASC (oldest/A first) or DESC (newest/Z first) |
+| `orderby` | string | date | `date` (course date), `title` (alphabetical), `menu_order` (manual) |
+| `limit` | int | -1 | Number of courses to show (-1 = all) |
+| `columns` | int | 3 | Grid columns: 1 (full), 2, 3, or 4 per row |
 
 **Element Display & Order:**
 
@@ -289,13 +309,14 @@ The `elements` array defines which elements are shown AND their order (drag-drop
 ```php
 // Default element order
 'elements' => [
-    'thumbnail',   // Featured image with status badge
     'title',       // Course title (linked)
+    'status',      // Status badge
     'date',        // Course date
     'time',        // Time range
     'duration',    // Duration
     'lecturer',    // Lecturer name
     'category',    // Category name (hidden by default)
+    'tags',        // Tags (hidden by default)
 ]
 ```
 
@@ -307,18 +328,13 @@ Admin UI shows a drag-drop list where you can:
 ```html
 <div class="lms-courses-grid lms-columns-3" data-preset="featured">
   <article class="lms-course-card">
-    <div class="lms-course-thumbnail">
-      <a href="..."><img src="..." alt="..."></a>
-      <span class="lms-course-status">Nagranie</span>
-    </div>
-    <div class="lms-course-content">
-      <h3 class="lms-course-title"><a href="...">Course Title</a></h3>
-      <div class="lms-course-meta">
-        <span class="lms-meta-date">15.01.2025</span>
-        <span class="lms-meta-time">10:00 - 16:00</span>
-        <span class="lms-meta-duration">5 godzin</span>
-        <span class="lms-meta-lecturer">Jan Kowalski</span>
-      </div>
+    <h3 class="lms-course-title"><a href="...">Course Title</a></h3>
+    <span class="lms-course-status">Nagranie</span>
+    <div class="lms-course-meta">
+      <span class="lms-meta-date">15.01.2025</span>
+      <span class="lms-meta-time">10:00 - 16:00</span>
+      <span class="lms-meta-duration">5 godzin</span>
+      <span class="lms-meta-lecturer">Jan Kowalski</span>
     </div>
   </article>
   <!-- more courses... -->
