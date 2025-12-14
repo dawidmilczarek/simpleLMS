@@ -120,6 +120,61 @@ class Simple_LMS {
     private function init_hooks() {
         add_action( 'init', array( $this, 'init' ), 0 );
         add_action( 'admin_notices', array( $this, 'dependency_notices' ) );
+        add_action( 'admin_bar_menu', array( $this, 'add_admin_bar_menu' ), 100 );
+    }
+
+    /**
+     * Add admin bar menu items.
+     *
+     * This runs on both frontend and backend to show LMS quick links.
+     *
+     * @param WP_Admin_Bar $wp_admin_bar Admin bar object.
+     */
+    public function add_admin_bar_menu( $wp_admin_bar ) {
+        if ( ! current_user_can( 'edit_posts' ) ) {
+            return;
+        }
+
+        // Main LMS menu.
+        $wp_admin_bar->add_node(
+            array(
+                'id'    => 'simple-lms',
+                'title' => __( 'simpleLMS', 'simple-lms' ),
+                'href'  => admin_url( 'admin.php?page=simple-lms' ),
+            )
+        );
+
+        // Add New Course.
+        $wp_admin_bar->add_node(
+            array(
+                'id'     => 'simple-lms-add',
+                'parent' => 'simple-lms',
+                'title'  => __( 'Add New Course', 'simple-lms' ),
+                'href'   => admin_url( 'admin.php?page=simple-lms-add' ),
+            )
+        );
+
+        // All Courses.
+        $wp_admin_bar->add_node(
+            array(
+                'id'     => 'simple-lms-courses',
+                'parent' => 'simple-lms',
+                'title'  => __( 'All Courses', 'simple-lms' ),
+                'href'   => admin_url( 'admin.php?page=simple-lms' ),
+            )
+        );
+
+        // Edit current course (only on single course page - frontend).
+        if ( ! is_admin() && is_singular( 'simple_lms_course' ) ) {
+            $wp_admin_bar->add_node(
+                array(
+                    'id'     => 'simple-lms-edit',
+                    'parent' => 'simple-lms',
+                    'title'  => __( 'Edit This Course', 'simple-lms' ),
+                    'href'   => admin_url( 'admin.php?page=simple-lms-add&course_id=' . get_the_ID() ),
+                )
+            );
+        }
     }
 
     /**

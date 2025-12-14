@@ -38,7 +38,6 @@ class LMS_Admin {
         add_action( 'admin_init', array( $this, 'handle_course_form' ) );
         add_action( 'admin_init', array( $this, 'handle_settings_forms' ) );
         add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
-        add_action( 'admin_bar_menu', array( $this, 'add_admin_bar_menu' ), 100 );
         add_action( 'wp_ajax_simple_lms_delete_course', array( $this, 'ajax_delete_course' ) );
         add_action( 'wp_ajax_simple_lms_search_products', array( $this, 'ajax_search_products' ) );
         add_filter( 'parent_file', array( $this, 'fix_parent_menu' ) );
@@ -58,7 +57,7 @@ class LMS_Admin {
             'simple-lms',
             array( $this, 'render_courses_page' ),
             'dashicons-welcome-learn-more',
-            30
+            21
         );
 
         // Add screen options for courses list.
@@ -132,58 +131,6 @@ class LMS_Admin {
             return absint( $value );
         }
         return $status;
-    }
-
-    /**
-     * Add admin bar menu items.
-     *
-     * @param WP_Admin_Bar $wp_admin_bar Admin bar object.
-     */
-    public function add_admin_bar_menu( $wp_admin_bar ) {
-        if ( ! current_user_can( 'edit_posts' ) ) {
-            return;
-        }
-
-        // Main LMS menu.
-        $wp_admin_bar->add_node(
-            array(
-                'id'    => 'simple-lms',
-                'title' => __( 'LMS', 'simple-lms' ),
-                'href'  => admin_url( 'admin.php?page=simple-lms' ),
-            )
-        );
-
-        // Add New Course.
-        $wp_admin_bar->add_node(
-            array(
-                'id'     => 'simple-lms-add',
-                'parent' => 'simple-lms',
-                'title'  => __( 'Add New Course', 'simple-lms' ),
-                'href'   => admin_url( 'admin.php?page=simple-lms-add' ),
-            )
-        );
-
-        // All Courses.
-        $wp_admin_bar->add_node(
-            array(
-                'id'     => 'simple-lms-courses',
-                'parent' => 'simple-lms',
-                'title'  => __( 'All Courses', 'simple-lms' ),
-                'href'   => admin_url( 'admin.php?page=simple-lms' ),
-            )
-        );
-
-        // Edit current course (only on single course page).
-        if ( is_singular( 'simple_lms_course' ) ) {
-            $wp_admin_bar->add_node(
-                array(
-                    'id'     => 'simple-lms-edit',
-                    'parent' => 'simple-lms',
-                    'title'  => __( 'Edit This Course', 'simple-lms' ),
-                    'href'   => admin_url( 'admin.php?page=simple-lms-add&course_id=' . get_the_ID() ),
-                )
-            );
-        }
     }
 
     /**

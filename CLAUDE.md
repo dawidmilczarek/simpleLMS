@@ -310,7 +310,7 @@ All placeholders have corresponding conditional blocks. Block only renders if da
 - Default template editor (always exists)
 - Status-specific template editor (one per status, optional)
 - Code editor (CodeMirror) with syntax highlighting
-- **Reset to Default** button to restore built-in template
+- **Reset to Default** button to restore built-in template (form POST with page refresh, same UX as certificate reset)
 
 ---
 
@@ -325,11 +325,15 @@ All placeholders have corresponding conditional blocks. Block only renders if da
 
 ### Preset Configuration (Admin UI)
 
+Preset form follows the same pattern as taxonomies:
+- **Name** (human-readable) - first field, required
+- **Slug** - second field, auto-generated from name if empty, used in shortcode
+
 Each preset defines:
 
 | Setting | Type | Default | Description |
 |---------|------|---------|-------------|
-| `name` | string | required | Preset slug (used in shortcode) |
+| `name` | string | required | Preset slug (auto-generated from label if empty) |
 | `label` | string | required | Human-readable name for admin |
 | `statuses` | array | all | Filter by course statuses |
 | `categories` | array | all | Filter by categories |
@@ -424,18 +428,19 @@ simpleLMS
 - **Custom Courses List**: Dedicated table with search, filtering by status, pagination
 - **Dedicated Course Form**: Two-column layout with all fields in one page (not WordPress meta boxes)
 - **Taxonomy Management**: Integrated into Settings tabs (no separate WordPress taxonomy pages)
+- **Menu Position**: simpleLMS menu appears at position 21 (right after Pages)
 - **Menu Highlighting**: simpleLMS menu stays highlighted/expanded across all plugin pages
-- **Admin Bar Menu**: Quick access from WordPress admin bar
+- **Admin Bar Menu**: Quick access from WordPress admin bar (works on both frontend and backend)
 
 ### Admin Bar Menu
 
-Available from any page when logged in as admin:
+Available on both frontend and backend for users with `edit_posts` capability:
 
 ```
-LMS (in admin bar)
+simpleLMS (in admin bar)
 ├── Add New Course    → admin.php?page=simple-lms-add
 ├── All Courses       → admin.php?page=simple-lms
-└── Edit This Course  → (only on single course page) edit current course
+└── Edit This Course  → (only on single course frontend page) edit current course
 ```
 
 ### Default Values (General Tab)
