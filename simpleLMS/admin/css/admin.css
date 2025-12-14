@@ -238,41 +238,20 @@
     border: 1px dashed #2271b1;
 }
 
-/* Courses List - Columns */
-.simple-lms-courses .column-title {
-    width: 33%;
+/* Courses List - Table */
+.simple-lms-courses .wp-list-table {
+    table-layout: auto;
+    width: 100%;
 }
 
-.simple-lms-courses .column-course-date {
-    width: 100px;
-}
-
-.simple-lms-courses .column-status {
-    width: 100px;
-}
-
-.simple-lms-courses .column-lecturer {
-    width: 120px;
+.simple-lms-courses .wp-list-table td,
+.simple-lms-courses .wp-list-table th {
+    white-space: nowrap;
 }
 
 .simple-lms-courses .column-videos,
 .simple-lms-courses .column-materials {
-    width: 70px;
     text-align: center;
-}
-
-.simple-lms-courses .column-category,
-.simple-lms-courses .column-tags {
-    width: 100px;
-}
-
-.simple-lms-courses .column-memberships,
-.simple-lms-courses .column-products {
-    width: 120px;
-}
-
-.simple-lms-courses .column-post-status {
-    width: 90px;
 }
 
 .simple-lms-courses .status-publish {

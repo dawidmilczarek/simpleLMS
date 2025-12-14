@@ -733,12 +733,32 @@ Custom table view for managing courses.
 ### Features
 - **Search**: Search courses by title
 - **Filters**: Filter by category, tags, status, lecturer, published status (combinable with AND logic)
-- **Sorting**: Clickable column headers for Title, Course Date, Lecturer, Published
+- **Sorting**: Clickable column headers for Title, Date, Published
 - **Pagination**: Navigate through courses
-- **Screen Options**: Configure items per page and toggle column visibility (Title always visible)
-- **Columns**: Title, Date, Status, Lecturer, Videos, Materials, Category, Tags, Memberships, Products, Published
 - **Actions**: Edit, Duplicate, View, Delete (with AJAX confirmation)
 - **Reset**: Button to clear all active filters
+
+### Columns
+Order: Title → Date → Status → Lecturer → Videos → Materials → Category → Tags → Memberships → Products → Published
+
+| Column | Description | Width |
+|--------|-------------|-------|
+| Title | Course title with row actions (always visible) | 33% |
+| Date | Course date (`_simple_lms_date`) | 100px |
+| Status | Course status taxonomy | 100px |
+| Lecturer | Lecturer taxonomy | 120px |
+| Videos | Count of videos | 70px |
+| Materials | Count of materials | 70px |
+| Category | Course category taxonomy | 100px |
+| Tags | Course tags taxonomy | 100px |
+| Memberships | Assigned membership plan names | 120px |
+| Products | Assigned subscription product names | 120px |
+| Published | Post status (Published/Draft) | 90px |
+
+### Screen Options (WordPress native panel)
+- **Courses per page**: Number of courses to display (stored in `simple_lms_courses_per_page` user meta)
+- **Columns**: Toggle visibility for each column except Title (stored in `simple_lms_hidden_columns` user meta)
+- Column visibility saved via AJAX (`simple_lms_toggle_column` action) - no page reload required
 
 ### Course Duplication
 
