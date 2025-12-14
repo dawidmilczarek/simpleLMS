@@ -24,6 +24,7 @@ $settings = get_option( 'simple_lms_settings', array() );
 
 // Get course meta.
 $course_title   = $is_edit ? $course->post_title : '';
+$course_slug    = $is_edit ? $course->post_name : '';
 $course_content = $is_edit ? $course->post_content : '';
 $post_status    = $is_edit ? $course->post_status : 'publish';
 $date           = $is_edit ? get_post_meta( $course_id, '_simple_lms_date', true ) : '';
@@ -107,6 +108,15 @@ $page_title = $is_edit ? __( 'Edit Course', 'simple-lms' ) : __( 'Add New Course
                 <!-- Title -->
                 <div class="course-form-section">
                     <input type="text" name="course_title" id="course_title" class="large-text" placeholder="<?php esc_attr_e( 'Course title', 'simple-lms' ); ?>" value="<?php echo esc_attr( $course_title ); ?>" required>
+                </div>
+
+                <!-- Slug -->
+                <div class="course-form-section course-slug-section">
+                    <label for="course_slug"><?php esc_html_e( 'Slug:', 'simple-lms' ); ?></label>
+                    <code><?php echo esc_html( home_url( '/course/' ) ); ?></code>
+                    <input type="text" name="course_slug" id="course_slug" class="regular-text" value="<?php echo esc_attr( $course_slug ); ?>" placeholder="<?php esc_attr_e( 'auto-generated', 'simple-lms' ); ?>">
+                    <code>/</code>
+                    <p class="description"><?php esc_html_e( 'Leave empty to auto-generate from title. Only lowercase letters, numbers, and hyphens.', 'simple-lms' ); ?></p>
                 </div>
 
                 <!-- Course Details -->

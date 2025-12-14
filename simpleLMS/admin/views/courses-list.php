@@ -344,6 +344,11 @@ function simple_lms_sort_class( $column, $current_orderby, $current_order ) {
                                         <?php esc_html_e( 'Edit', 'simple-lms' ); ?>
                                     </a> |
                                 </span>
+                                <span class="duplicate">
+                                    <a href="#" class="duplicate-course" data-course-id="<?php echo esc_attr( $course_id ); ?>">
+                                        <?php esc_html_e( 'Duplicate', 'simple-lms' ); ?>
+                                    </a> |
+                                </span>
                                 <span class="view">
                                     <a href="<?php echo esc_url( get_permalink( $course_id ) ); ?>" target="_blank">
                                         <?php esc_html_e( 'View', 'simple-lms' ); ?>

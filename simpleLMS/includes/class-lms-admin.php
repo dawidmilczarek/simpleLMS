@@ -40,6 +40,7 @@ class LMS_Admin {
         add_action( 'admin_init', array( $this, 'handle_bulk_actions' ) );
         add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
         add_action( 'wp_ajax_simple_lms_delete_course', array( $this, 'ajax_delete_course' ) );
+        add_action( 'wp_ajax_simple_lms_duplicate_course', array( $this, 'ajax_duplicate_course' ) );
         add_action( 'wp_ajax_simple_lms_search_products', array( $this, 'ajax_search_products' ) );
         add_filter( 'parent_file', array( $this, 'fix_parent_menu' ) );
         add_filter( 'submenu_file', array( $this, 'fix_submenu_file' ) );
@@ -302,11 +303,13 @@ class LMS_Admin {
                     'ajaxUrl' => admin_url( 'admin-ajax.php' ),
                     'nonce'   => wp_create_nonce( 'simple_lms_admin' ),
                     'i18n'    => array(
-                        'confirmDelete'       => __( 'Are you sure you want to delete this preset?', 'simple-lms' ),
-                        'confirmDeleteCourse' => __( 'Are you sure you want to delete this course?', 'simple-lms' ),
-                        'saving'              => __( 'Saving...', 'simple-lms' ),
-                        'saved'               => __( 'Saved!', 'simple-lms' ),
-                        'error'               => __( 'Error saving. Please try again.', 'simple-lms' ),
+                        'confirmDelete'          => __( 'Are you sure you want to delete this preset?', 'simple-lms' ),
+                        'confirmDeleteCourse'    => __( 'Are you sure you want to delete this course?', 'simple-lms' ),
+                        'confirmDuplicateCourse' => __( 'Create a copy of this course?', 'simple-lms' ),
+                        'duplicating'            => __( 'Duplicating...', 'simple-lms' ),
+                        'saving'                 => __( 'Saving...', 'simple-lms' ),
+                        'saved'                  => __( 'Saved!', 'simple-lms' ),
+                        'error'                  => __( 'Error saving. Please try again.', 'simple-lms' ),
                     ),
                 )
             );
@@ -382,10 +385,21 @@ class LMS_Admin {
         $is_new  = 0 === $post_id;
 
         // Prepare post data.
+        $post_title  = isset( $_POST['course_title'] ) ? sanitize_text_field( wp_unslash( $_POST['course_title'] ) ) : '';
+        $post_slug   = isset( $_POST['course_slug'] ) ? sanitize_title( wp_unslash( $_POST['course_slug'] ) ) : '';
+        $post_status = isset( $_POST['course_status'] ) && 'draft' === $_POST['course_status'] ? 'draft' : 'publish';
+
+        // Generate unique slug if empty or ensure uniqueness if provided.
+        if ( empty( $post_slug ) ) {
+            $post_slug = sanitize_title( $post_title );
+        }
+        $post_slug = wp_unique_post_slug( $post_slug, $post_id, $post_status, 'simple_lms_course', 0 );
+
         $post_data = array(
-            'post_title'   => isset( $_POST['course_title'] ) ? sanitize_text_field( wp_unslash( $_POST['course_title'] ) ) : '',
+            'post_title'   => $post_title,
+            'post_name'    => $post_slug,
             'post_content' => isset( $_POST['course_content'] ) ? wp_kses_post( wp_unslash( $_POST['course_content'] ) ) : '',
-            'post_status'  => isset( $_POST['course_status'] ) && 'draft' === $_POST['course_status'] ? 'draft' : 'publish',
+            'post_status'  => $post_status,
             'post_type'    => 'simple_lms_course',
         );
 
@@ -554,6 +568,92 @@ class LMS_Admin {
         } else {
             wp_send_json_error( array( 'message' => __( 'Failed to delete course.', 'simple-lms' ) ) );
         }
+    }
+
+    /**
+     * AJAX handler for duplicating a course.
+     */
+    public function ajax_duplicate_course() {
+        check_ajax_referer( 'simple_lms_admin', 'nonce' );
+
+        if ( ! current_user_can( 'edit_posts' ) ) {
+            wp_send_json_error( array( 'message' => __( 'Permission denied.', 'simple-lms' ) ) );
+        }
+
+        $course_id = isset( $_POST['course_id'] ) ? absint( $_POST['course_id'] ) : 0;
+        if ( ! $course_id ) {
+            wp_send_json_error( array( 'message' => __( 'Invalid course ID.', 'simple-lms' ) ) );
+        }
+
+        $original_post = get_post( $course_id );
+        if ( ! $original_post || 'simple_lms_course' !== $original_post->post_type ) {
+            wp_send_json_error( array( 'message' => __( 'Course not found.', 'simple-lms' ) ) );
+        }
+
+        // Create new post with copied data.
+        $new_title = $original_post->post_title . ' ' . __( 'Copy', 'simple-lms' );
+        $new_slug  = wp_unique_post_slug(
+            sanitize_title( $new_title ),
+            0,
+            'draft',
+            'simple_lms_course',
+            0
+        );
+
+        $new_post_data = array(
+            'post_title'   => $new_title,
+            'post_name'    => $new_slug,
+            'post_content' => $original_post->post_content,
+            'post_status'  => 'draft',
+            'post_type'    => 'simple_lms_course',
+        );
+
+        $new_post_id = wp_insert_post( $new_post_data );
+
+        if ( is_wp_error( $new_post_id ) ) {
+            wp_send_json_error( array( 'message' => $new_post_id->get_error_message() ) );
+        }
+
+        // Copy all post meta.
+        $meta_keys = array(
+            '_simple_lms_date',
+            '_simple_lms_time_start',
+            '_simple_lms_time_end',
+            '_simple_lms_duration',
+            '_simple_lms_videos',
+            '_simple_lms_materials',
+            '_simple_lms_access_memberships',
+            '_simple_lms_access_products',
+            '_simple_lms_redirect_url',
+            '_simple_lms_certificate_enabled',
+        );
+
+        foreach ( $meta_keys as $meta_key ) {
+            $meta_value = get_post_meta( $course_id, $meta_key, true );
+            if ( '' !== $meta_value ) {
+                update_post_meta( $new_post_id, $meta_key, $meta_value );
+            }
+        }
+
+        // Copy taxonomies.
+        $taxonomies = array(
+            'simple_lms_category',
+            'simple_lms_tag',
+            'simple_lms_status',
+            'simple_lms_lecturer',
+        );
+
+        foreach ( $taxonomies as $taxonomy ) {
+            $terms = wp_get_object_terms( $course_id, $taxonomy, array( 'fields' => 'ids' ) );
+            if ( ! is_wp_error( $terms ) && ! empty( $terms ) ) {
+                wp_set_object_terms( $new_post_id, $terms, $taxonomy );
+            }
+        }
+
+        wp_send_json_success( array(
+            'message'     => __( 'Course duplicated successfully.', 'simple-lms' ),
+            'redirect_url' => admin_url( 'admin.php?page=simple-lms-add&course_id=' . $new_post_id ),
+        ) );
     }
 
     /**

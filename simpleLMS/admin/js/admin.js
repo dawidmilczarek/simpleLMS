@@ -15,6 +15,7 @@
             this.initElementsSortable();
             this.initCourseActions();
             this.initProductSelect();
+            this.initSlugGeneration();
         },
 
         /**
@@ -209,6 +210,40 @@
                     alert(simpleLMS.i18n.error);
                 });
             });
+
+            // Duplicate single course.
+            $(document).on('click', '.duplicate-course', function(e) {
+                e.preventDefault();
+
+                var courseId = $(this).data('course-id');
+                if (!courseId) {
+                    return;
+                }
+
+                if (!confirm(simpleLMS.i18n.confirmDuplicateCourse)) {
+                    return;
+                }
+
+                var $link = $(this);
+                var originalText = $link.text();
+                $link.text(simpleLMS.i18n.duplicating);
+
+                $.post(simpleLMS.ajaxUrl, {
+                    action: 'simple_lms_duplicate_course',
+                    nonce: simpleLMS.nonce,
+                    course_id: courseId
+                }, function(response) {
+                    if (response.success && response.data.redirect_url) {
+                        window.location.href = response.data.redirect_url;
+                    } else {
+                        $link.text(originalText);
+                        alert(response.data.message || simpleLMS.i18n.error);
+                    }
+                }).fail(function() {
+                    $link.text(originalText);
+                    alert(simpleLMS.i18n.error);
+                });
+            });
         },
 
         /**
@@ -244,6 +279,59 @@
                     cache: true
                 }
             });
+        },
+
+        /**
+         * Initialize slug generation from title.
+         */
+        initSlugGeneration: function() {
+            var $title = $('#course_title');
+            var $slug = $('#course_slug');
+
+            if (!$title.length || !$slug.length) {
+                return;
+            }
+
+            var self = this;
+
+            // Only auto-generate if slug is empty (new course or empty slug).
+            $title.on('blur', function() {
+                if (!$slug.val() && $title.val()) {
+                    $slug.val(self.slugify($title.val()));
+                }
+            });
+
+            // Clean slug on input.
+            $slug.on('input', function() {
+                var cleaned = self.slugify($(this).val());
+                $(this).val(cleaned);
+            });
+        },
+
+        /**
+         * Convert string to URL-friendly slug.
+         */
+        slugify: function(text) {
+            // Basic transliteration for Polish characters.
+            var charMap = {
+                'ą': 'a', 'ć': 'c', 'ę': 'e', 'ł': 'l', 'ń': 'n',
+                'ó': 'o', 'ś': 's', 'ź': 'z', 'ż': 'z',
+                'Ą': 'a', 'Ć': 'c', 'Ę': 'e', 'Ł': 'l', 'Ń': 'n',
+                'Ó': 'o', 'Ś': 's', 'Ź': 'z', 'Ż': 'z'
+            };
+
+            var slug = text.toLowerCase();
+
+            // Replace Polish characters.
+            for (var char in charMap) {
+                slug = slug.replace(new RegExp(char, 'g'), charMap[char]);
+            }
+
+            return slug
+                .replace(/[^a-z0-9\s-]/g, '') // Remove non-alphanumeric.
+                .replace(/\s+/g, '-')          // Replace spaces with hyphens.
+                .replace(/-+/g, '-')           // Replace multiple hyphens with single.
+                .replace(/^-|-$/g, '');        // Trim hyphens from start/end.
         }
     };
 

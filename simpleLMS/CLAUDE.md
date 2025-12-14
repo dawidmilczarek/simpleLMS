@@ -703,11 +703,20 @@ The plugin uses a dedicated custom form for adding and editing courses (not the 
 
 ### Form Sections
 1. **Title** - Large input field at top
-2. **Course Details** - Date, time range, duration, lecturer
-3. **Videos** - Repeater field (drag to reorder, add/remove)
-4. **Materials** - Repeater field (drag to reorder, add/remove)
-5. **Additional Content** - WordPress WYSIWYG editor
-6. **Access Control** - Membership checkboxes, subscription products (searchable multi-select with AJAX), redirect URL
+2. **Slug** - Editable URL slug with auto-generation from title
+3. **Course Details** - Date, time range, duration, lecturer
+4. **Videos** - Repeater field (drag to reorder, add/remove)
+5. **Materials** - Repeater field (drag to reorder, add/remove)
+6. **Additional Content** - WordPress WYSIWYG editor
+7. **Access Control** - Membership checkboxes, subscription products (searchable multi-select with AJAX), redirect URL
+
+### Slug Field Behavior
+- Displayed as: `https://example.com/course/` **[slug]** `/`
+- Auto-generates from title when user leaves the title field (if slug is empty)
+- User can manually edit at any time
+- Automatically sanitized (lowercase, hyphens, no special characters)
+- Polish characters are transliterated (ą→a, ć→c, ę→e, ł→l, etc.)
+- Uniqueness is ensured on save (appends `-2`, `-3`, etc. if slug already exists)
 
 ### Sidebar Sections
 1. **Publish** - Status selection (Published/Draft), Update/Create button, View link
@@ -728,8 +737,21 @@ Custom table view for managing courses.
 - **Pagination**: Navigate through courses
 - **Screen Options**: Configurable items per page (WordPress standard Screen Options panel)
 - **Columns**: Title, Category, Tags, Status, Course Date, Lecturer, Published
-- **Actions**: Edit, View, Delete (with AJAX confirmation)
+- **Actions**: Edit, Duplicate, View, Delete (with AJAX confirmation)
 - **Reset**: Button to clear all active filters
+
+### Course Duplication
+
+The Duplicate action creates a copy of an existing course with:
+- Title suffixed with " Copy" (e.g., "Course Name" → "Course Name Copy")
+- All meta fields copied (date, time, duration, videos, materials, access control settings)
+- All taxonomies copied (categories, tags, status, lecturer)
+- Post content copied
+- Status set to "draft" (for review before publishing)
+
+**AJAX Endpoint:** `simple_lms_duplicate_course`
+- Requires `edit_posts` capability
+- Returns JSON with success status and redirect URL to edit the new course
 
 ---
 
