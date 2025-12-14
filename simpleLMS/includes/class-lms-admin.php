@@ -31,8 +31,6 @@ class LMS_Admin {
         add_action( 'admin_init', array( $this, 'handle_course_form' ) );
         add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
         add_action( 'admin_bar_menu', array( $this, 'add_admin_bar_menu' ), 100 );
-        add_action( 'wp_ajax_simple_lms_save_shortcode_preset', array( $this, 'ajax_save_shortcode_preset' ) );
-        add_action( 'wp_ajax_simple_lms_delete_shortcode_preset', array( $this, 'ajax_delete_shortcode_preset' ) );
         add_action( 'wp_ajax_simple_lms_delete_course', array( $this, 'ajax_delete_course' ) );
         add_action( 'wp_ajax_simple_lms_reset_default_template', array( $this, 'ajax_reset_default_template' ) );
         add_action( 'wp_ajax_simple_lms_search_products', array( $this, 'ajax_search_products' ) );
@@ -603,66 +601,6 @@ class LMS_Admin {
         } else {
             wp_send_json_error( array( 'message' => __( 'Failed to delete course.', 'simple-lms' ) ) );
         }
-    }
-
-    /**
-     * AJAX handler for saving shortcode preset.
-     */
-    public function ajax_save_shortcode_preset() {
-        check_ajax_referer( 'simple_lms_admin', 'nonce' );
-
-        if ( ! current_user_can( 'manage_options' ) ) {
-            wp_send_json_error( array( 'message' => __( 'Permission denied.', 'simple-lms' ) ) );
-        }
-
-        $preset_name = isset( $_POST['preset_name'] ) ? sanitize_key( $_POST['preset_name'] ) : '';
-        if ( empty( $preset_name ) ) {
-            wp_send_json_error( array( 'message' => __( 'Preset name is required.', 'simple-lms' ) ) );
-        }
-
-        $preset = array(
-            'name'         => $preset_name,
-            'label'        => isset( $_POST['preset_label'] ) ? sanitize_text_field( wp_unslash( $_POST['preset_label'] ) ) : '',
-            'statuses'     => isset( $_POST['statuses'] ) ? array_map( 'absint', (array) $_POST['statuses'] ) : array(),
-            'categories'   => isset( $_POST['categories'] ) ? array_map( 'absint', (array) $_POST['categories'] ) : array(),
-            'tags'         => isset( $_POST['tags'] ) ? array_map( 'absint', (array) $_POST['tags'] ) : array(),
-            'order'        => isset( $_POST['order'] ) && 'ASC' === $_POST['order'] ? 'ASC' : 'DESC',
-            'orderby'      => isset( $_POST['orderby'] ) ? sanitize_key( $_POST['orderby'] ) : 'date',
-            'limit'        => isset( $_POST['limit'] ) ? intval( $_POST['limit'] ) : -1,
-            'columns'      => isset( $_POST['columns'] ) ? absint( $_POST['columns'] ) : 3,
-            'display_mode' => isset( $_POST['display_mode'] ) ? sanitize_key( $_POST['display_mode'] ) : 'list',
-            'elements'     => isset( $_POST['elements'] ) ? array_map( 'sanitize_key', (array) $_POST['elements'] ) : array( 'title', 'status', 'date', 'time', 'duration', 'lecturer' ),
-        );
-
-        $presets                 = get_option( 'simple_lms_shortcode_presets', array() );
-        $presets[ $preset_name ] = $preset;
-        update_option( 'simple_lms_shortcode_presets', $presets );
-
-        wp_send_json_success( array( 'message' => __( 'Preset saved successfully.', 'simple-lms' ) ) );
-    }
-
-    /**
-     * AJAX handler for deleting shortcode preset.
-     */
-    public function ajax_delete_shortcode_preset() {
-        check_ajax_referer( 'simple_lms_admin', 'nonce' );
-
-        if ( ! current_user_can( 'manage_options' ) ) {
-            wp_send_json_error( array( 'message' => __( 'Permission denied.', 'simple-lms' ) ) );
-        }
-
-        $preset_name = isset( $_POST['preset_name'] ) ? sanitize_key( $_POST['preset_name'] ) : '';
-        if ( empty( $preset_name ) ) {
-            wp_send_json_error( array( 'message' => __( 'Preset name is required.', 'simple-lms' ) ) );
-        }
-
-        $presets = get_option( 'simple_lms_shortcode_presets', array() );
-        if ( isset( $presets[ $preset_name ] ) ) {
-            unset( $presets[ $preset_name ] );
-            update_option( 'simple_lms_shortcode_presets', $presets );
-        }
-
-        wp_send_json_success( array( 'message' => __( 'Preset deleted successfully.', 'simple-lms' ) ) );
     }
 
     /**

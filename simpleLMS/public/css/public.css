@@ -30,51 +30,7 @@
     padding: 0;
 }
 
-/* Course Grid (Shortcode) */
-.lms-courses-grid {
-    display: grid;
-    gap: 1.5em;
-}
-
-.lms-columns-1 {
-    grid-template-columns: 1fr;
-}
-
-.lms-columns-2 {
-    grid-template-columns: repeat(2, 1fr);
-}
-
-.lms-columns-3 {
-    grid-template-columns: repeat(3, 1fr);
-}
-
-.lms-columns-4 {
-    grid-template-columns: repeat(4, 1fr);
-}
-
-/* Responsive grid */
-@media (max-width: 992px) {
-    .lms-columns-4 {
-        grid-template-columns: repeat(3, 1fr);
-    }
-}
-
-@media (max-width: 768px) {
-    .lms-columns-3,
-    .lms-columns-4 {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-
-@media (max-width: 480px) {
-    .lms-columns-2,
-    .lms-columns-3,
-    .lms-columns-4 {
-        grid-template-columns: 1fr;
-    }
-}
-
-/* Course List (Shortcode - list mode) */
+/* Course List (Shortcode) */
 .lms-courses-list {
     list-style: none;
     margin: 0;

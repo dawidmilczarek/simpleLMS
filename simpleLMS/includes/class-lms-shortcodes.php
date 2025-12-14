@@ -59,31 +59,16 @@ class LMS_Shortcodes {
             return '';
         }
 
-        $display_mode = isset( $preset['display_mode'] ) ? $preset['display_mode'] : 'list';
-        $columns      = isset( $preset['columns'] ) ? absint( $preset['columns'] ) : 3;
-        $elements     = isset( $preset['elements'] ) ? $preset['elements'] : array( 'title', 'status', 'date', 'time', 'duration', 'lecturer' );
+        $elements = isset( $preset['elements'] ) ? $preset['elements'] : array( 'title', 'status', 'date', 'time', 'duration', 'lecturer' );
 
-        if ( 'list' === $display_mode ) {
-            // List mode - courses in a simple list with comma-separated elements.
-            $output = '<ul class="lms-courses-list" data-preset="' . esc_attr( $atts['preset'] ) . '">';
+        $output = '<ul class="lms-courses-list" data-preset="' . esc_attr( $atts['preset'] ) . '">';
 
-            while ( $courses->have_posts() ) {
-                $courses->the_post();
-                $output .= $this->render_course_list_item( get_the_ID(), $elements );
-            }
-
-            $output .= '</ul>';
-        } else {
-            // Grid mode - courses in a grid layout.
-            $output = '<div class="lms-courses-grid lms-columns-' . esc_attr( $columns ) . '" data-preset="' . esc_attr( $atts['preset'] ) . '">';
-
-            while ( $courses->have_posts() ) {
-                $courses->the_post();
-                $output .= $this->render_course_card( get_the_ID(), $elements );
-            }
-
-            $output .= '</div>';
+        while ( $courses->have_posts() ) {
+            $courses->the_post();
+            $output .= $this->render_course_list_item( get_the_ID(), $elements );
         }
+
+        $output .= '</ul>';
 
         wp_reset_postdata();
 
@@ -106,17 +91,15 @@ class LMS_Shortcodes {
         // Return default preset if 'all' doesn't exist.
         if ( 'all' === $preset_name ) {
             return array(
-                'name'         => 'all',
-                'label'        => 'All Courses',
-                'statuses'     => array(),
-                'categories'   => array(),
-                'tags'         => array(),
-                'order'        => 'DESC',
-                'orderby'      => 'date',
-                'limit'        => -1,
-                'display_mode' => 'list',
-                'columns'      => 3,
-                'elements'     => array( 'title', 'status', 'date', 'time', 'duration', 'lecturer' ),
+                'name'       => 'all',
+                'label'      => 'All Courses',
+                'statuses'   => array(),
+                'categories' => array(),
+                'tags'       => array(),
+                'order'      => 'DESC',
+                'orderby'    => 'date',
+                'limit'      => -1,
+                'elements'   => array( 'title', 'status', 'date', 'time', 'duration', 'lecturer' ),
             );
         }
 
@@ -191,73 +174,6 @@ class LMS_Shortcodes {
     }
 
     /**
-     * Render a single course card.
-     *
-     * @param int   $post_id  Course post ID.
-     * @param array $elements Elements to display.
-     * @return string
-     */
-    private function render_course_card( $post_id, $elements ) {
-        $data = $this->get_course_card_data( $post_id );
-
-        $output = '<article class="lms-course-card">';
-
-        foreach ( $elements as $element ) {
-            switch ( $element ) {
-                case 'title':
-                    $output .= '<h3 class="lms-course-title"><a href="' . esc_url( get_permalink( $post_id ) ) . '">' . esc_html( $data['title'] ) . '</a></h3>';
-                    break;
-
-                case 'status':
-                    if ( ! empty( $data['status'] ) ) {
-                        $output .= '<span class="lms-course-status">' . esc_html( $data['status'] ) . '</span>';
-                    }
-                    break;
-
-                case 'date':
-                    if ( ! empty( $data['date'] ) ) {
-                        $output .= '<span class="lms-meta-date">' . esc_html( $data['date'] ) . '</span>';
-                    }
-                    break;
-
-                case 'time':
-                    if ( ! empty( $data['time'] ) ) {
-                        $output .= '<span class="lms-meta-time">' . esc_html( $data['time'] ) . '</span>';
-                    }
-                    break;
-
-                case 'duration':
-                    if ( ! empty( $data['duration'] ) ) {
-                        $output .= '<span class="lms-meta-duration">' . esc_html( $data['duration'] ) . '</span>';
-                    }
-                    break;
-
-                case 'lecturer':
-                    if ( ! empty( $data['lecturer'] ) ) {
-                        $output .= '<span class="lms-meta-lecturer">' . esc_html( $data['lecturer'] ) . '</span>';
-                    }
-                    break;
-
-                case 'category':
-                    if ( ! empty( $data['category'] ) ) {
-                        $output .= '<span class="lms-meta-category">' . esc_html( $data['category'] ) . '</span>';
-                    }
-                    break;
-
-                case 'tags':
-                    if ( ! empty( $data['tags'] ) ) {
-                        $output .= '<span class="lms-meta-tags">' . esc_html( $data['tags'] ) . '</span>';
-                    }
-                    break;
-            }
-        }
-
-        $output .= '</article>';
-
-        return $output;
-    }
-
-    /**
      * Render a single course list item.
      *
      * @param int   $post_id  Course post ID.
@@ -265,7 +181,7 @@ class LMS_Shortcodes {
      * @return string
      */
     private function render_course_list_item( $post_id, $elements ) {
-        $data = $this->get_course_card_data( $post_id );
+        $data = $this->get_course_data( $post_id );
 
         $parts = array();
 
@@ -327,12 +243,12 @@ class LMS_Shortcodes {
     }
 
     /**
-     * Get course card data.
+     * Get course data.
      *
      * @param int $post_id Course post ID.
      * @return array
      */
-    private function get_course_card_data( $post_id ) {
+    private function get_course_data( $post_id ) {
         $date       = get_post_meta( $post_id, '_simple_lms_date', true );
         $time_start = get_post_meta( $post_id, '_simple_lms_time_start', true );
         $time_end   = get_post_meta( $post_id, '_simple_lms_time_end', true );

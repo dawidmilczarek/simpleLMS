@@ -334,8 +334,6 @@ Each preset defines:
 | `order` | string | DESC | ASC (oldest/A first) or DESC (newest/Z first) |
 | `orderby` | string | date | `date` (course date), `title` (alphabetical), `menu_order` (manual) |
 | `limit` | int | -1 | Number of courses to show (-1 = all) |
-| `display_mode` | string | list | Display mode: `list` (comma-separated) or `grid` |
-| `columns` | int | 3 | Grid columns: 1 (full), 2, 3, or 4 per row (only for grid mode) |
 
 **Element Display & Order:**
 
@@ -365,7 +363,8 @@ Admin UI shows a drag-drop list where you can:
 
 ### Shortcode Output Structure
 
-**List Mode (default):**
+Courses are rendered as a list with comma-separated elements:
+
 ```html
 <ul class="lms-courses-list" data-preset="all">
   <li class="lms-course-item">
@@ -375,23 +374,6 @@ Admin UI shows a drag-drop list where you can:
   </li>
   <!-- more courses... -->
 </ul>
-```
-
-**Grid Mode:**
-```html
-<div class="lms-courses-grid lms-columns-3" data-preset="featured">
-  <article class="lms-course-card">
-    <h3 class="lms-course-title"><a href="...">Course Title</a></h3>
-    <span class="lms-course-status">Recording</span>
-    <div class="lms-course-meta">
-      <span class="lms-meta-date">15.01.2025</span>
-      <span class="lms-meta-time">10:00 - 16:00</span>
-      <span class="lms-meta-duration">5 hours</span>
-      <span class="lms-meta-lecturer">Jan Kowalski</span>
-    </div>
-  </article>
-  <!-- more courses... -->
-</div>
 ```
 
 ---
@@ -498,8 +480,8 @@ Configurable default values for new courses. All fields are simple text inputs (
 1. Create shortcode class
 2. Build Shortcodes tab in settings
 3. Implement course query based on preset settings
-4. Create frontend rendering with grid layout
-5. Add basic CSS for course cards
+4. Create frontend rendering with list layout
+5. Add basic CSS for course list
 
 ---
 
@@ -515,11 +497,8 @@ Only essential structural styles:
 |---------|--------|
 | `.lms-video-embed` | Responsive 16:9 iframe container |
 | `.lms-materials-list` | List style reset (no bullets) |
-| `.lms-courses-list` | List style reset for course list mode |
+| `.lms-courses-list` | List style reset for course list |
 | `.lms-course-item` | Basic margin for list items |
-| `.lms-courses-grid` | CSS Grid layout (grid mode) |
-| `.lms-columns-*` | Grid column definitions (1-4) |
-| Responsive breakpoints | Grid adjustments for mobile |
 
 **No decorative styles** (backgrounds, colors, borders, shadows, etc.) - all controlled by theme.
 
