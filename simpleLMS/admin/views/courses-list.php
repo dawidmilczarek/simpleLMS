@@ -164,17 +164,9 @@ function simple_lms_sort_class( $column, $current_orderby, $current_order ) {
     </div>
     <?php endif; ?>
 
+    <!-- Filters Form (GET) -->
     <div class="tablenav top">
-        <div class="alignleft actions bulkactions">
-            <select id="bulk-action-selector">
-                <option value=""><?php esc_html_e( 'Bulk Actions', 'simple-lms' ); ?></option>
-                <option value="delete"><?php esc_html_e( 'Delete', 'simple-lms' ); ?></option>
-            </select>
-            <button type="button" id="do-bulk-action" class="button"><?php esc_html_e( 'Apply', 'simple-lms' ); ?></button>
-            <span id="bulk-status" style="margin-left: 10px;"></span>
-        </div>
-
-        <form method="get" action="" class="simple-lms-filters" style="display: inline-block; margin-left: 15px;">
+        <form method="get" action="" class="simple-lms-filters">
             <input type="hidden" name="page" value="simple-lms">
 
             <div class="alignleft actions">
@@ -247,116 +239,156 @@ function simple_lms_sort_class( $column, $current_orderby, $current_order ) {
         </form>
     </div>
 
-    <table class="wp-list-table widefat fixed striped" id="courses-table">
-        <thead>
-            <tr>
-                <td class="manage-column column-cb check-column" style="width: 35px;">
-                    <input type="checkbox" id="cb-select-all">
-                </td>
-                <th scope="col" class="column-title column-primary <?php echo esc_attr( simple_lms_sort_class( 'title', $orderby, $order ) ); ?>">
-                    <a href="<?php echo esc_url( simple_lms_sort_url( 'title', $orderby, $order ) ); ?>">
-                        <span><?php esc_html_e( 'Title', 'simple-lms' ); ?></span>
-                        <span class="sorting-indicators"><span class="sorting-indicator asc" aria-hidden="true"></span><span class="sorting-indicator desc" aria-hidden="true"></span></span>
-                    </a>
-                </th>
-                <th scope="col" class="column-category"><?php esc_html_e( 'Category', 'simple-lms' ); ?></th>
-                <th scope="col" class="column-tags"><?php esc_html_e( 'Tags', 'simple-lms' ); ?></th>
-                <th scope="col" class="column-status"><?php esc_html_e( 'Status', 'simple-lms' ); ?></th>
-                <th scope="col" class="column-course-date <?php echo esc_attr( simple_lms_sort_class( 'course_date', $orderby, $order ) ); ?>">
-                    <a href="<?php echo esc_url( simple_lms_sort_url( 'course_date', $orderby, $order ) ); ?>">
-                        <span><?php esc_html_e( 'Course Date', 'simple-lms' ); ?></span>
-                        <span class="sorting-indicators"><span class="sorting-indicator asc" aria-hidden="true"></span><span class="sorting-indicator desc" aria-hidden="true"></span></span>
-                    </a>
-                </th>
-                <th scope="col" class="column-lecturer"><?php esc_html_e( 'Lecturer', 'simple-lms' ); ?></th>
-                <th scope="col" class="column-post-status <?php echo esc_attr( simple_lms_sort_class( 'post_status', $orderby, $order ) ); ?>">
-                    <a href="<?php echo esc_url( simple_lms_sort_url( 'post_status', $orderby, $order ) ); ?>">
-                        <span><?php esc_html_e( 'Published', 'simple-lms' ); ?></span>
-                        <span class="sorting-indicators"><span class="sorting-indicator asc" aria-hidden="true"></span><span class="sorting-indicator desc" aria-hidden="true"></span></span>
-                    </a>
-                </th>
-            </tr>
-        </thead>
-        <tbody>
-            <?php if ( $courses_query->have_posts() ) : ?>
-                <?php while ( $courses_query->have_posts() ) : $courses_query->the_post(); ?>
-                <?php
-                $course_id        = get_the_ID();
-                $course_date      = get_post_meta( $course_id, '_simple_lms_date', true );
-                $course_status    = wp_get_post_terms( $course_id, 'simple_lms_status', array( 'fields' => 'names' ) );
-                $course_category  = wp_get_post_terms( $course_id, 'simple_lms_category', array( 'fields' => 'names' ) );
-                $course_tags      = wp_get_post_terms( $course_id, 'simple_lms_tag', array( 'fields' => 'names' ) );
-                $course_lecturer  = wp_get_post_terms( $course_id, 'simple_lms_lecturer', array( 'fields' => 'names' ) );
-                $post_status      = get_post_status( $course_id );
+    <!-- Bulk Actions Form (POST) -->
+    <form method="post" id="courses-form">
+        <?php wp_nonce_field( 'simple_lms_bulk_action', '_bulk_nonce' ); ?>
 
-                $formatted_date = '';
-                if ( $course_date ) {
-                    $timestamp = strtotime( $course_date );
-                    if ( $timestamp ) {
-                        $formatted_date = date_i18n( $date_format, $timestamp );
-                    }
-                }
+        <div class="tablenav top" style="margin-top: 10px;">
+            <div class="alignleft actions bulkactions">
+                <select name="bulk_action">
+                    <option value=""><?php esc_html_e( 'Bulk Actions', 'simple-lms' ); ?></option>
+                    <option value="delete"><?php esc_html_e( 'Delete', 'simple-lms' ); ?></option>
+                </select>
+                <input type="submit" class="button" value="<?php esc_attr_e( 'Apply', 'simple-lms' ); ?>">
+            </div>
+
+            <?php if ( $courses_query->max_num_pages > 1 ) : ?>
+            <div class="tablenav-pages">
+                <span class="displaying-num">
+                    <?php
+                    printf(
+                        /* translators: %s: number of items */
+                        _n( '%s item', '%s items', $courses_query->found_posts, 'simple-lms' ),
+                        number_format_i18n( $courses_query->found_posts )
+                    );
+                    ?>
+                </span>
+                <?php
+                $pagination_args = array(
+                    'base'      => add_query_arg( 'paged', '%#%' ),
+                    'format'    => '',
+                    'prev_text' => '&laquo;',
+                    'next_text' => '&raquo;',
+                    'total'     => $courses_query->max_num_pages,
+                    'current'   => $paged,
+                );
+                echo paginate_links( $pagination_args );
                 ?>
-                <tr>
-                    <th scope="row" class="check-column">
-                        <input type="checkbox" class="course-checkbox" value="<?php echo esc_attr( $course_id ); ?>">
-                    </th>
-                    <td class="column-title column-primary" data-colname="<?php esc_attr_e( 'Title', 'simple-lms' ); ?>">
-                        <strong>
-                            <a href="<?php echo esc_url( admin_url( 'admin.php?page=simple-lms-add&course_id=' . $course_id ) ); ?>" class="row-title">
-                                <?php the_title(); ?>
-                            </a>
-                        </strong>
-                        <div class="row-actions">
-                            <span class="edit">
-                                <a href="<?php echo esc_url( admin_url( 'admin.php?page=simple-lms-add&course_id=' . $course_id ) ); ?>">
-                                    <?php esc_html_e( 'Edit', 'simple-lms' ); ?>
-                                </a> |
-                            </span>
-                            <span class="view">
-                                <a href="<?php echo esc_url( get_permalink( $course_id ) ); ?>" target="_blank">
-                                    <?php esc_html_e( 'View', 'simple-lms' ); ?>
-                                </a> |
-                            </span>
-                            <span class="trash">
-                                <a href="#" class="delete-course" data-course-id="<?php echo esc_attr( $course_id ); ?>">
-                                    <?php esc_html_e( 'Delete', 'simple-lms' ); ?>
-                                </a>
-                            </span>
-                        </div>
-                    </td>
-                    <td class="column-category" data-colname="<?php esc_attr_e( 'Category', 'simple-lms' ); ?>">
-                        <?php echo ! empty( $course_category ) && ! is_wp_error( $course_category ) ? esc_html( implode( ', ', $course_category ) ) : '—'; ?>
-                    </td>
-                    <td class="column-tags" data-colname="<?php esc_attr_e( 'Tags', 'simple-lms' ); ?>">
-                        <?php echo ! empty( $course_tags ) && ! is_wp_error( $course_tags ) ? esc_html( implode( ', ', $course_tags ) ) : '—'; ?>
-                    </td>
-                    <td class="column-status" data-colname="<?php esc_attr_e( 'Status', 'simple-lms' ); ?>">
-                        <?php echo ! empty( $course_status ) && ! is_wp_error( $course_status ) ? esc_html( implode( ', ', $course_status ) ) : '—'; ?>
-                    </td>
-                    <td class="column-course-date" data-colname="<?php esc_attr_e( 'Course Date', 'simple-lms' ); ?>">
-                        <?php echo $formatted_date ? esc_html( $formatted_date ) : '—'; ?>
-                    </td>
-                    <td class="column-lecturer" data-colname="<?php esc_attr_e( 'Lecturer', 'simple-lms' ); ?>">
-                        <?php echo ! empty( $course_lecturer ) && ! is_wp_error( $course_lecturer ) ? esc_html( implode( ', ', $course_lecturer ) ) : '—'; ?>
-                    </td>
-                    <td class="column-post-status" data-colname="<?php esc_attr_e( 'Published', 'simple-lms' ); ?>">
-                        <?php if ( 'publish' === $post_status ) : ?>
-                            <span class="status-publish"><?php esc_html_e( 'Published', 'simple-lms' ); ?></span>
-                        <?php else : ?>
-                            <span class="status-draft"><?php esc_html_e( 'Draft', 'simple-lms' ); ?></span>
-                        <?php endif; ?>
-                    </td>
-                </tr>
-                <?php endwhile; ?>
-                <?php wp_reset_postdata(); ?>
-            <?php else : ?>
-                <tr>
-                    <td colspan="8"><?php esc_html_e( 'No courses found.', 'simple-lms' ); ?></td>
-                </tr>
+            </div>
             <?php endif; ?>
-        </tbody>
-    </table>
+        </div>
+
+        <table class="wp-list-table widefat fixed striped">
+            <thead>
+                <tr>
+                    <td class="manage-column column-cb check-column">
+                        <input type="checkbox" id="cb-select-all">
+                    </td>
+                    <th scope="col" class="column-title column-primary <?php echo esc_attr( simple_lms_sort_class( 'title', $orderby, $order ) ); ?>">
+                        <a href="<?php echo esc_url( simple_lms_sort_url( 'title', $orderby, $order ) ); ?>">
+                            <span><?php esc_html_e( 'Title', 'simple-lms' ); ?></span>
+                            <span class="sorting-indicators"><span class="sorting-indicator asc" aria-hidden="true"></span><span class="sorting-indicator desc" aria-hidden="true"></span></span>
+                        </a>
+                    </th>
+                    <th scope="col" class="column-category"><?php esc_html_e( 'Category', 'simple-lms' ); ?></th>
+                    <th scope="col" class="column-tags"><?php esc_html_e( 'Tags', 'simple-lms' ); ?></th>
+                    <th scope="col" class="column-status"><?php esc_html_e( 'Status', 'simple-lms' ); ?></th>
+                    <th scope="col" class="column-course-date <?php echo esc_attr( simple_lms_sort_class( 'course_date', $orderby, $order ) ); ?>">
+                        <a href="<?php echo esc_url( simple_lms_sort_url( 'course_date', $orderby, $order ) ); ?>">
+                            <span><?php esc_html_e( 'Course Date', 'simple-lms' ); ?></span>
+                            <span class="sorting-indicators"><span class="sorting-indicator asc" aria-hidden="true"></span><span class="sorting-indicator desc" aria-hidden="true"></span></span>
+                        </a>
+                    </th>
+                    <th scope="col" class="column-lecturer"><?php esc_html_e( 'Lecturer', 'simple-lms' ); ?></th>
+                    <th scope="col" class="column-post-status <?php echo esc_attr( simple_lms_sort_class( 'post_status', $orderby, $order ) ); ?>">
+                        <a href="<?php echo esc_url( simple_lms_sort_url( 'post_status', $orderby, $order ) ); ?>">
+                            <span><?php esc_html_e( 'Published', 'simple-lms' ); ?></span>
+                            <span class="sorting-indicators"><span class="sorting-indicator asc" aria-hidden="true"></span><span class="sorting-indicator desc" aria-hidden="true"></span></span>
+                        </a>
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php if ( $courses_query->have_posts() ) : ?>
+                    <?php while ( $courses_query->have_posts() ) : $courses_query->the_post(); ?>
+                    <?php
+                    $course_id        = get_the_ID();
+                    $course_date      = get_post_meta( $course_id, '_simple_lms_date', true );
+                    $course_status    = wp_get_post_terms( $course_id, 'simple_lms_status', array( 'fields' => 'names' ) );
+                    $course_category  = wp_get_post_terms( $course_id, 'simple_lms_category', array( 'fields' => 'names' ) );
+                    $course_tags      = wp_get_post_terms( $course_id, 'simple_lms_tag', array( 'fields' => 'names' ) );
+                    $course_lecturer  = wp_get_post_terms( $course_id, 'simple_lms_lecturer', array( 'fields' => 'names' ) );
+                    $post_status      = get_post_status( $course_id );
+
+                    $formatted_date = '';
+                    if ( $course_date ) {
+                        $timestamp = strtotime( $course_date );
+                        if ( $timestamp ) {
+                            $formatted_date = date_i18n( $date_format, $timestamp );
+                        }
+                    }
+                    ?>
+                    <tr>
+                        <th scope="row" class="check-column">
+                            <input type="checkbox" name="course_ids[]" value="<?php echo esc_attr( $course_id ); ?>" class="course-checkbox">
+                        </th>
+                        <td class="column-title column-primary" data-colname="<?php esc_attr_e( 'Title', 'simple-lms' ); ?>">
+                            <strong>
+                                <a href="<?php echo esc_url( admin_url( 'admin.php?page=simple-lms-add&course_id=' . $course_id ) ); ?>" class="row-title">
+                                    <?php the_title(); ?>
+                                </a>
+                            </strong>
+                            <div class="row-actions">
+                                <span class="edit">
+                                    <a href="<?php echo esc_url( admin_url( 'admin.php?page=simple-lms-add&course_id=' . $course_id ) ); ?>">
+                                        <?php esc_html_e( 'Edit', 'simple-lms' ); ?>
+                                    </a> |
+                                </span>
+                                <span class="view">
+                                    <a href="<?php echo esc_url( get_permalink( $course_id ) ); ?>" target="_blank">
+                                        <?php esc_html_e( 'View', 'simple-lms' ); ?>
+                                    </a> |
+                                </span>
+                                <span class="trash">
+                                    <a href="#" class="delete-course" data-course-id="<?php echo esc_attr( $course_id ); ?>">
+                                        <?php esc_html_e( 'Delete', 'simple-lms' ); ?>
+                                    </a>
+                                </span>
+                            </div>
+                        </td>
+                        <td class="column-category" data-colname="<?php esc_attr_e( 'Category', 'simple-lms' ); ?>">
+                            <?php echo ! empty( $course_category ) && ! is_wp_error( $course_category ) ? esc_html( implode( ', ', $course_category ) ) : '—'; ?>
+                        </td>
+                        <td class="column-tags" data-colname="<?php esc_attr_e( 'Tags', 'simple-lms' ); ?>">
+                            <?php echo ! empty( $course_tags ) && ! is_wp_error( $course_tags ) ? esc_html( implode( ', ', $course_tags ) ) : '—'; ?>
+                        </td>
+                        <td class="column-status" data-colname="<?php esc_attr_e( 'Status', 'simple-lms' ); ?>">
+                            <?php echo ! empty( $course_status ) && ! is_wp_error( $course_status ) ? esc_html( implode( ', ', $course_status ) ) : '—'; ?>
+                        </td>
+                        <td class="column-course-date" data-colname="<?php esc_attr_e( 'Course Date', 'simple-lms' ); ?>">
+                            <?php echo $formatted_date ? esc_html( $formatted_date ) : '—'; ?>
+                        </td>
+                        <td class="column-lecturer" data-colname="<?php esc_attr_e( 'Lecturer', 'simple-lms' ); ?>">
+                            <?php echo ! empty( $course_lecturer ) && ! is_wp_error( $course_lecturer ) ? esc_html( implode( ', ', $course_lecturer ) ) : '—'; ?>
+                        </td>
+                        <td class="column-post-status" data-colname="<?php esc_attr_e( 'Published', 'simple-lms' ); ?>">
+                            <?php if ( 'publish' === $post_status ) : ?>
+                                <span class="status-publish"><?php esc_html_e( 'Published', 'simple-lms' ); ?></span>
+                            <?php else : ?>
+                                <span class="status-draft"><?php esc_html_e( 'Draft', 'simple-lms' ); ?></span>
+                            <?php endif; ?>
+                        </td>
+                    </tr>
+                    <?php endwhile; ?>
+                    <?php wp_reset_postdata(); ?>
+                <?php else : ?>
+                    <tr>
+                        <td colspan="8"><?php esc_html_e( 'No courses found.', 'simple-lms' ); ?></td>
+                    </tr>
+                <?php endif; ?>
+            </tbody>
+        </table>
+    </form>
 
     <?php if ( $courses_query->max_num_pages > 1 ) : ?>
     <div class="tablenav bottom">
@@ -385,3 +417,35 @@ function simple_lms_sort_class( $column, $current_orderby, $current_order ) {
     </div>
     <?php endif; ?>
 </div>
+
+<script>
+document.getElementById('cb-select-all').addEventListener('change', function() {
+    var checkboxes = document.querySelectorAll('.course-checkbox');
+    for (var i = 0; i < checkboxes.length; i++) {
+        checkboxes[i].checked = this.checked;
+    }
+});
+
+document.getElementById('courses-form').addEventListener('submit', function(e) {
+    var action = this.querySelector('[name="bulk_action"]').value;
+    var checked = document.querySelectorAll('.course-checkbox:checked').length;
+
+    if (!action) {
+        e.preventDefault();
+        return false;
+    }
+
+    if (checked === 0) {
+        e.preventDefault();
+        alert('<?php echo esc_js( __( 'Please select at least one course.', 'simple-lms' ) ); ?>');
+        return false;
+    }
+
+    if (action === 'delete') {
+        if (!confirm('<?php echo esc_js( __( 'Are you sure you want to delete the selected courses?', 'simple-lms' ) ); ?>')) {
+            e.preventDefault();
+            return false;
+        }
+    }
+});
+</script>

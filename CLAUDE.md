@@ -325,16 +325,13 @@ All placeholders have corresponding conditional blocks. Block only renders if da
 
 ### Preset Configuration (Admin UI)
 
-Preset form follows the same pattern as taxonomies:
-- **Name** (human-readable) - first field, required
-- **Slug** - second field, auto-generated from name if empty, used in shortcode
+Presets are identified by their name (slug), which is used directly in the shortcode.
+- **Name** - unique identifier, lowercase letters, numbers, and hyphens only (e.g., `featured`, `recent-webinars`)
 
 Each preset defines:
 
 | Setting | Type | Default | Description |
 |---------|------|---------|-------------|
-| `name` | string | required | Preset slug (auto-generated from label if empty) |
-| `label` | string | required | Human-readable name for admin |
 | `statuses` | array | all | Filter by course statuses |
 | `categories` | array | all | Filter by categories |
 | `tags` | array | all | Filter by course tags |

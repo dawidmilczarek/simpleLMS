@@ -91,8 +91,6 @@ class LMS_Shortcodes {
         // Return default preset if 'all' doesn't exist.
         if ( 'all' === $preset_name ) {
             return array(
-                'name'       => 'all',
-                'label'      => 'All Courses',
                 'statuses'   => array(),
                 'categories' => array(),
                 'tags'       => array(),

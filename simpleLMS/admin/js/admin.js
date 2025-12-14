@@ -178,8 +178,6 @@
          * Initialize course actions.
          */
         initCourseActions: function() {
-            var self = this;
-
             // Delete single course.
             $(document).on('click', '.delete-course', function(e) {
                 e.preventDefault();
@@ -210,81 +208,6 @@
                 }).fail(function() {
                     alert(simpleLMS.i18n.error);
                 });
-            });
-
-            // Select all checkboxes.
-            $(document).on('change', '#cb-select-all', function() {
-                var checked = $(this).prop('checked');
-                $('.course-checkbox').prop('checked', checked);
-            });
-
-            // Update select-all state when individual checkbox changes.
-            $(document).on('change', '.course-checkbox', function() {
-                var total = $('.course-checkbox').length;
-                var checked = $('.course-checkbox:checked').length;
-                $('#cb-select-all').prop('checked', total === checked && total > 0);
-            });
-
-            // Bulk action.
-            $(document).on('click', '#do-bulk-action', function() {
-                var action = $('#bulk-action-selector').val();
-                if (!action) {
-                    return;
-                }
-
-                var $checked = $('.course-checkbox:checked');
-                if ($checked.length === 0) {
-                    alert(simpleLMS.i18n.noCoursesSelected || 'Please select at least one course.');
-                    return;
-                }
-
-                if (action === 'delete') {
-                    self.bulkDeleteCourses($checked);
-                }
-            });
-        },
-
-        /**
-         * Bulk delete courses.
-         */
-        bulkDeleteCourses: function($checkboxes) {
-            var courseIds = [];
-            $checkboxes.each(function() {
-                courseIds.push($(this).val());
-            });
-
-            var confirmMsg = simpleLMS.i18n.confirmBulkDelete || 'Are you sure you want to delete {count} courses?';
-            confirmMsg = confirmMsg.replace('{count}', courseIds.length);
-
-            if (!confirm(confirmMsg)) {
-                return;
-            }
-
-            var $status = $('#bulk-status');
-            $status.text(simpleLMS.i18n.deleting || 'Deleting...');
-
-            $.post(simpleLMS.ajaxUrl, {
-                action: 'simple_lms_bulk_delete_courses',
-                nonce: simpleLMS.nonce,
-                course_ids: courseIds
-            }, function(response) {
-                if (response.success) {
-                    $checkboxes.each(function() {
-                        $(this).closest('tr').fadeOut(300, function() {
-                            $(this).remove();
-                        });
-                    });
-                    $status.text(response.data.message || 'Deleted successfully.');
-                    setTimeout(function() {
-                        $status.text('');
-                    }, 3000);
-                } else {
-                    $status.text('');
-                    alert(response.data.message || simpleLMS.i18n.error);
-                }
-            }).fail(function() {
-                $status.text('');
-                alert(simpleLMS.i18n.error);
             });
         },
 

@@ -37,9 +37,9 @@ class LMS_Admin {
         add_action( 'admin_init', array( $this, 'register_settings' ) );
         add_action( 'admin_init', array( $this, 'handle_course_form' ) );
         add_action( 'admin_init', array( $this, 'handle_settings_forms' ) );
+        add_action( 'admin_init', array( $this, 'handle_bulk_actions' ) );
         add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
         add_action( 'wp_ajax_simple_lms_delete_course', array( $this, 'ajax_delete_course' ) );
-        add_action( 'wp_ajax_simple_lms_bulk_delete_courses', array( $this, 'ajax_bulk_delete_courses' ) );
         add_action( 'wp_ajax_simple_lms_search_products', array( $this, 'ajax_search_products' ) );
         add_filter( 'parent_file', array( $this, 'fix_parent_menu' ) );
         add_filter( 'submenu_file', array( $this, 'fix_submenu_file' ) );
@@ -304,9 +304,6 @@ class LMS_Admin {
                     'i18n'    => array(
                         'confirmDelete'       => __( 'Are you sure you want to delete this preset?', 'simple-lms' ),
                         'confirmDeleteCourse' => __( 'Are you sure you want to delete this course?', 'simple-lms' ),
-                        'confirmBulkDelete'   => __( 'Are you sure you want to delete {count} courses?', 'simple-lms' ),
-                        'noCoursesSelected'   => __( 'Please select at least one course.', 'simple-lms' ),
-                        'deleting'            => __( 'Deleting...', 'simple-lms' ),
                         'saving'              => __( 'Saving...', 'simple-lms' ),
                         'saved'               => __( 'Saved!', 'simple-lms' ),
                         'error'               => __( 'Error saving. Please try again.', 'simple-lms' ),
@@ -560,37 +557,39 @@ class LMS_Admin {
     }
 
     /**
-     * AJAX handler for bulk deleting courses.
+     * Handle bulk actions from courses list form.
      */
-    public function ajax_bulk_delete_courses() {
-        check_ajax_referer( 'simple_lms_admin', 'nonce' );
+    public function handle_bulk_actions() {
+        if ( ! isset( $_POST['bulk_action'] ) || empty( $_POST['bulk_action'] ) ) {
+            return;
+        }
+
+        if ( ! isset( $_POST['_bulk_nonce'] ) || ! wp_verify_nonce( $_POST['_bulk_nonce'], 'simple_lms_bulk_action' ) ) {
+            return;
+        }
 
         if ( ! current_user_can( 'delete_posts' ) ) {
-            wp_send_json_error( array( 'message' => __( 'Permission denied.', 'simple-lms' ) ) );
+            return;
         }
 
+        $action     = sanitize_text_field( $_POST['bulk_action'] );
         $course_ids = isset( $_POST['course_ids'] ) ? array_map( 'absint', $_POST['course_ids'] ) : array();
+
         if ( empty( $course_ids ) ) {
-            wp_send_json_error( array( 'message' => __( 'No courses selected.', 'simple-lms' ) ) );
+            return;
         }
 
-        $deleted = 0;
-        foreach ( $course_ids as $course_id ) {
-            if ( wp_delete_post( $course_id, true ) ) {
-                $deleted++;
+        if ( 'delete' === $action ) {
+            $deleted = 0;
+            foreach ( $course_ids as $course_id ) {
+                if ( wp_delete_post( $course_id, true ) ) {
+                    $deleted++;
+                }
             }
-        }
 
-        wp_send_json_success(
-            array(
-                'message' => sprintf(
-                    /* translators: %d: number of deleted courses */
-                    _n( '%d course deleted.', '%d courses deleted.', $deleted, 'simple-lms' ),
-                    $deleted
-                ),
-                'deleted' => $deleted,
-            )
-        );
+            wp_safe_redirect( admin_url( 'admin.php?page=simple-lms&bulk_deleted=' . $deleted ) );
+            exit;
+        }
     }
 
     /**
@@ -688,32 +687,21 @@ class LMS_Admin {
                 return;
             }
 
-            $preset_label = isset( $_POST['preset_label'] ) ? sanitize_text_field( wp_unslash( $_POST['preset_label'] ) ) : '';
+            $preset_name = isset( $_POST['preset_name'] ) ? sanitize_key( $_POST['preset_name'] ) : '';
 
-            if ( empty( $preset_label ) ) {
+            if ( empty( $preset_name ) ) {
                 $this->admin_notices[] = array( 'type' => 'error', 'message' => __( 'Name is required.', 'simple-lms' ) );
-                return;
-            }
-
-            // Get slug from form or auto-generate from label.
-            $preset_slug = isset( $_POST['preset_slug'] ) ? sanitize_key( $_POST['preset_slug'] ) : '';
-            if ( empty( $preset_slug ) ) {
-                $preset_slug = sanitize_title( $preset_label );
-            }
-
-            if ( empty( $preset_slug ) ) {
-                $this->admin_notices[] = array( 'type' => 'error', 'message' => __( 'Could not generate a valid slug.', 'simple-lms' ) );
                 return;
             }
 
             $presets = get_option( 'simple_lms_shortcode_presets', array() );
 
-            if ( isset( $presets[ $preset_slug ] ) ) {
-                $this->admin_notices[] = array( 'type' => 'error', 'message' => __( 'A preset with this slug already exists.', 'simple-lms' ) );
+            if ( isset( $presets[ $preset_name ] ) ) {
+                $this->admin_notices[] = array( 'type' => 'error', 'message' => __( 'A preset with this name already exists.', 'simple-lms' ) );
                 return;
             }
 
-            $presets[ $preset_slug ] = $this->sanitize_preset_data( $preset_slug, $preset_label );
+            $presets[ $preset_name ] = $this->sanitize_preset_data();
             update_option( 'simple_lms_shortcode_presets', $presets );
             $this->admin_notices[] = array( 'type' => 'success', 'message' => __( 'Preset added successfully.', 'simple-lms' ) );
         }
@@ -724,12 +712,11 @@ class LMS_Admin {
                 return;
             }
 
-            $preset_slug  = isset( $_POST['preset_slug'] ) ? sanitize_key( $_POST['preset_slug'] ) : '';
-            $preset_label = isset( $_POST['preset_label'] ) ? sanitize_text_field( wp_unslash( $_POST['preset_label'] ) ) : '';
+            $preset_name = isset( $_POST['preset_name'] ) ? sanitize_key( $_POST['preset_name'] ) : '';
 
-            if ( ! empty( $preset_slug ) ) {
-                $presets                  = get_option( 'simple_lms_shortcode_presets', array() );
-                $presets[ $preset_slug ]  = $this->sanitize_preset_data( $preset_slug, $preset_label );
+            if ( ! empty( $preset_name ) ) {
+                $presets                 = get_option( 'simple_lms_shortcode_presets', array() );
+                $presets[ $preset_name ] = $this->sanitize_preset_data();
                 update_option( 'simple_lms_shortcode_presets', $presets );
                 $this->admin_notices[] = array( 'type' => 'success', 'message' => __( 'Preset updated successfully.', 'simple-lms' ) );
             }
@@ -753,14 +740,10 @@ class LMS_Admin {
     /**
      * Sanitize preset data from POST.
      *
-     * @param string $preset_slug  Preset slug.
-     * @param string $preset_label Preset label (human-readable name).
      * @return array
      */
-    private function sanitize_preset_data( $preset_slug, $preset_label ) {
+    private function sanitize_preset_data() {
         return array(
-            'name'       => $preset_slug,
-            'label'      => $preset_label,
             'statuses'   => isset( $_POST['statuses'] ) ? array_map( 'absint', (array) $_POST['statuses'] ) : array(),
             'categories' => isset( $_POST['categories'] ) ? array_map( 'absint', (array) $_POST['categories'] ) : array(),
             'tags'       => isset( $_POST['tags'] ) ? array_map( 'absint', (array) $_POST['tags'] ) : array(),
