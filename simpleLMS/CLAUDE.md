@@ -100,7 +100,7 @@ Uses `wp_options` table for plugin data (no custom tables). This is the WordPres
 - **Rewrite Slug**: `/course/` (URLs: `/course/course-title/`)
 - **Public**: Yes
 - **Has Archive**: No
-- **Supports**: title, editor (WYSIWYG for additional content)
+- **Supports**: title, editor (WYSIWYG for additional content), thumbnail
 
 ### Meta Fields (stored as post meta)
 
@@ -404,9 +404,10 @@ Plugin uses dedicated custom admin pages (not default WordPress CPT screens).
 
 ```
 simpleLMS
-├── Courses          → Custom courses list (admin.php?page=simple-lms)
-├── Add New Course   → Dedicated course form (admin.php?page=simple-lms-add)
-└── Settings         → Tabbed settings page (admin.php?page=simple-lms-settings)
+├── Courses              → Custom courses list (admin.php?page=simple-lms)
+├── Add New Course       → Dedicated course form (admin.php?page=simple-lms-add)
+├── Generate Certificate → Manual certificate generation (admin.php?page=simple-lms-certificates)
+└── Settings             → Tabbed settings page (admin.php?page=simple-lms-settings)
     ├── Tab: General
     │   ├── Redirect URL (for users without access, default: '/')
     │   ├── Date format
@@ -454,19 +455,27 @@ simpleLMS (in admin bar)
 └── Edit This Course  → (only on single course frontend page) edit current course
 ```
 
-### Default Values (General Tab)
+### Default Values
 
-Configurable default values for new courses. All fields are simple text inputs (empty on fresh install).
+Configurable default values for new courses. Fields are distributed across different settings tabs.
+
+**General Tab:**
 
 | Setting | Example | Description |
 |---------|---------|-------------|
-| Default Material Label | `Download` | Pre-filled label when adding new material |
-| Default Video Title | `Recording` | Pre-filled title when adding new video |
-| Default Live Link Label | `Join Zoom Meeting` | Pre-filled label for live event link |
-| Default Lecturer | `Dawid Milczarek` | Pre-filled lecturer field |
 | Default Time Range | `10:00 - 15:00` | Pre-filled time range (uses time picker) |
-| Default Duration | `5h` | Pre-filled duration (auto-calculated from time range, but editable) |
-| Default Status | `Recording` | Pre-selected status for new courses |
+| Default Duration | `5h` | Pre-filled duration |
+| Default Video Title | `Recording` | Pre-filled title when adding new video |
+| Default Material Label | `Download` | Pre-filled label when adding new material |
+| Default Live Link Label | `Join Zoom Meeting` | Pre-filled label for live event link |
+
+**Taxonomy Tabs:**
+
+| Setting | Tab | Description |
+|---------|-----|-------------|
+| Default Status | Statuses | Pre-selected status for new courses |
+| Default Category | Categories | Pre-selected category for new courses |
+| Default Lecturer | Lecturers | Pre-selected lecturer for new courses |
 
 ---
 
@@ -515,10 +524,16 @@ Only essential structural styles:
 
 | Element | Styles |
 |---------|--------|
+| `.lms-video-item` | Margin bottom for video items |
 | `.lms-video-embed` | Responsive 16:9 iframe container |
 | `.lms-materials-list` | List style reset (no bullets) |
 | `.lms-courses-list` | List style reset for course list |
 | `.lms-course-item` | Basic margin for list items |
+| `.lms-certificate-form` | Basic margin for certificate form |
+| `.lms-cert-inline-form` | Flex layout for inline form elements |
+| `.lms-certificate-button` | Basic button styles |
+| `.lms-certificates-table` | Table styles (width, border-collapse, padding) |
+| `.lms-certificate-section` | Section margin |
 
 **No decorative styles** (backgrounds, colors, borders, shadows, etc.) - all controlled by theme.
 
@@ -596,7 +611,8 @@ Taxonomies must be **temporarily registered** in `uninstall.php` before terms ca
 // Required because plugin code doesn't run during uninstall
 register_taxonomy('simple_lms_category', 'simple_lms_course', array('hierarchical' => true));
 register_taxonomy('simple_lms_tag', 'simple_lms_course', array('hierarchical' => false));
-register_taxonomy('simple_lms_status', 'simple_lms_course', array('hierarchical' => true));
+register_taxonomy('simple_lms_status', 'simple_lms_course', array('hierarchical' => false));
+register_taxonomy('simple_lms_lecturer', 'simple_lms_course', array('hierarchical' => false));
 ```
 
 Without this, `get_terms()` returns `WP_Error` for unregistered taxonomies and terms remain orphaned in the database.
@@ -828,11 +844,16 @@ Plugin includes optional certificate generation for courses using TCPDF library.
 
 | Key | Default | Description |
 |-----|---------|-------------|
+| `table_course` | "Course" | Column header in certificate table |
+| `table_lecturer` | "Lecturer" | Column header in certificate table |
+| `table_date` | "Date" | Column header in certificate table |
+| `table_certificate` | "Certificate" | Column header in certificate table |
 | `select_course` | "Select course..." | Dropdown placeholder text in shortcode form |
 | `btn_download` | "Download" | Download button text in shortcode form |
 | `btn_download_certificate` | "Download certificate" | Download button text on course page |
 | `msg_login_required` | "Please log in to view certificates." | Message for non-logged-in users |
 | `msg_no_certificates` | "No certificates available." | Message when no courses found |
+| `msg_available_after` | "Available after course" | Short message (for table display) |
 | `msg_available_after_long` | "Certificate will be available after the course." | Message on course page when course date is in future |
 | `pdf_filename` | "certificate" | PDF filename (without .pdf extension) |
 | `pdf_title_prefix` | "Certificate - " | Prefix for PDF title metadata |

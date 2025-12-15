@@ -252,11 +252,12 @@ class LMS_Admin {
         $sanitized['redirect_url']           = isset( $input['redirect_url'] ) ? sanitize_text_field( $input['redirect_url'] ) : '/';
         $sanitized['date_format']            = isset( $input['date_format'] ) ? sanitize_text_field( $input['date_format'] ) : 'd.m.Y';
         $sanitized['product_status_filter']  = isset( $input['product_status_filter'] ) && in_array( $input['product_status_filter'], array( 'publish', 'any' ), true ) ? $input['product_status_filter'] : 'publish';
-        $sanitized['default_material_label'] = isset( $input['default_material_label'] ) ? sanitize_text_field( $input['default_material_label'] ) : '';
-        $sanitized['default_video_title']    = isset( $input['default_video_title'] ) ? sanitize_text_field( $input['default_video_title'] ) : '';
-        $sanitized['default_time_start']     = isset( $input['default_time_start'] ) ? sanitize_text_field( $input['default_time_start'] ) : '';
-        $sanitized['default_time_end']       = isset( $input['default_time_end'] ) ? sanitize_text_field( $input['default_time_end'] ) : '';
-        $sanitized['default_duration']       = isset( $input['default_duration'] ) ? sanitize_text_field( $input['default_duration'] ) : '';
+        $sanitized['default_material_label']   = isset( $input['default_material_label'] ) ? sanitize_text_field( $input['default_material_label'] ) : '';
+        $sanitized['default_video_title']      = isset( $input['default_video_title'] ) ? sanitize_text_field( $input['default_video_title'] ) : '';
+        $sanitized['default_live_link_label']  = isset( $input['default_live_link_label'] ) ? sanitize_text_field( $input['default_live_link_label'] ) : '';
+        $sanitized['default_time_start']       = isset( $input['default_time_start'] ) ? sanitize_text_field( $input['default_time_start'] ) : '';
+        $sanitized['default_time_end']         = isset( $input['default_time_end'] ) ? sanitize_text_field( $input['default_time_end'] ) : '';
+        $sanitized['default_duration']         = isset( $input['default_duration'] ) ? sanitize_text_field( $input['default_duration'] ) : '';
 
         // Default taxonomy values (saved from taxonomy tabs).
         $sanitized['default_status']         = isset( $input['default_status'] ) ? sanitize_text_field( $input['default_status'] ) : '';

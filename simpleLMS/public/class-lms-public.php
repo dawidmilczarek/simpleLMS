@@ -57,6 +57,6 @@ class LMS_Public {
             return false;
         }
 
-        return has_shortcode( $post->post_content, 'lms_courses' );
+        return has_shortcode( $post->post_content, 'lms_courses' ) || has_shortcode( $post->post_content, 'lms_certificate' );
     }
 }

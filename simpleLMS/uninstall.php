@@ -35,7 +35,7 @@ function simple_lms_register_taxonomies_for_uninstall() {
     register_taxonomy(
         'simple_lms_status',
         'simple_lms_course',
-        array( 'hierarchical' => true )
+        array( 'hierarchical' => false )
     );
 
     register_taxonomy(

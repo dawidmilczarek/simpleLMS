@@ -77,7 +77,6 @@ function simple_lms_activate() {
                 'order'      => 'DESC',
                 'orderby'    => 'date',
                 'limit'      => -1,
-                'columns'    => 3,
                 'elements'   => array( 'title', 'status', 'date', 'time', 'duration', 'lecturer' ),
             ),
         );
