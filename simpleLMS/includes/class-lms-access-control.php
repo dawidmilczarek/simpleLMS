@@ -32,7 +32,7 @@ class LMS_Access_Control {
 
         $post_id = get_the_ID();
 
-        if ( $this->user_has_access( $post_id ) ) {
+        if ( self::user_has_access( $post_id ) ) {
             return;
         }
 
@@ -70,7 +70,7 @@ class LMS_Access_Control {
      * @param int|null $user_id User ID. Defaults to current user.
      * @return bool
      */
-    public function user_has_access( $post_id, $user_id = null ) {
+    public static function user_has_access( $post_id, $user_id = null ) {
         if ( null === $user_id ) {
             $user_id = get_current_user_id();
         }
@@ -92,12 +92,12 @@ class LMS_Access_Control {
         }
 
         // Check memberships.
-        if ( ! empty( $memberships ) && $this->user_has_membership( $user_id, $memberships ) ) {
+        if ( ! empty( $memberships ) && self::user_has_membership( $user_id, $memberships ) ) {
             return true;
         }
 
         // Check subscriptions.
-        if ( ! empty( $products ) && $this->user_has_subscription( $user_id, $products ) ) {
+        if ( ! empty( $products ) && self::user_has_subscription( $user_id, $products ) ) {
             return true;
         }
 
@@ -118,7 +118,7 @@ class LMS_Access_Control {
      * @param array $plan_ids Membership plan IDs.
      * @return bool
      */
-    private function user_has_membership( $user_id, $plan_ids ) {
+    private static function user_has_membership( $user_id, $plan_ids ) {
         if ( ! function_exists( 'wc_memberships_is_user_active_member' ) ) {
             return false;
         }
@@ -139,7 +139,7 @@ class LMS_Access_Control {
      * @param array $product_ids Subscription product IDs.
      * @return bool
      */
-    private function user_has_subscription( $user_id, $product_ids ) {
+    private static function user_has_subscription( $user_id, $product_ids ) {
         if ( ! function_exists( 'wcs_user_has_subscription' ) ) {
             return false;
         }

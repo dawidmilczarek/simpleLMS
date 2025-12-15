@@ -108,7 +108,7 @@ class LMS_Certificates {
         }
 
         // Check user access.
-        if ( ! $this->user_has_access( $course_id ) ) {
+        if ( ! LMS_Access_Control::user_has_access( $course_id ) ) {
             wp_die( esc_html__( 'You do not have access to this course.', 'simple-lms' ) );
         }
 
@@ -275,26 +275,6 @@ class LMS_Certificates {
     }
 
     /**
-     * Check if user has access to course.
-     *
-     * @param int $course_id Course ID.
-     * @return bool
-     */
-    private function user_has_access( $course_id ) {
-        // Admins always have access.
-        if ( current_user_can( 'manage_options' ) ) {
-            return true;
-        }
-
-        // Use LMS_Access_Control if available.
-        if ( class_exists( 'LMS_Access_Control' ) ) {
-            return LMS_Access_Control::user_has_access( $course_id, get_current_user_id() );
-        }
-
-        return true;
-    }
-
-    /**
      * Render certificate shortcode.
      *
      * @param array $atts Shortcode attributes.
@@ -332,7 +312,7 @@ class LMS_Certificates {
         // Filter courses by user access.
         $accessible_courses = array();
         foreach ( $courses as $course ) {
-            if ( $this->user_has_access( $course->ID ) ) {
+            if ( LMS_Access_Control::user_has_access( $course->ID ) ) {
                 $accessible_courses[] = $course;
             }
         }
@@ -427,7 +407,7 @@ class LMS_Certificates {
         }
 
         // Check user access.
-        if ( ! $this->user_has_access( $course_id ) ) {
+        if ( ! LMS_Access_Control::user_has_access( $course_id ) ) {
             return '';
         }
 
@@ -476,6 +456,6 @@ class LMS_Certificates {
         }
 
         // Check user access.
-        return $this->user_has_access( $course_id );
+        return LMS_Access_Control::user_has_access( $course_id );
     }
 }
