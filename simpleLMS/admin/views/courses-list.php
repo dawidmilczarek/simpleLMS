@@ -10,6 +10,30 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
+/**
+ * Modify ORDER BY to put courses without date at the top.
+ *
+ * @param array    $clauses SQL clauses.
+ * @param WP_Query $query   Query object.
+ * @return array Modified clauses.
+ */
+if ( ! function_exists( 'simple_lms_courses_orderby_null_first' ) ) {
+    function simple_lms_courses_orderby_null_first( $clauses, $query ) {
+        global $wpdb;
+
+        if ( $query->get( 'post_type' ) !== 'simple_lms_course' ) {
+            return $clauses;
+        }
+
+        $order = strtoupper( $query->get( 'order' ) ) === 'ASC' ? 'ASC' : 'DESC';
+
+        // Order: NULL/empty values first, then by date value.
+        $clauses['orderby'] = "CASE WHEN {$wpdb->postmeta}.meta_value IS NULL OR {$wpdb->postmeta}.meta_value = '' THEN 0 ELSE 1 END ASC, {$wpdb->postmeta}.meta_value {$order}";
+
+        return $clauses;
+    }
+}
+
 // Get filter/sort/pagination parameters.
 $paged            = isset( $_GET['paged'] ) ? absint( $_GET['paged'] ) : 1;
 $search           = isset( $_GET['s'] ) ? sanitize_text_field( wp_unslash( $_GET['s'] ) ) : '';
@@ -54,10 +78,29 @@ $args = array(
     'order'          => $order,
 );
 
-// Handle meta ordering.
+// Handle meta ordering for course_date.
+// Courses without a date should appear at the top.
 if ( 'course_date' === $orderby ) {
-    $args['meta_key'] = '_simple_lms_date';
-    $args['orderby']  = 'meta_value';
+    // Use meta_query to include posts without the meta key.
+    $args['meta_query'] = array(
+        'relation' => 'OR',
+        array(
+            'key'     => '_simple_lms_date',
+            'compare' => 'NOT EXISTS',
+        ),
+        array(
+            'key'     => '_simple_lms_date',
+            'value'   => '',
+            'compare' => '=',
+        ),
+        array(
+            'key'     => '_simple_lms_date',
+            'compare' => 'EXISTS',
+        ),
+    );
+
+    // Add filter to modify ORDER BY clause.
+    add_filter( 'posts_clauses', 'simple_lms_courses_orderby_null_first', 10, 2 );
 }
 
 // Search.
@@ -107,6 +150,9 @@ if ( ! empty( $tax_query ) ) {
 }
 
 $courses_query = new WP_Query( $args );
+
+// Remove the orderby filter after query execution.
+remove_filter( 'posts_clauses', 'simple_lms_courses_orderby_null_first', 10 );
 
 // Get terms for filters.
 $statuses   = get_terms( array( 'taxonomy' => 'simple_lms_status', 'hide_empty' => false ) );
@@ -575,4 +621,37 @@ document.getElementById('courses-form').addEventListener('submit', function(e) {
         }
     }
 });
+
+/**
+ * Check title cell height and add 'long-title' class to rows where title exceeds 3 lines.
+ * This hides other columns to give more space to the title.
+ */
+function checkLongTitles() {
+    var rows = document.querySelectorAll('.simple-lms-courses tbody tr');
+    var lineHeight = 20; // Approximate line height in pixels
+    var maxLines = 3;
+    var maxHeight = lineHeight * maxLines;
+
+    rows.forEach(function(row) {
+        var titleCell = row.querySelector('.column-title');
+        if (!titleCell) return;
+
+        // Temporarily remove the class to measure natural height
+        row.classList.remove('long-title');
+
+        // Get the height of the title content (excluding row actions)
+        var titleLink = titleCell.querySelector('.row-title');
+        if (!titleLink) return;
+
+        var titleHeight = titleLink.offsetHeight;
+
+        if (titleHeight > maxHeight) {
+            row.classList.add('long-title');
+        }
+    });
+}
+
+// Run on load and on window resize
+checkLongTitles();
+window.addEventListener('resize', checkLongTitles);
 </script>

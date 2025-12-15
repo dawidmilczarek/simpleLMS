@@ -240,20 +240,73 @@
 
 /* Courses List - Table */
 .simple-lms-courses .wp-list-table {
-    table-layout: auto;
+    table-layout: fixed;
     width: 100%;
 }
 
+/* Column widths - fixed layout
+   Total: 2.5% + 30% + 7% + 7% + 8% + 4% + 4% + 7% + 7% + 10% + 10% + 6% ≈ 100%
+*/
+.simple-lms-courses .column-cb { width: 2.5%; }
+.simple-lms-courses .column-title { width: 27%; }
+.simple-lms-courses .column-course-date { width: 7%; }
+.simple-lms-courses .column-status { width: 7%; }
+.simple-lms-courses .column-lecturer { width: 8%; }
+.simple-lms-courses .column-videos { width: 4%; }
+.simple-lms-courses .column-materials { width: 4%; }
+.simple-lms-courses .column-category { width: 7%; }
+.simple-lms-courses .column-tags { width: 7%; }
+.simple-lms-courses .column-memberships { width: 10%; }
+.simple-lms-courses .column-products { width: 10%; }
+.simple-lms-courses .column-post-status { width: 6%; }
+
+/* Text handling */
 .simple-lms-courses .wp-list-table td,
 .simple-lms-courses .wp-list-table th {
+    vertical-align: top;
+    padding: 8px 6px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.simple-lms-courses .wp-list-table th {
+    vertical-align: middle;
+    white-space: nowrap;
+}
+
+/* Title column - allow wrapping */
+.simple-lms-courses .column-title {
+    white-space: normal;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+/* Other columns - no wrap, ellipsis on overflow */
+.simple-lms-courses .column-course-date,
+.simple-lms-courses .column-status,
+.simple-lms-courses .column-lecturer,
+.simple-lms-courses .column-category,
+.simple-lms-courses .column-tags,
+.simple-lms-courses .column-memberships,
+.simple-lms-courses .column-products,
+.simple-lms-courses .column-post-status {
     white-space: nowrap;
 }
 
 .simple-lms-courses .column-videos,
 .simple-lms-courses .column-materials {
     text-align: center;
+    white-space: nowrap;
 }
 
+/* Smaller font for dense columns */
+.simple-lms-courses .column-memberships,
+.simple-lms-courses .column-products,
+.simple-lms-courses .column-tags {
+    font-size: 12px;
+}
+
+/* Status colors */
 .simple-lms-courses .status-publish {
     color: #00a32a;
 }
@@ -264,6 +317,95 @@
 
 .simple-lms-courses .row-actions .trash a {
     color: #b32d2e;
+}
+
+/* Row actions always visible on title */
+.simple-lms-courses .row-actions {
+    position: static;
+    visibility: visible;
+    margin-top: 5px;
+}
+
+/* Long title rows - hide other columns when title is too long */
+.simple-lms-courses tr.long-title td:not(.column-title):not(.check-column) {
+    display: none;
+}
+
+.simple-lms-courses tr.long-title .column-title {
+    width: auto;
+}
+
+/* Tablet - hide less important columns progressively */
+@media (max-width: 1400px) {
+    .simple-lms-courses .column-tags,
+    .simple-lms-courses .column-category {
+        display: none;
+    }
+}
+
+@media (max-width: 1200px) {
+    .simple-lms-courses .column-memberships,
+    .simple-lms-courses .column-products {
+        display: none;
+    }
+}
+
+@media (max-width: 1024px) {
+    .simple-lms-courses .column-videos,
+    .simple-lms-courses .column-materials {
+        display: none;
+    }
+
+    /* Switch to auto layout when many columns hidden */
+    .simple-lms-courses .wp-list-table {
+        table-layout: auto;
+    }
+}
+
+/* Mobile - minimal view */
+@media (max-width: 782px) {
+    .simple-lms-courses .column-status,
+    .simple-lms-courses .column-lecturer,
+    .simple-lms-courses .column-post-status {
+        display: none;
+    }
+
+    /* Stack filters vertically */
+    .simple-lms-courses .simple-lms-filters .alignleft.actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+        margin-bottom: 10px;
+    }
+
+    .simple-lms-courses .simple-lms-filters select {
+        min-width: 120px;
+        max-width: 100%;
+    }
+
+    .simple-lms-courses .simple-lms-filters .alignright {
+        float: none;
+        display: flex;
+        gap: 5px;
+        flex-wrap: wrap;
+    }
+
+    .simple-lms-courses .simple-lms-filters .alignright input[type="search"] {
+        flex: 1;
+        min-width: 150px;
+    }
+}
+
+/* Very small screens */
+@media (max-width: 480px) {
+    .simple-lms-courses .column-course-date {
+        display: none;
+    }
+
+    .simple-lms-courses .wp-list-table td,
+    .simple-lms-courses .wp-list-table th {
+        padding: 8px 5px;
+    }
 }
 
 /* Course Form */
