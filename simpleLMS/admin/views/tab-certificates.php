@@ -99,23 +99,11 @@ $labels          = wp_parse_args( $frontend_labels, $default_labels );
     <h2><?php esc_html_e( 'Frontend Labels', 'simple-lms' ); ?></h2>
     <p class="description"><?php esc_html_e( 'Customize the labels displayed on the frontend for certificate-related elements.', 'simple-lms' ); ?></p>
 
-    <h3><?php esc_html_e( 'Shortcode Table Headers', 'simple-lms' ); ?></h3>
+    <h3><?php esc_html_e( 'Shortcode Form', 'simple-lms' ); ?></h3>
     <table class="form-table">
         <tr>
-            <th scope="row"><label for="label_table_course"><?php esc_html_e( 'Course column', 'simple-lms' ); ?></label></th>
-            <td><input type="text" id="label_table_course" name="certificate_labels[table_course]" value="<?php echo esc_attr( $labels['table_course'] ); ?>" class="regular-text"></td>
-        </tr>
-        <tr>
-            <th scope="row"><label for="label_table_lecturer"><?php esc_html_e( 'Lecturer column', 'simple-lms' ); ?></label></th>
-            <td><input type="text" id="label_table_lecturer" name="certificate_labels[table_lecturer]" value="<?php echo esc_attr( $labels['table_lecturer'] ); ?>" class="regular-text"></td>
-        </tr>
-        <tr>
-            <th scope="row"><label for="label_table_date"><?php esc_html_e( 'Date column', 'simple-lms' ); ?></label></th>
-            <td><input type="text" id="label_table_date" name="certificate_labels[table_date]" value="<?php echo esc_attr( $labels['table_date'] ); ?>" class="regular-text"></td>
-        </tr>
-        <tr>
-            <th scope="row"><label for="label_table_certificate"><?php esc_html_e( 'Certificate column', 'simple-lms' ); ?></label></th>
-            <td><input type="text" id="label_table_certificate" name="certificate_labels[table_certificate]" value="<?php echo esc_attr( $labels['table_certificate'] ); ?>" class="regular-text"></td>
+            <th scope="row"><label for="label_select_course"><?php esc_html_e( 'Course dropdown placeholder', 'simple-lms' ); ?></label></th>
+            <td><input type="text" id="label_select_course" name="certificate_labels[select_course]" value="<?php echo esc_attr( $labels['select_course'] ); ?>" class="regular-text"></td>
         </tr>
     </table>
 

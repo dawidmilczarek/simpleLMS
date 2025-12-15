@@ -53,6 +53,7 @@ class LMS_Certificates {
             'table_lecturer'          => __( 'Lecturer', 'simple-lms' ),
             'table_date'              => __( 'Date', 'simple-lms' ),
             'table_certificate'       => __( 'Certificate', 'simple-lms' ),
+            'select_course'           => __( 'Select course...', 'simple-lms' ),
             'btn_download'            => __( 'Download', 'simple-lms' ),
             'btn_download_certificate' => __( 'Download certificate', 'simple-lms' ),
             'msg_login_required'      => __( 'Please log in to view certificates.', 'simple-lms' ),
@@ -112,21 +113,29 @@ class LMS_Certificates {
             wp_die( esc_html__( 'You do not have access to this course.', 'simple-lms' ) );
         }
 
+        // Get course date and today's date.
+        $course_date     = get_post_meta( $course_id, '_simple_lms_date', true );
+        $today           = date( 'Y-m-d' );
+        $today_timestamp = strtotime( $today );
+
+        // Check if course date is in the future - certificate not available yet.
+        if ( ! empty( $course_date ) && $course_date > $today ) {
+            wp_die( esc_html__( 'Certificate is not available yet. The course has not taken place.', 'simple-lms' ) );
+        }
+
         // Validate completion date.
         $completion_date = isset( $_GET['completion_date'] ) ? sanitize_text_field( wp_unslash( $_GET['completion_date'] ) ) : '';
         if ( empty( $completion_date ) ) {
             wp_die( esc_html__( 'Completion date is required.', 'simple-lms' ) );
         }
 
-        // Check date is not in future.
+        // Check completion date is not in future.
         $completion_timestamp = strtotime( $completion_date );
-        $today_timestamp      = strtotime( 'today' );
         if ( $completion_timestamp > $today_timestamp ) {
             wp_die( esc_html__( 'Completion date cannot be later than today.', 'simple-lms' ) );
         }
 
-        // Check date is not earlier than course date.
-        $course_date = get_post_meta( $course_id, '_simple_lms_date', true );
+        // Check completion date is not earlier than course date.
         if ( ! empty( $course_date ) ) {
             $course_timestamp = strtotime( $course_date );
             if ( $completion_timestamp < $course_timestamp ) {
@@ -309,81 +318,102 @@ class LMS_Certificates {
 
         $courses = get_posts( $args );
 
-        // Filter courses by user access.
+        // Filter courses by user access and exclude future courses.
         $accessible_courses = array();
+        $today              = date( 'Y-m-d' );
+
         foreach ( $courses as $course ) {
-            if ( LMS_Access_Control::user_has_access( $course->ID ) ) {
-                $accessible_courses[] = $course;
+            if ( ! LMS_Access_Control::user_has_access( $course->ID ) ) {
+                continue;
             }
+
+            // Exclude courses with future dates.
+            $course_date = get_post_meta( $course->ID, '_simple_lms_date', true );
+            if ( ! empty( $course_date ) && $course_date > $today ) {
+                continue;
+            }
+
+            $accessible_courses[] = $course;
         }
 
         if ( empty( $accessible_courses ) ) {
             return '<p class="lms-certificate-message">' . esc_html( self::get_label( 'msg_no_certificates' ) ) . '</p>';
         }
 
-        // Build output.
-        $output = '<div class="lms-certificates-list">';
-        $output .= '<table class="lms-certificates-table">';
-        $output .= '<thead><tr>';
-        $output .= '<th>' . esc_html( self::get_label( 'table_course' ) ) . '</th>';
-        $output .= '<th>' . esc_html( self::get_label( 'table_lecturer' ) ) . '</th>';
-        $output .= '<th>' . esc_html( self::get_label( 'table_date' ) ) . '</th>';
-        $output .= '<th>' . esc_html( self::get_label( 'table_certificate' ) ) . '</th>';
-        $output .= '</tr></thead>';
-        $output .= '<tbody>';
+        // Sort: courses without date first, then by date descending (newest first).
+        usort( $accessible_courses, function( $a, $b ) {
+            $date_a = get_post_meta( $a->ID, '_simple_lms_date', true );
+            $date_b = get_post_meta( $b->ID, '_simple_lms_date', true );
 
-        $date_format = Simple_LMS::get_setting( 'date_format', 'd.m.Y' );
-        $today       = date( 'Y-m-d' );
+            // No date comes first.
+            if ( empty( $date_a ) && ! empty( $date_b ) ) {
+                return -1;
+            }
+            if ( ! empty( $date_a ) && empty( $date_b ) ) {
+                return 1;
+            }
+            if ( empty( $date_a ) && empty( $date_b ) ) {
+                return 0;
+            }
+
+            // Both have dates - newest first (descending).
+            return strcmp( $date_b, $date_a );
+        } );
+
+        $nonce     = wp_create_nonce( 'lms_generate_certificate' );
+        $unique_id = 'lms-cert-' . wp_rand( 1000, 9999 );
+
+        // Build dropdown form.
+        $output = '<div class="lms-certificates-dropdown">';
+        $output .= '<form method="get" action="" target="_blank" class="lms-cert-dropdown-form" id="' . esc_attr( $unique_id ) . '">';
+        $output .= '<input type="hidden" name="lms_generate_certificate" value="1">';
+        $output .= '<input type="hidden" name="_wpnonce" value="' . esc_attr( $nonce ) . '">';
+
+        // Course dropdown.
+        $output .= '<select name="course_id" class="lms-cert-course-select" required>';
+        $output .= '<option value="">' . esc_html( self::get_label( 'select_course' ) ) . '</option>';
 
         foreach ( $accessible_courses as $course ) {
-            // Get course data.
             $course_date = get_post_meta( $course->ID, '_simple_lms_date', true );
-            $formatted_date = '';
-            if ( ! empty( $course_date ) ) {
-                $formatted_date = date_i18n( $date_format, strtotime( $course_date ) );
-            }
+            $min_date    = ! empty( $course_date ) ? $course_date : '';
 
-            $lecturer_terms = wp_get_post_terms( $course->ID, 'simple_lms_lecturer', array( 'fields' => 'names' ) );
-            $lecturer       = ! empty( $lecturer_terms ) && ! is_wp_error( $lecturer_terms ) ? implode( ', ', $lecturer_terms ) : '';
-
-            $nonce = wp_create_nonce( 'lms_generate_certificate' );
-
-            // Determine min date (course date) and default value.
-            $min_date     = ! empty( $course_date ) ? $course_date : '';
-            $default_date = $today;
-            // If course date is in the future, don't allow certificate generation yet.
-            if ( ! empty( $course_date ) && $course_date > $today ) {
-                $default_date = $course_date;
-            }
-
-            $output .= '<tr>';
-            $output .= '<td><a href="' . esc_url( get_permalink( $course->ID ) ) . '">' . esc_html( $course->post_title ) . '</a></td>';
-            $output .= '<td>' . esc_html( $lecturer ) . '</td>';
-            $output .= '<td>' . esc_html( $formatted_date ) . '</td>';
-            $output .= '<td>';
-
-            // Only show form if course date is not in the future.
-            if ( empty( $course_date ) || $course_date <= $today ) {
-                $output .= '<form method="get" action="" target="_blank" class="lms-cert-inline-form">';
-                $output .= '<input type="hidden" name="lms_generate_certificate" value="1">';
-                $output .= '<input type="hidden" name="course_id" value="' . esc_attr( $course->ID ) . '">';
-                $output .= '<input type="hidden" name="_wpnonce" value="' . esc_attr( $nonce ) . '">';
-                $output .= '<input type="date" name="completion_date" value="' . esc_attr( $default_date ) . '"';
-                if ( ! empty( $min_date ) ) {
-                    $output .= ' min="' . esc_attr( $min_date ) . '"';
-                }
-                $output .= ' max="' . esc_attr( $today ) . '" required>';
-                $output .= '<button type="submit" class="lms-certificate-button">' . esc_html( self::get_label( 'btn_download' ) ) . '</button>';
-                $output .= '</form>';
-            } else {
-                $output .= '<span class="lms-certificate-unavailable">' . esc_html( self::get_label( 'msg_available_after' ) ) . '</span>';
-            }
-
-            $output .= '</td>';
-            $output .= '</tr>';
+            $output .= '<option value="' . esc_attr( $course->ID ) . '" data-min-date="' . esc_attr( $min_date ) . '">';
+            $output .= esc_html( $course->post_title );
+            $output .= '</option>';
         }
 
-        $output .= '</tbody></table></div>';
+        $output .= '</select>';
+
+        // Date picker.
+        $output .= '<input type="date" name="completion_date" class="lms-cert-date-input" value="' . esc_attr( $today ) . '" max="' . esc_attr( $today ) . '" required>';
+
+        // Submit button.
+        $output .= '<button type="submit" class="lms-certificate-button">' . esc_html( self::get_label( 'btn_download' ) ) . '</button>';
+
+        $output .= '</form>';
+        $output .= '</div>';
+
+        // Inline JavaScript to update date min based on selected course.
+        $output .= '<script>
+        (function() {
+            var form = document.getElementById("' . esc_js( $unique_id ) . '");
+            if (!form) return;
+            var select = form.querySelector(".lms-cert-course-select");
+            var dateInput = form.querySelector(".lms-cert-date-input");
+            if (!select || !dateInput) return;
+
+            select.addEventListener("change", function() {
+                var option = select.options[select.selectedIndex];
+                var minDate = option.getAttribute("data-min-date") || "";
+                dateInput.min = minDate;
+
+                // Reset date if current value is before new min.
+                if (minDate && dateInput.value < minDate) {
+                    dateInput.value = minDate;
+                }
+            });
+        })();
+        </script>';
 
         return $output;
     }

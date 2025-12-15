@@ -828,16 +828,12 @@ Plugin includes optional certificate generation for courses using TCPDF library.
 
 | Key | Default | Description |
 |-----|---------|-------------|
-| `table_course` | "Course" | Shortcode table header - course column |
-| `table_lecturer` | "Lecturer" | Shortcode table header - lecturer column |
-| `table_date` | "Date" | Shortcode table header - date column |
-| `table_certificate` | "Certificate" | Shortcode table header - certificate column |
-| `btn_download` | "Download" | Download button text in shortcode table |
+| `select_course` | "Select course..." | Dropdown placeholder text in shortcode form |
+| `btn_download` | "Download" | Download button text in shortcode form |
 | `btn_download_certificate` | "Download certificate" | Download button text on course page |
 | `msg_login_required` | "Please log in to view certificates." | Message for non-logged-in users |
 | `msg_no_certificates` | "No certificates available." | Message when no courses found |
-| `msg_available_after` | "Available after course" | Short message in table |
-| `msg_available_after_long` | "Certificate will be available after the course." | Long message on course page |
+| `msg_available_after_long` | "Certificate will be available after the course." | Message on course page when course date is in future |
 | `pdf_filename` | "certificate" | PDF filename (without .pdf extension) |
 | `pdf_title_prefix` | "Certificate - " | Prefix for PDF title metadata |
 
@@ -868,10 +864,11 @@ Plugin includes optional certificate generation for courses using TCPDF library.
 
 ### Shortcode
 
-`[lms_certificate]` - Displays table of courses with certificate generation forms. Only shows courses where:
+`[lms_certificate]` - Displays a dropdown form for certificate generation. User selects a course from dropdown, picks completion date, and downloads PDF. Only shows courses where:
 - Certificate is enabled (`_simple_lms_certificate_enabled` = '1')
 - User is logged in
 - User has access to the course
+- Course date is not in the future
 
 ### Admin Menu
 
@@ -888,10 +885,16 @@ Certificate generation requires:
 ### Date Validation
 
 **Frontend certificate generation** (shortcode, template placeholder):
-- Completion date cannot be in the future
-- Completion date cannot be earlier than the course date
-- If course date is in the future, certificate form is hidden (shows "Available after course" message)
+
+*Frontend (UI) restrictions:*
+- Courses with future dates are excluded from dropdown
 - Date input has `min` attribute set to course date and `max` set to today
+- JavaScript updates `min` when course selection changes
+
+*Backend validation (prevents URL manipulation):*
+- Course date cannot be in the future - "Certificate is not available yet. The course has not taken place."
+- Completion date cannot be in the future - "Completion date cannot be later than today."
+- Completion date cannot be earlier than course date - "Completion date cannot be earlier than the course date."
 
 **Admin panel (manual generation)**:
 - **No date restrictions** - any date allowed (past, present, or future) for flexibility
