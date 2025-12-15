@@ -90,7 +90,9 @@ Uses `wp_options` table for plugin data (no custom tables). This is the WordPres
 - `wp_posts` - courses (post_type = 'simple_lms_course')
 - `wp_postmeta` - course meta fields
 - `wp_terms` / `wp_term_taxonomy` - categories, tags, statuses, lecturers
-- `wp_usermeta` - user preferences (e.g., `simple_lms_courses_per_page` for Screen Options)
+- `wp_usermeta` - user preferences:
+  - `simple_lms_courses_per_page` - Screen Options: courses per page
+  - `simple_lms_hidden_columns` - Screen Options: hidden columns in courses list
 
 ---
 
@@ -597,11 +599,17 @@ When the plugin is **deleted** (not just deactivated), `uninstall.php` runs and 
 | Default template | `wp_options` | `delete_option()` |
 | Status templates | `wp_options` | `delete_option()` |
 | Shortcode presets | `wp_options` | `delete_option()` |
+| Certificate template | `wp_options` | `delete_option()` |
+| Certificate logo URL | `wp_options` | `delete_option()` |
+| Certificate signature URL | `wp_options` | `delete_option()` |
+| Certificate labels | `wp_options` | `delete_option()` |
 | Courses | `wp_posts` | `wp_delete_post(true)` |
 | Course meta | `wp_postmeta` | Auto-deleted with posts |
 | Categories | `wp_terms` | `wp_delete_term()` |
 | Tags | `wp_terms` | `wp_delete_term()` |
 | Statuses | `wp_terms` | `wp_delete_term()` |
+| Lecturers | `wp_terms` | `wp_delete_term()` |
+| User preferences | `wp_usermeta` | `delete_metadata()` |
 
 ### Technical Note: Taxonomy Registration
 

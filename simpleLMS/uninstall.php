@@ -80,6 +80,14 @@ function simple_lms_delete_courses() {
 }
 
 /**
+ * Delete user meta for all users.
+ */
+function simple_lms_delete_user_meta() {
+    delete_metadata( 'user', 0, 'simple_lms_courses_per_page', '', true );
+    delete_metadata( 'user', 0, 'simple_lms_hidden_columns', '', true );
+}
+
+/**
  * Delete all plugin taxonomies terms.
  */
 function simple_lms_delete_taxonomies() {
@@ -114,6 +122,7 @@ simple_lms_register_taxonomies_for_uninstall();
 simple_lms_delete_options();
 simple_lms_delete_courses();
 simple_lms_delete_taxonomies();
+simple_lms_delete_user_meta();
 
 // Clear any cached data.
 wp_cache_flush();
